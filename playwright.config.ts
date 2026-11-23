@@ -26,6 +26,13 @@ export default defineConfig({
     locale: "ko-KR",
     timezoneId: "Asia/Seoul",
     trace: "retain-on-failure",
+    // 시험은 실제 마이크를 쓰지 않는다. 따라 말하기 화면이 녹음을 요청해도 맥의 권한 창이 뜨지 않게 가짜 장치로
+    launchOptions: {
+      args: [
+        "--use-fake-ui-for-media-stream",
+        "--use-fake-device-for-media-stream",
+      ],
+    },
   },
   projects: [
     {
