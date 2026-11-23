@@ -27,28 +27,34 @@ const LEGEND: { m: Mastery; label: string }[] = [
   { m: "solid", label: "단단함" },
 ];
 
-/** 50음도 표에 글자마다 익힌 정도를 색으로 보여 준다. */
-export function ProgressMap({
-  cards,
-}: {
-  cards: Partial<Record<CardId, CardState>>;
-}) {
-  const [script, setScript] = useState<Script>("hira");
-  const [section, setSection] = useState<"basic" | "dakuten" | "yoon">("basic");
-  const grid =
-    section === "basic"
-      ? GOJUON_GRID
-      : section === "dakuten"
-        ? DAKUTEN_GRID
-        : YOON_GRID;
+type Section = "basic" | "dakuten" | "yoon";
+const SECTIONS: { id: Section; label: string; grid: (string | null)[][] }[] = [
+  { id: "basic", label: "기본", grid: GOJUON_GRID },
+  { id: "dakuten", label: "탁음", grid: DAKUTEN_GRID },
+  { id: "yoon", label: "요음", grid: YOON_GRID },
+];
 
-  const total = (grid.flat().filter(Boolean) as string[]).length;
-  const learned = (grid.flat().filter(Boolean) as string[]).filter(
-    (id) => cards[cardId(script, id)],
-  ).length;
+type Cards = Partial<Record<CardId, CardState>>;
+
+function idsOf(grid: (string | null)[][]): string[] {
+  return grid.flat().filter((id): id is string => !!id);
+}
+
+/**
+ * 50음도 표에 글자마다 익힌 정도를 색으로 보여 준다.
+ * 폰은 기본·탁음·요음을 하나씩 고르고, PC(lg)는 셋을 나란히 펼쳐 한눈에 본다.
+ */
+export function ProgressMap({ cards }: { cards: Cards }) {
+  const [script, setScript] = useState<Script>("hira");
+  const [section, setSection] = useState<Section>("basic");
+  const allIds = SECTIONS.flatMap((s) => idsOf(s.grid));
+  const shown = SECTIONS.find((s) => s.id === section) ?? SECTIONS[0];
+  const shownIds = idsOf(shown.grid);
+  const count = (ids: string[]) =>
+    ids.filter((id) => cards[cardId(script, id)]).length;
 
   return (
-    <section className="rounded-3xl bg-bg-sunken p-4">
+    <section className="rounded-3xl bg-bg-sunken p-4 lg:p-6">
       <div className="flex items-center justify-between">
         <div className="flex gap-1 rounded-full bg-bg-raised p-1 text-sm">
           {(["hira", "kata"] as const).map((sc) => (
@@ -67,59 +73,52 @@ export function ProgressMap({
           ))}
         </div>
         <span className="text-xs text-ink-faint">
-          {learned} / {total}
+          <span className="lg:hidden">
+            {count(shownIds)} / {shownIds.length}
+          </span>
+          <span className="hidden lg:inline">
+            {count(allIds)} / {allIds.length}
+          </span>
         </span>
       </div>
-      <div className="mt-3 flex gap-3 text-xs">
-        {(
-          [
-            ["basic", "기본"],
-            ["dakuten", "탁음"],
-            ["yoon", "요음"],
-          ] as const
-        ).map(([k, label]) => (
+
+      {/* 폰: 칸 고르기 */}
+      <div className="mt-3 flex gap-3 text-xs lg:hidden">
+        {SECTIONS.map((s) => (
           <button
-            key={k}
+            key={s.id}
             type="button"
-            onClick={() => setSection(k)}
+            onClick={() => setSection(s.id)}
             className={cn(
               "pb-0.5",
-              section === k
+              section === s.id
                 ? "border-b-2 border-accent text-ink"
                 : "text-ink-faint",
             )}
           >
-            {label}
+            {s.label}
           </button>
         ))}
       </div>
-      <div
-        className={cn(
-          "mt-3 grid gap-1.5",
-          section === "yoon" ? "grid-cols-3" : "grid-cols-5",
-        )}
-      >
-        {grid.flat().map((id, k) => {
-          if (!id)
-            // biome-ignore lint/suspicious/noArrayIndexKey: 빈칸은 자리로 구분한다
-            return <span key={`empty-${k}`} />;
-          const ch = getSound(id)[script];
-          const m = masteryOf(cards[cardId(script, id)]);
-          return (
-            <span
-              key={id}
-              lang="ja"
-              title={getSound(id).ko}
-              className={cn(
-                "flex h-11 items-center justify-center rounded-lg text-xl transition-colors",
-                MASTERY_STYLE[m],
-              )}
-            >
-              {ch}
-            </span>
-          );
-        })}
+      <div className="lg:hidden">
+        <KanaGrid section={shown} script={script} cards={cards} />
       </div>
+
+      {/* PC: 세 표를 나란히 */}
+      <div className="hidden gap-6 lg:grid lg:grid-cols-[5fr_5fr_3fr]">
+        {SECTIONS.map((s) => (
+          <div key={s.id}>
+            <p className="mt-4 flex justify-between text-xs text-ink-faint">
+              <span>{s.label}</span>
+              <span>
+                {count(idsOf(s.grid))} / {idsOf(s.grid).length}
+              </span>
+            </p>
+            <KanaGrid section={s} script={script} cards={cards} />
+          </div>
+        ))}
+      </div>
+
       <div className="mt-3 flex flex-wrap gap-3 text-xs text-ink-faint">
         {LEGEND.map(({ m, label }) => (
           <span key={m} className="flex items-center gap-1">
@@ -129,5 +128,45 @@ export function ProgressMap({
         ))}
       </div>
     </section>
+  );
+}
+
+function KanaGrid({
+  section,
+  script,
+  cards,
+}: {
+  section: (typeof SECTIONS)[number];
+  script: Script;
+  cards: Cards;
+}) {
+  return (
+    <div
+      className={cn(
+        "mt-3 grid gap-1.5",
+        section.id === "yoon" ? "grid-cols-3" : "grid-cols-5",
+      )}
+    >
+      {section.grid.flat().map((id, k) => {
+        if (!id)
+          // biome-ignore lint/suspicious/noArrayIndexKey: 빈칸은 자리로 구분한다
+          return <span key={`empty-${k}`} />;
+        const ch = getSound(id)[script];
+        const m = masteryOf(cards[cardId(script, id)]);
+        return (
+          <span
+            key={id}
+            lang="ja"
+            title={getSound(id).ko}
+            className={cn(
+              "flex h-11 items-center justify-center rounded-lg text-xl transition-colors",
+              MASTERY_STYLE[m],
+            )}
+          >
+            {ch}
+          </span>
+        );
+      })}
+    </div>
   );
 }

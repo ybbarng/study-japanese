@@ -18,7 +18,7 @@ export function LessonList({
   return (
     <section>
       <h2 className="pb-2 text-sm text-ink-faint">레슨</h2>
-      <ol className="flex flex-col gap-2">
+      <ol className="flex flex-col gap-2 lg:grid lg:grid-cols-2 xl:grid-cols-3">
         {withBridges(LESSONS).map((entry) => {
           if (entry.kind === "bridge") {
             const b = entry.bridge;

@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useChoiceKeys } from "@/components/keyboard/key-input";
 import { type CardId, cardChar, getSound, parseCardId } from "@/lib/kana/data";
 import type { Question } from "@/lib/kana/quiz";
 import { playSound } from "./audio";
 import s from "./kana.module.css";
-import { cn, Glyph, PrimaryButton, SoundButton } from "./ui";
+import { ChoiceKey, cn, Glyph, PrimaryButton, SoundButton } from "./ui";
 
 export interface QuizResult {
   correct: number;
@@ -49,6 +50,20 @@ export function QuizRunner({
   useEffect(() => {
     setShowText(false);
   }, [index]);
+
+  // PC: 1~4 키로 고른다. 틀린 뒤에는 "다음" 단추에 초점을 두어 Enter로 넘긴다
+  const nextRef = useRef<HTMLButtonElement>(null);
+  useChoiceKeys(
+    q?.choices.length ?? 0,
+    (i) => {
+      const c = q?.choices[i];
+      if (c) pick(c);
+    },
+    !!q && !answered,
+  );
+  useEffect(() => {
+    if (answered && !isRight) nextRef.current?.focus({ preventScroll: true });
+  }, [answered, isRight]);
 
   if (!q) return null;
   const { soundId } = parseCardId(q.answer);
@@ -165,8 +180,8 @@ export function QuizRunner({
           </>
         )}
       </div>
-      <div className="grid grid-cols-2 gap-3 pt-4">
-        {q.choices.map((c) => {
+      <div className="grid grid-cols-2 gap-3 pt-4 lg:grid-cols-4">
+        {q.choices.map((c, i) => {
           const isAnswer = c === q.answer;
           return (
             <button
@@ -174,7 +189,7 @@ export function QuizRunner({
               type="button"
               onClick={() => pick(c)}
               className={cn(
-                "flex h-24 items-center justify-center rounded-2xl border-2 border-transparent bg-bg-raised transition active:scale-95",
+                "relative flex h-24 items-center justify-center rounded-2xl border-2 border-transparent bg-bg-raised transition active:scale-95 lg:h-28 lg:hover:border-line",
                 answered && isAnswer && cn("border-good bg-good/15", s.pop),
                 answered &&
                   c === picked &&
@@ -183,6 +198,7 @@ export function QuizRunner({
                 answered && c !== picked && !isAnswer && "opacity-40",
               )}
             >
+              <ChoiceKey n={i + 1} />
               {choiceLabel(c)}
             </button>
           );
@@ -190,7 +206,7 @@ export function QuizRunner({
       </div>
       <div className="h-20 pt-4">
         {answered && !isRight && (
-          <PrimaryButton onClick={next}>
+          <PrimaryButton ref={nextRef} onClick={next}>
             {retried.current.has(index)
               ? "다음 (복습에 먼저 나와요)"
               : "다음 (끝에 한 번 더 나와요)"}

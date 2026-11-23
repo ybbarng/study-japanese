@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { useChoiceKeys } from "@/components/keyboard/key-input";
 import { type CardId, cardChar, getSound, parseCardId } from "@/lib/kana/data";
 import {
   gamePool,
@@ -13,7 +14,14 @@ import { makeQuestion, type Question } from "@/lib/kana/quiz";
 import { useKanaStore } from "@/lib/kana/store";
 import { playSound } from "./audio";
 import s from "./kana.module.css";
-import { cn, Glyph, PrimaryButton, Screen, SecondaryButton } from "./ui";
+import {
+  ChoiceKey,
+  cn,
+  Glyph,
+  PrimaryButton,
+  Screen,
+  SecondaryButton,
+} from "./ui";
 
 const GAME_MS = 60_000;
 const MODES: { mode: RushMode; label: string }[] = [
@@ -124,6 +132,16 @@ export function RushGame() {
       setTimeout(() => nextQuestion(q.answer), 700);
     }
   };
+
+  // PC: 1~4 키로 보기 고르기
+  useChoiceKeys(
+    q?.choices.length ?? 0,
+    (i) => {
+      const c = q?.choices[i];
+      if (c) choose(c);
+    },
+    phase === "play",
+  );
 
   if (phase === "ready") {
     return (
@@ -263,16 +281,17 @@ export function RushGame() {
           </span>
         )}
       </div>
-      <div className="grid grid-cols-2 gap-3 pt-4 pb-[max(env(safe-area-inset-bottom),1.25rem)]">
-        {q?.choices.map((c) => {
+      <div className="grid grid-cols-2 gap-3 pt-4 pb-[max(env(safe-area-inset-bottom),1.25rem)] lg:grid-cols-4">
+        {q?.choices.map((c, i) => {
           const sd = getSound(parseCardId(c).soundId);
           return (
             <button
               key={`${turn}-${c}`}
               type="button"
               onClick={() => choose(c)}
-              className="flex h-20 flex-col items-center justify-center rounded-2xl bg-bg-raised active:scale-95 active:bg-accent-soft"
+              className="relative flex h-20 flex-col items-center justify-center rounded-2xl bg-bg-raised active:scale-95 active:bg-accent-soft lg:h-24"
             >
+              <ChoiceKey n={i + 1} />
               <span className="text-2xl font-bold">{sd.ko}</span>
               <span className="text-xs text-ink-soft">{sd.romaji}</span>
             </button>

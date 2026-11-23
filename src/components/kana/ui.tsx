@@ -25,7 +25,7 @@ export function Screen({
   footer?: ReactNode;
 }) {
   return (
-    <div className="mx-auto flex min-h-dvh max-w-md flex-col">
+    <div className="mx-auto flex min-h-dvh max-w-md flex-col lg:max-w-3xl lg:pt-6">
       <header className="flex items-center gap-3 px-4 pt-[max(env(safe-area-inset-top),1rem)]">
         <Link
           href={back}
@@ -59,7 +59,7 @@ export function PrimaryButton({
   children,
   className,
   ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+}: React.ComponentProps<"button">) {
   return (
     <button
       type="button"
@@ -148,6 +148,18 @@ export function SoundButton({
     >
       {state === "none" ? "🔇" : "🔊"}
     </button>
+  );
+}
+
+/** PC에서 보기 왼쪽 위에 붙이는 숫자 키 표시(1~4 키로 고른다). 폰에서는 감춘다 */
+export function ChoiceKey({ n }: { n: number }) {
+  return (
+    <kbd
+      aria-hidden
+      className="absolute top-2 left-2 hidden rounded-md border border-line px-1.5 font-mono text-xs text-ink-faint lg:block"
+    >
+      {n}
+    </kbd>
   );
 }
 

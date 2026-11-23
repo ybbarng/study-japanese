@@ -57,9 +57,9 @@ export function KanaHome() {
             };
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-5 pt-[max(env(safe-area-inset-top),1.5rem)] pb-10">
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-5 pt-[max(env(safe-area-inset-top),1.5rem)] pb-10 lg:max-w-6xl lg:px-10 lg:pt-10">
       <header className="flex items-center justify-between">
-        <Link href="/" className="text-sm text-ink-faint">
+        <Link href="/" className="text-sm text-ink-faint lg:invisible">
           ← にほんご
         </Link>
         {days > 0 && (
@@ -80,46 +80,43 @@ export function KanaHome() {
         </p>
       </div>
 
-      <Link
-        href={today.href}
-        className={cn(
-          "relative block overflow-hidden rounded-3xl bg-accent p-6 text-white active:scale-[0.99]",
-          s.enter,
-        )}
-      >
-        <p className="text-sm opacity-80">{today.eyebrow}</p>
-        <p className="mt-1 pr-14 text-2xl font-bold">{today.title}</p>
-        <Glyph className="mt-4 block text-3xl leading-snug tracking-wider opacity-95">
-          {today.glyphs}
-        </Glyph>
-        <p className="mt-4 text-sm opacity-80">{today.sub}</p>
-        <span className="absolute top-5 right-5 flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-2xl">
-          ▶
-        </span>
-      </Link>
+      {/* PC: 오늘 할 것(크게)과 놀이 입구를 나란히 */}
+      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:gap-4">
+        <Link
+          href={today.href}
+          className={cn(
+            "relative block overflow-hidden rounded-3xl bg-accent p-6 text-white active:scale-[0.99] lg:p-8 lg:hover:brightness-110",
+            s.enter,
+          )}
+        >
+          <p className="text-sm opacity-80">{today.eyebrow}</p>
+          <p className="mt-1 pr-14 text-2xl font-bold">{today.title}</p>
+          <Glyph className="mt-4 block text-3xl leading-snug tracking-wider opacity-95">
+            {today.glyphs}
+          </Glyph>
+          <p className="mt-4 text-sm opacity-80">{today.sub}</p>
+          <span className="absolute top-5 right-5 flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-2xl">
+            ▶
+          </span>
+        </Link>
 
-      <div className="grid grid-cols-3 gap-3 text-center">
-        <Link
-          href="/kana/review"
-          className="rounded-2xl bg-bg-raised p-3 active:scale-95"
-        >
-          <span className="block text-2xl font-bold">{plan.due}</span>
-          <span className="text-xs text-ink-soft">오늘 복습</span>
-        </Link>
-        <Link
-          href="/kana/game/rush"
-          className="rounded-2xl bg-bg-raised p-3 active:scale-95"
-        >
-          <Glyph className="block text-2xl">速</Glyph>
-          <span className="text-xs text-ink-soft">빠르게 읽기</span>
-        </Link>
-        <Link
-          href="/kana/game/match"
-          className="rounded-2xl bg-bg-raised p-3 active:scale-95"
-        >
-          <Glyph className="block text-2xl">あア</Glyph>
-          <span className="text-xs text-ink-soft">짝 맞추기</span>
-        </Link>
+        <div className="grid grid-cols-3 gap-3 text-center lg:grid-cols-1 lg:text-left">
+          <GameLink
+            href="/kana/review"
+            mark={<span className="text-2xl font-bold">{plan.due}</span>}
+            label="오늘 복습"
+          />
+          <GameLink
+            href="/kana/game/rush"
+            mark={<Glyph className="text-2xl">速</Glyph>}
+            label="빠르게 읽기"
+          />
+          <GameLink
+            href="/kana/game/match"
+            mark={<Glyph className="text-2xl">あア</Glyph>}
+            label="짝 맞추기"
+          />
+        </div>
       </div>
 
       <ProgressMap cards={data.cards} />
@@ -133,5 +130,26 @@ export function KanaHome() {
 
       <BackupPanel />
     </main>
+  );
+}
+
+/** 복습·놀이 입구. 폰은 세 칸 작은 상자, PC는 오늘 카드 옆에 세로로 늘어선 줄 */
+function GameLink({
+  href,
+  mark,
+  label,
+}: {
+  href: string;
+  mark: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="rounded-2xl bg-bg-raised p-3 active:scale-95 lg:flex lg:items-center lg:gap-4 lg:px-5 lg:py-4 lg:hover:ring-1 lg:hover:ring-accent/50"
+    >
+      <span className="block lg:w-14">{mark}</span>
+      <span className="text-xs text-ink-soft lg:text-sm">{label}</span>
+    </Link>
   );
 }

@@ -109,7 +109,8 @@ export function WritePad({
           본보기
         </label>
       </div>
-      <div className="relative mx-auto aspect-square w-full max-w-[22rem] overflow-hidden rounded-3xl bg-bg-sunken">
+      {/* PC에서는 마우스로 크게 쓰도록 칸을 키운다(획 굵기는 칸 넓이에 맞춰 바뀐다) */}
+      <div className="relative mx-auto aspect-square w-full max-w-[22rem] cursor-crosshair overflow-hidden rounded-3xl bg-bg-sunken lg:max-w-[min(34rem,calc(100dvh-20rem))]">
         {/* 칸 안내선 */}
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute top-1/2 right-0 left-0 border-t border-dashed border-line" />
@@ -127,7 +128,9 @@ export function WritePad({
         >
           <Glyph
             className={cn(
-              char.length > 1 ? "text-[9rem]" : "text-[15rem]",
+              char.length > 1
+                ? "text-[9rem] lg:text-[min(13rem,calc((100dvh-20rem)*0.4))]"
+                : "text-[15rem] lg:text-[min(23rem,calc((100dvh-20rem)*0.68))]",
               "font-medium",
               revealed && s.pop,
             )}
