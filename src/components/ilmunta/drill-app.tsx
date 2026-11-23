@@ -70,6 +70,8 @@ function DrillSession({ onlyLesson }: { onlyLesson?: number }) {
   );
 
   const style: QuestionStyle = prefs.questionStyle ?? "sentence";
+  // 이 과까지 배운 낱말만 문제에 쓴다
+  const upTo = onlyLesson ?? prefs.maxLesson;
   const rng = useRef<Rng>(seededRng(Date.now()));
   const next = useCallback(
     (prev?: Question): Question => {
@@ -86,9 +88,10 @@ function DrillSession({ onlyLesson }: { onlyLesson?: number }) {
         style,
         rng.current,
         prev ? wordOf(prev.id) : undefined,
+        upTo,
       );
     },
-    [skills, style],
+    [skills, style, upTo],
   );
 
   const [q, setQ] = useState<Question>(() => next());

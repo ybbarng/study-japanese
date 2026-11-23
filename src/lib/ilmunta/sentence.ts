@@ -4,6 +4,7 @@ import type { Skill } from "./curriculum";
 import { type KoForm, koNoun, koPredicate } from "./korean";
 import {
   adjQuestionOf,
+  learnedBy,
   makeQuestion,
   pickAvoiding,
   type Question,
@@ -28,8 +29,8 @@ const ADJ_BY_DICT: ReadonlyMap<string, Adjective> = new Map(
 
 type Candidate = { word: SceneWord; verb?: Verb; adj?: Adjective };
 
-/** 이 틀이 이 기술에 받을 수 있는 낱말 */
-function candidates(frame: Frame, skill: Skill): Candidate[] {
+/** 이 틀이 이 기술에 받을 수 있는 낱말(upTo를 주면 그 과까지 배운 낱말만) */
+function candidates(frame: Frame, skill: Skill, upTo?: number): Candidate[] {
   const scene = SCENES[frame.scene];
   if (skill.kind === "verb" && frame.kind === "verb") {
     if (frame.form !== skill.form) return [];
@@ -37,7 +38,8 @@ function candidates(frame: Frame, skill: Skill): Candidate[] {
       const verb = VERB_BY_DICT.get(word.dict);
       return verb &&
         verb.group === skill.group &&
-        verbFitsForm(verb, frame.form)
+        verbFitsForm(verb, frame.form) &&
+        learnedBy(verb, upTo)
         ? [{ word, verb }]
         : [];
     });
@@ -47,7 +49,8 @@ function candidates(frame: Frame, skill: Skill): Candidate[] {
       return [];
     return scene.flatMap((word) => {
       const adj = ADJ_BY_DICT.get(word.dict);
-      if (!adj || adj.kind !== skill.adjKind) return [];
+      if (!adj || adj.kind !== skill.adjKind || !learnedBy(adj, upTo))
+        return [];
       if (frame.tone && word.tone !== frame.tone) return [];
       return [{ word, adj }];
     });
@@ -55,13 +58,17 @@ function candidates(frame: Frame, skill: Skill): Candidate[] {
   return [];
 }
 
-/** 이 기술을 낼 수 있는 틀과 그 낱말들 */
+/**
+ * 이 기술을 낼 수 있는 틀과 그 낱말들.
+ * `upTo`를 주면 그 과까지 배운 낱말만 넣고, 넣을 낱말이 하나도 없는 틀은 뺀다
+ */
 export function framesFor(
   skill: Skill,
+  upTo?: number,
 ): { frame: Frame; words: Candidate[] }[] {
   return FRAMES.map((frame) => ({
     frame,
-    words: candidates(frame, skill),
+    words: candidates(frame, skill, upTo),
   })).filter((x) => x.words.length > 0);
 }
 
@@ -108,16 +115,21 @@ function render(frame: Frame, c: Candidate): Question["sentence"] {
 
 /**
  * 기술 하나로 문장 빈칸 문제를 만든다. 낼 틀이 없으면 null(부르는 쪽이 활용표 문제로 낸다).
- * `avoidWord`는 바로 앞 문제의 낱말(사전형)
+ * `avoidWord`는 바로 앞 문제의 낱말(사전형), `upTo`는 배운 범위의 마지막 과.
+ * 앞 문제 낱말밖에 못 넣는 틀은 다른 틀이 있으면 고르지 않는다(같은 낱말이 잇달아 나오지 않게)
  */
 export function makeSentenceQuestion(
   skill: Skill,
   rng: Rng,
   avoidWord?: string,
+  upTo?: number,
 ): Question | null {
-  const options = framesFor(skill);
+  const options = framesFor(skill, upTo);
   if (options.length === 0) return null;
-  const { frame, words } = pick(options, rng);
+  const fresh = options.filter((o) =>
+    o.words.some((w) => w.word.dict !== avoidWord),
+  );
+  const { frame, words } = pick(fresh.length > 0 ? fresh : options, rng);
   const c = pickAvoiding(words, rng, (x) => x.word.dict, avoidWord);
   const q =
     skill.kind === "verb" && c.verb
@@ -131,16 +143,20 @@ export function makeSentenceQuestion(
 
 export type QuestionStyle = "sentence" | "table";
 
-/** 드릴이 부르는 문제 만들기: 문장 방식이면 문장으로 내고, 낼 틀이 없는 기술만 활용표로 */
+/**
+ * 드릴이 부르는 문제 만들기: 문장 방식이면 문장으로 내고, 낼 틀이 없는 기술만 활용표로.
+ * `upTo`(배운 범위의 마지막 과)를 주면 그 과까지 배운 낱말만 쓴다
+ */
 export function makeDrillQuestion(
   skill: Skill,
   style: QuestionStyle,
   rng: Rng,
   avoidWord?: string,
+  upTo?: number,
 ): Question {
   if (style === "sentence") {
-    const q = makeSentenceQuestion(skill, rng, avoidWord);
+    const q = makeSentenceQuestion(skill, rng, avoidWord, upTo);
     if (q) return q;
   }
-  return makeQuestion(skill, rng, avoidWord);
+  return makeQuestion(skill, rng, avoidWord, upTo);
 }

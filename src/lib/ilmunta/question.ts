@@ -130,12 +130,30 @@ export function verbFitsForm(v: Verb, form: VerbFormId): boolean {
   return !v.basicOnly || BASIC_FORMS.has(form);
 }
 
+/** 이 과(upTo)까지 배운 낱말인지. upTo가 없으면 모든 낱말을 쓴다 */
+export function learnedBy(w: { lesson?: number }, upTo?: number): boolean {
+  return upTo == null || (w.lesson ?? 0) <= upTo;
+}
+
+/** 배운 낱말만 남긴다. 하나도 없으면 활용표 문제가 비지 않게 그대로 둔다 */
+function learnedOnly<T extends { lesson?: number }>(
+  pool: readonly T[],
+  upTo?: number,
+): readonly T[] {
+  const known = pool.filter((w) => learnedBy(w, upTo));
+  return known.length > 0 ? known : pool;
+}
+
 function verbQuestion(
   skill: Extract<Skill, { kind: "verb" }>,
   rng: Rng,
   avoid?: string,
+  upTo?: number,
 ): Question {
-  const pool = verbsOf(skill.group).filter((v) => verbFitsForm(v, skill.form));
+  const pool = learnedOnly(
+    verbsOf(skill.group).filter((v) => verbFitsForm(v, skill.form)),
+    upTo,
+  );
   const v = pickAvoiding(pool, rng, (x) => x.dict, avoid);
   return verbQuestionOf(skill, v, rng);
 }
@@ -173,8 +191,10 @@ function adjQuestion(
   skill: Extract<Skill, { kind: "adj" }>,
   rng: Rng,
   avoid?: string,
+  upTo?: number,
 ): Question {
-  const a = pickAvoiding(wordsOf(skill.adjKind), rng, (x) => x.dict, avoid);
+  const pool = learnedOnly(wordsOf(skill.adjKind), upTo);
+  const a = pickAvoiding(pool, rng, (x) => x.dict, avoid);
   return adjQuestionOf(skill, a, rng);
 }
 
@@ -212,10 +232,14 @@ function patternQuestion(
   skill: Extract<Skill, { kind: "pattern" }>,
   rng: Rng,
   avoid?: string,
+  upTo?: number,
 ): Question {
   const p = PATTERN_BY_ID.get(skill.patternId);
   if (!p) throw new Error(`없는 문형: ${skill.patternId}`);
-  const pool = VERBS.filter((v) => !v.basicOnly && (p.fits?.(v) ?? true));
+  const pool = learnedOnly(
+    VERBS.filter((v) => !v.basicOnly && (p.fits?.(v) ?? true)),
+    upTo,
+  );
   const v = pickAvoiding(pool, rng, (x) => x.dict, avoid);
   const c = p.build(v);
   const candidates: Form[] = [];
@@ -307,8 +331,14 @@ function keigoQuestion(
   };
 }
 
-function existQuestion(skill: Skill, rng: Rng, avoid?: string): Question {
-  const n = pickAvoiding(wordsOf("noun"), rng, (x) => x.dict, avoid);
+function existQuestion(
+  skill: Skill,
+  rng: Rng,
+  avoid?: string,
+  upTo?: number,
+): Question {
+  const pool = learnedOnly(wordsOf("noun"), upTo);
+  const n = pickAvoiding(pool, rng, (x) => x.dict, avoid);
   const answer = n.alive ? EXIST_FORMS.alive : EXIST_FORMS.thing;
   return {
     id: `${skill.key}|${n.dict}`,
@@ -340,25 +370,29 @@ export function pickAvoiding<T>(
   return pick(rest.length > 0 ? rest : pool, rng);
 }
 
-/** 기술 하나로 문제 하나를 만든다. `avoidWord`는 바로 앞 문제의 낱말 */
+/**
+ * 기술 하나로 문제 하나를 만든다. `avoidWord`는 바로 앞 문제의 낱말,
+ * `upTo`를 주면 그 과까지 배운 낱말만 쓴다(배운 낱말이 없는 기술은 모든 낱말에서 고른다)
+ */
 export function makeQuestion(
   skill: Skill,
   rng: Rng,
   avoidWord?: string,
+  upTo?: number,
 ): Question {
   switch (skill.kind) {
     case "verb":
-      return verbQuestion(skill, rng, avoidWord);
+      return verbQuestion(skill, rng, avoidWord, upTo);
     case "adj":
-      return adjQuestion(skill, rng, avoidWord);
+      return adjQuestion(skill, rng, avoidWord, upTo);
     case "pattern":
-      return patternQuestion(skill, rng, avoidWord);
+      return patternQuestion(skill, rng, avoidWord, upTo);
     case "transitive":
       return transitiveQuestion(skill, rng, avoidWord);
     case "keigo":
       return keigoQuestion(skill, rng, avoidWord);
     case "exist":
-      return existQuestion(skill, rng, avoidWord);
+      return existQuestion(skill, rng, avoidWord, upTo);
   }
 }
 
