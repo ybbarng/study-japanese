@@ -1,6 +1,6 @@
 import { cn } from "@/lib/cn";
 import type { RubySegment } from "@/lib/ilmuta/ruby";
-import { isPressable, type SongWord, tokenRuby } from "@/lib/songs/words";
+import { isPressable, type SongWord, wordRuby } from "@/lib/songs/words";
 
 /** 글 조각들을 <ruby>로. 읽는 법을 끄면 글만 */
 export function Ruby({
@@ -22,10 +22,6 @@ export function Ruby({
       <span key={i}>{s.text}</span>
     ),
   );
-}
-
-export function wordRuby(w: SongWord): RubySegment[] {
-  return w.tokens.flatMap(tokenRuby);
 }
 
 interface Props {

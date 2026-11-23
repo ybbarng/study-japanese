@@ -20,7 +20,7 @@ const contentDir = path.join(root, "content");
 const mediaDir = path.join(root, "media");
 const dataDir = path.join(root, "data");
 writeFakeTextbook(contentDir, mediaDir);
-writeFakeSong(mediaDir);
+writeFakeSong(mediaDir, contentDir);
 
 const nextBin = path.join(repo, "node_modules", ".bin", "next");
 const child = spawn(nextBin, ["start", "--port", port], {

@@ -24,6 +24,8 @@ export default async function SongPage({ params }: Props) {
       song={data.song}
       isAdmin={data.isAdmin}
       learned={data.learned}
+      analysis={data.analysis}
+      analysisBroken={data.analysisBroken}
     />
   );
 }

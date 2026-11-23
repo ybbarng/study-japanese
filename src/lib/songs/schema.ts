@@ -12,47 +12,21 @@ export const AUDIO_FILE_PATTERN =
 export const MAX_LINES = 300;
 const MAX_SEC = 60 * 60;
 
-/** 한 줄에 둘 수 있는 낱말 조각 수. 줄 글이 200자까지라 조각도 그 이상 나올 수 없다 */
-export const MAX_TOKENS_PER_LINE = 200;
-
-/**
- * 형태소 분석기가 나눈 낱말 조각 하나. 관리자 브라우저가 저장할 때 분석해 보낸다
- * (분석기가 메모리를 많이 써 서버에서 돌리지 않는다, src/lib/songs/browser-analyzer.ts)
- */
-export const songTokenSchema = z.object({
-  /** 가사에 나온 그대로 */
-  surface: z.string().min(1).max(100),
-  /** 히라가나 읽는 법(한자가 들어 있을 때만) */
-  reading: z.string().max(200).optional(),
-  /** 기본형(겉모양과 다를 때만, 예: 降っ → 降る) */
-  base: z.string().max(100).optional(),
-  /** 품사(분석기 표기 그대로, 예: 名詞) */
-  pos: z.string().max(20).optional(),
-  /** 품사 세부(예: 非自立, 接続助詞) */
-  posDetail: z.string().max(20).optional(),
-});
-export type SongToken = z.infer<typeof songTokenSchema>;
-
 const timeSchema = z.number().min(0).max(MAX_SEC);
 
 /**
- * 가사 한 줄. 낱말 조각(tokens)은 브라우저가 분석해 붙여 보낸다.
- * 조각을 이으면 줄 글과 같아야 한다(다른 줄의 조각이 섞이거나 글자가 빠진 것을 막는다).
- * 조각 없이 오면 서버가 같은 글로 저장돼 있던 조각을 이어 쓴다(src/lib/songs/annotate.ts).
+ * 가사 한 줄: 글·박자·메모·관리자가 붙여 넣은 해석. 읽는 법·낱말 뜻·문법 메모는 DB가 아니라
+ * 세션이 쓴 분석 파일(content/songs/<slug>.json, src/lib/songs/analysis.ts)에 둔다.
+ * 예전에 저장된 tokens 같은 다른 필드는 받지 않고(zod가 버린다) 읽을 때도 뺀다.
  */
-export const songLineSchema = z
-  .object({
-    ja: z.string().trim().min(1).max(200),
-    start: timeSchema.optional(),
-    end: timeSchema.optional(),
-    note: z.string().max(1000).optional(),
-    tokens: z.array(songTokenSchema).max(MAX_TOKENS_PER_LINE).optional(),
-  })
-  .refine(
-    (line) =>
-      !line.tokens || line.tokens.map((t) => t.surface).join("") === line.ja,
-    { message: "낱말 조각을 이은 글이 줄 글과 다름", path: ["tokens"] },
-  );
+export const songLineSchema = z.object({
+  ja: z.string().trim().min(1).max(200),
+  start: timeSchema.optional(),
+  end: timeSchema.optional(),
+  note: z.string().max(1000).optional(),
+  /** 한국어 해석. 관리자가 직접 붙여 넣는다(세션이 만들지 않는다) */
+  ko: z.string().trim().min(1).max(500).optional(),
+});
 export type SongLine = z.infer<typeof songLineSchema>;
 
 /** PUT /api/songs/[slug]의 본문 */
@@ -103,12 +77,12 @@ export function canSeeLyrics(
   return isAdmin || song.lyricsPublic;
 }
 
-/** 서버에 보낼 줄 모양만 남긴다(화면이 덧붙인 다른 필드는 뺀다) */
+/** 줄 모양만 남긴다(화면이 덧붙였거나 예전에 저장된 다른 필드는 뺀다) */
 export function toLineBody(line: SongLine): SongLine {
   const out: SongLine = { ja: line.ja };
   if (line.start !== undefined) out.start = line.start;
   if (line.end !== undefined) out.end = line.end;
   if (line.note !== undefined) out.note = line.note;
-  if (line.tokens !== undefined) out.tokens = line.tokens;
+  if (line.ko !== undefined) out.ko = line.ko;
   return out;
 }

@@ -14,7 +14,7 @@ export function contentDir(): string {
 const cache = new Map<string, { mtimeMs: number; data: unknown }>();
 
 /** 없으면 null. 있는데 모양이 틀리면 던진다(데이터를 고쳐야 하므로). */
-function readJson<T>(file: string, schema: z.ZodType<T>): T | null {
+export function readJson<T>(file: string, schema: z.ZodType<T>): T | null {
   let mtimeMs: number;
   try {
     mtimeMs = statSync(file).mtimeMs;

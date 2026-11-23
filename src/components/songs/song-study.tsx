@@ -3,18 +3,21 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { PageFrame, TwoColumn } from "@/components/shell/page-frame";
+import type { GrammarNote, MergedAnalysis } from "@/lib/songs/analysis";
 import { type LearnedIndex, learnedLessonOf } from "@/lib/songs/learned";
 import { inLoop, LOOP_OFF, type LoopChoice } from "@/lib/songs/loop";
 import type { Song } from "@/lib/songs/schema";
 import { isKnown, knownCount, lineKey } from "@/lib/songs/study-state";
 import { useSongsStudyStore } from "@/lib/songs/study-store";
 import { lineIndexAt } from "@/lib/songs/timing";
-import { groupTokens } from "@/lib/songs/words";
+import { toWords } from "@/lib/songs/words";
+import { AnalysisNotice } from "./analysis-notice";
 import { LyricLine } from "./lyric-line";
 import { inputOf, saveSong } from "./save-song";
 import { SongControls } from "./song-controls";
 import { SongCredit } from "./song-credit";
 import { useFollowLine } from "./use-follow-line";
+import { useShowKo } from "./use-show-ko";
 import { useSongPlayback } from "./use-song-playback";
 import { useSongsStudyReady } from "./use-songs-study";
 import { WordDetail } from "./word-detail";
@@ -23,7 +26,13 @@ interface Props {
   song: Song;
   isAdmin: boolean;
   learned: LearnedIndex;
+  /** 세션이 쓴 분석을 서버가 가사 줄과 합친 것. 분석이 없는 줄은 글만 보인다 */
+  analysis: MergedAnalysis;
+  /** 분석 파일이 있는데 모양이 틀림 */
+  analysisBroken: boolean;
 }
+
+const EMPTY: readonly GrammarNote[] = [];
 
 type Selected = { line: number; word: number } | null;
 
@@ -32,7 +41,13 @@ type Selected = { line: number; word: number } | null;
  * 관리자는 노래를 틀면 지금 줄이 강조되며 따라 굴러가고, 줄을 누르면 그 줄부터, 반복을 쓴다.
  * PC: 왼쪽 가사, 오른쪽 곁칸에 재생 조절과 낱말 설명. 폰: 조절은 가사 위, 낱말 설명은 아래에서 올라온다.
  */
-export function SongStudy({ song: initial, isAdmin, learned }: Props) {
+export function SongStudy({
+  song: initial,
+  isAdmin,
+  learned,
+  analysis,
+  analysisBroken,
+}: Props) {
   const [song, setSong] = useState(initial);
   const [showReading, setShowReading] = useState(true);
   const [covered, setCovered] = useState(false);
@@ -40,14 +55,18 @@ export function SongStudy({ song: initial, isAdmin, learned }: Props) {
   const [selected, setSelected] = useState<Selected>(null);
   const [loop, setLoop] = useState<LoopChoice>(LOOP_OFF);
   const [noteError, setNoteError] = useState<string | null>(null);
+  const [showKo, setShowKo] = useShowKo();
+  const hasKo = song.lines.some((l) => l.ko);
 
   const ready = useSongsStudyReady();
   const study = useSongsStudyStore((s) => s.data);
   const toggleKnown = useSongsStudyStore((s) => s.toggle);
 
+  // 줄 글은 메모 저장으로 바뀌지 않으므로 서버가 합친 분석의 차례가 그대로 맞는다
+  const merged = analysis;
   const words = useMemo(
-    () => song.lines.map((l) => groupTokens(l.tokens ?? [])),
-    [song.lines],
+    () => merged.byLine.map((l) => (l ? toWords(l.tokens) : [])),
+    [merged],
   );
   const lineKeys = useMemo(
     () => song.lines.map((l) => lineKey(l.ja)),
@@ -98,6 +117,9 @@ export function SongStudy({ song: initial, isAdmin, learned }: Props) {
         setRevealed(new Set());
         if (on) setSelected(null);
       }}
+      hasKo={hasKo}
+      showKo={showKo}
+      onShowKo={setShowKo}
       loop={loop}
       onLoop={setLoop}
     />
@@ -129,6 +151,14 @@ export function SongStudy({ song: initial, isAdmin, learned }: Props) {
 
       <div className="rounded-2xl bg-bg-sunken p-4 lg:hidden">{controls}</div>
 
+      <AnalysisNotice
+        slug={song.slug}
+        isAdmin={isAdmin}
+        analyzed={merged.analyzed}
+        staleCount={merged.staleCount}
+        broken={analysisBroken}
+      />
+
       {noteError ? (
         <p role="alert" className="text-sm text-warn">
           {noteError}
@@ -143,6 +173,8 @@ export function SongStudy({ song: initial, isAdmin, learned }: Props) {
             line={line}
             index={i}
             words={words[i]}
+            grammar={merged.byLine[i]?.grammar ?? EMPTY}
+            showKo={showKo}
             current={i === current}
             inLoop={inLoop(loop, i)}
             showReading={showReading}

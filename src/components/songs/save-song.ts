@@ -41,13 +41,13 @@ export async function saveSong(
   }
 }
 
-/** 저장된 노래에서 다시 보낼 본문. 낱말 조각은 빼고 보낸다(서버가 같은 글의 저장된 조각을 이어 쓴다) */
+/** 저장된 노래에서 다시 보낼 본문 */
 export function inputOf(song: Song): SongInput {
   return {
     title: song.title,
     artist: song.artist,
     audioFile: song.audioFile,
     lyricsPublic: song.lyricsPublic,
-    lines: song.lines.map(({ tokens: _tokens, ...line }) => line),
+    lines: song.lines.map(toLineBody),
   };
 }

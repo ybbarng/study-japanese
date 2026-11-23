@@ -1,40 +1,22 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { type FormEvent, useRef, useState } from "react";
-import { annotateLines } from "@/lib/songs/annotate";
-import { linesFromText, lyricsText, splitLyrics } from "@/lib/songs/lyrics";
+import { type FormEvent, useState } from "react";
+import {
+  applyKo,
+  koText,
+  linesFromText,
+  lyricsText,
+  NO_KO,
+  splitLyrics,
+} from "@/lib/songs/lyrics";
 import {
   AUDIO_FILE_PATTERN,
   MAX_LINES,
   SLUG_PATTERN,
   type Song,
 } from "@/lib/songs/schema";
-import type { Tokenize } from "@/lib/songs/tokens";
 import { saveSong } from "./save-song";
-
-/** 저장 단추를 누른 뒤 어디까지 왔는지 */
-type Stage =
-  | { kind: "dict"; loaded: number; total: number }
-  | { kind: "analyze" }
-  | { kind: "save" };
-
-/**
- * 분석기 모듈을 동적 import한다. `typeof window` 분기는 빌드가 서버 묶음에서 잘라 내므로
- * 서버(SSR) 빌드 결과에 kuromoji가 들어가지 않는다.
- */
-function importAnalyzer() {
-  if (typeof window === "undefined")
-    return Promise.reject(new Error("분석기는 브라우저에서만 띄운다"));
-  return import("@/lib/songs/browser-analyzer");
-}
-
-function stageText(stage: Stage): string {
-  if (stage.kind === "dict")
-    return `사전 받는 중 ${stage.loaded}/${stage.total}`;
-  if (stage.kind === "analyze") return "낱말 나누는 중…";
-  return "저장 중…";
-}
 
 interface Props {
   /** 고칠 노래(없으면 새로 넣기) */
@@ -47,6 +29,7 @@ const field =
 /**
  * 노래 넣기·고치기. 가사는 관리자가 붙여 넣는다(줄 단위, 빈 줄은 버린다).
  * 가사를 고쳐도 글이 그대로인 줄의 박자·메모는 남는다(linesFromText).
+ * 한국어 해석은 따로 붙여 넣고 가사와 줄 수를 맞춘다(applyKo). PC는 가사 옆, 폰은 아래.
  */
 export function SongForm({ song }: Props) {
   const router = useRouter();
@@ -58,31 +41,13 @@ export function SongForm({ song }: Props) {
   const [lyrics, setLyrics] = useState(song ? lyricsText(song.lines) : "");
   const [lyricsPublic, setLyricsPublic] = useState(song?.lyricsPublic ?? true);
   const [error, setError] = useState<string | null>(null);
-  const [stage, setStage] = useState<Stage | null>(null);
-  const busy = stage !== null;
-  // 띄운 분석기는 이 화면에 있는 동안만 둔다(사전이 메모리를 많이 써서 화면을 떠나면 놓는다)
-  const tokenizer = useRef<Promise<Tokenize> | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const [ko, setKo] = useState(song ? koText(song.lines) : "");
 
   const lineCount = splitLyrics(lyrics).length;
-
-  /** 분석기를 동적 import로 띄운다. 방문자 번들에 kuromoji가 들어가지 않게 이 화면에서만 */
-  const loadTokenize = () => {
-    if (!tokenizer.current) {
-      setStage({ kind: "dict", loaded: 0, total: 0 });
-      tokenizer.current = importAnalyzer()
-        .then(({ loadBrowserTokenizer }) =>
-          loadBrowserTokenizer((p) => setStage({ kind: "dict", ...p })),
-        )
-        .catch((err) => {
-          tokenizer.current = null;
-          throw err;
-        });
-    }
-    return tokenizer.current.then((tokenize) => {
-      setStage({ kind: "analyze" });
-      return tokenize;
-    });
-  };
+  const koCount = splitLyrics(ko).length;
+  const koMismatch = koCount > 0 && koCount !== lineCount;
   const fileName = audioFile || (slug ? `${slug}.mp3` : "");
 
   const submit = async (e: FormEvent) => {
@@ -96,28 +61,25 @@ export function SongForm({ song }: Props) {
     if (lineCount === 0) return setError("가사를 붙여 넣으세요.");
     if (lineCount > MAX_LINES)
       return setError(`가사는 ${MAX_LINES}줄까지 넣을 수 있습니다.`);
-    setError(null);
-    const previous = song?.lines ?? [];
-    let lines: Song["lines"];
-    try {
-      lines = await annotateLines(
-        linesFromText(lyrics, previous),
-        previous,
-        loadTokenize,
-      );
-    } catch {
-      setStage(null);
+    const withKo = applyKo(linesFromText(lyrics, song?.lines ?? []), ko);
+    if (!withKo.ok)
       return setError(
-        "낱말을 나누지 못했습니다(사전을 받지 못함). 연결을 확인하고 다시 저장하세요.",
+        `해석이 ${withKo.koLines}줄, 가사가 ${withKo.lyricLines}줄입니다. 줄 수를 맞추세요.`,
       );
-    }
-    setStage({ kind: "save" });
+    setError(null);
+    setBusy(true);
     const result = await saveSong(
       slug,
-      { title, artist, audioFile: fileName, lyricsPublic, lines },
+      {
+        title,
+        artist,
+        audioFile: fileName,
+        lyricsPublic,
+        lines: withKo.lines,
+      },
       { create: creating },
     );
-    setStage(null);
+    setBusy(false);
     if (!result.ok) return setError(result.error);
     router.push(`/songs/${result.song.slug}`);
     router.refresh();
@@ -125,9 +87,9 @@ export function SongForm({ song }: Props) {
 
   const remove = async () => {
     if (!song || !window.confirm(`「${song.title}」을 지울까요?`)) return;
-    setStage({ kind: "save" });
+    setBusy(true);
     const res = await fetch(`/api/songs/${song.slug}`, { method: "DELETE" });
-    setStage(null);
+    setBusy(false);
     if (!res.ok) return setError(`지우지 못했습니다(${res.status}).`);
     router.push("/songs");
     router.refresh();
@@ -138,19 +100,45 @@ export function SongForm({ song }: Props) {
       onSubmit={submit}
       className="flex flex-col gap-5 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-10"
     >
-      <div className="flex flex-col gap-2">
-        <label htmlFor="song-lyrics" className="text-sm text-ink-soft">
-          가사 붙여 넣기 · 한 줄이 한 줄({lineCount}줄)
-        </label>
-        <textarea
-          id="song-lyrics"
-          value={lyrics}
-          onChange={(e) => setLyrics(e.target.value)}
-          rows={18}
-          lang="ja"
-          placeholder="가사를 줄마다 붙여 넣으세요. 빈 줄은 버립니다."
-          className={`${field} font-ja-serif text-lg leading-relaxed lg:min-h-[60dvh]`}
-        />
+      <div className="flex flex-col gap-5 lg:grid lg:grid-cols-2 lg:gap-4">
+        <div className="flex flex-col gap-2">
+          <label htmlFor="song-lyrics" className="text-sm text-ink-soft">
+            가사 붙여 넣기 · 한 줄이 한 줄({lineCount}줄)
+          </label>
+          <textarea
+            id="song-lyrics"
+            value={lyrics}
+            onChange={(e) => setLyrics(e.target.value)}
+            rows={18}
+            lang="ja"
+            placeholder="가사를 줄마다 붙여 넣으세요. 빈 줄은 버립니다."
+            className={`${field} font-ja-serif text-lg leading-relaxed lg:min-h-[60dvh]`}
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <label htmlFor="song-ko" className="text-sm text-ink-soft">
+            한국어 해석(선택) · {koCount}줄
+          </label>
+          <textarea
+            id="song-ko"
+            value={ko}
+            onChange={(e) => setKo(e.target.value)}
+            rows={18}
+            placeholder={`가사 줄마다 해석을 한 줄씩 붙여 넣으세요. 해석이 없는 줄은 ${NO_KO} 로 적습니다.`}
+            // 가사 칸과 같은 글자 크기·줄 간격이라 PC에서 나란히 놓으면 줄이 맞는다
+            className={`${field} text-lg leading-relaxed lg:min-h-[60dvh]`}
+          />
+          {koMismatch ? (
+            <p className="text-sm text-warn">
+              해석이 {koCount}줄, 가사가 {lineCount}줄입니다. 줄 수를 맞춰야
+              저장할 수 있습니다.
+            </p>
+          ) : (
+            <p className="text-xs text-ink-faint">
+              가사 학습 화면에서는 해석을 가려 두고, 줄마다 눌러 봅니다.
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col gap-4 lg:sticky lg:top-10">
@@ -250,11 +238,12 @@ export function SongForm({ song }: Props) {
           ) : null}
         </div>
         <p role="status" className="min-h-5 text-sm text-ink-soft">
-          {stage ? stageText(stage) : ""}
+          {busy ? "저장 중…" : ""}
         </p>
         <p className="text-xs leading-relaxed text-ink-faint">
-          저장하면 이 브라우저가 줄마다 읽는 법과 낱말을 나눠 함께 보냅니다. 새
-          글이 있으면 사전(약 17MB)을 받느라 처음엔 몇 초 걸립니다.
+          읽는 법·낱말 뜻·문법 메모는 저장한 뒤 세션에 "이 노래 분석해 줘"라고
+          하면 세션이 분석해 서버에 올립니다. 가사를 고치면 바뀐 줄은 다시
+          분석해야 합니다.
         </p>
       </div>
     </form>
