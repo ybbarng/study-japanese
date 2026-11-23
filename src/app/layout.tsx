@@ -3,6 +3,7 @@ import { Noto_Sans_JP, Noto_Sans_KR, Noto_Serif_JP } from "next/font/google";
 import { AutoPrefetch } from "@/components/offline/auto-prefetch";
 import { GlobalPlayer } from "@/components/player/global-player";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
+import { AppShell } from "@/components/shell/app-shell";
 import "./globals.css";
 
 const sansKr = Noto_Sans_KR({
@@ -52,7 +53,7 @@ export default function RootLayout({
       className={`${sansKr.variable} ${sansJp.variable} ${serifJp.variable}`}
     >
       <body className="font-sans antialiased">
-        {children}
+        <AppShell>{children}</AppShell>
         <GlobalPlayer />
         <AutoPrefetch />
         <ServiceWorkerRegister />
