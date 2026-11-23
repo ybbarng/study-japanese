@@ -3,7 +3,9 @@
 // 남이 만든 자료(출처별)는 설정에서 출처마다 닫을 수 있어, 그 자료를 내주는 경로가 직접 판단한다.
 
 const READ_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
-const ADMIN_PAGES = ["/settings"];
+const ADMIN_PAGES = ["/settings", "/songs/new"];
+/** 노래 고치기·박자 맞추기 화면(/songs/<slug>/edit, /songs/<slug>/sync) */
+const ADMIN_PAGE_PATTERNS = [/^\/songs\/[^/]+\/(edit|sync)\/?$/];
 const ADMIN_READ_APIS = ["/api/export"];
 const OPEN_WRITE_APIS = ["/api/login", "/api/logout"];
 
@@ -14,6 +16,7 @@ function matches(pathname: string, bases: readonly string[]): boolean {
 /** 이 요청에 관리자 로그인이 필요한지 */
 export function requiresAdmin(method: string, pathname: string): boolean {
   if (matches(pathname, ADMIN_PAGES)) return true;
+  if (ADMIN_PAGE_PATTERNS.some((p) => p.test(pathname))) return true;
   if (!pathname.startsWith("/api/")) return false;
   if (matches(pathname, OPEN_WRITE_APIS)) return false;
   if (!READ_METHODS.has(method.toUpperCase())) return true;

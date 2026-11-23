@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/store/db";
 import { listAllListenEvents } from "@/lib/store/listen";
+import { listSongs } from "@/lib/store/songs";
 import { listStates } from "@/lib/store/state";
 import { listWritings } from "@/lib/store/writings";
 
@@ -12,5 +13,6 @@ export async function GET() {
     states: listStates(db),
     listenEvents: listAllListenEvents(db),
     writings: listWritings(db),
+    songs: listSongs(db),
   });
 }

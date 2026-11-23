@@ -6,7 +6,8 @@ import { z } from "zod";
 
 export const listenEventSchema = z.object({
   clientId: z.string().min(8).max(64),
-  book: z.enum(["ilmuta", "ilmunta", "kana"]),
+  // song: 노래 학습(관리자만 재생). item은 노래 slug
+  book: z.enum(["ilmuta", "ilmunta", "kana", "song"]),
   item: z.string().min(1).max(64), // 예: "L00", "01-1", "L01-01"
   kind: z.enum(["lecture", "example", "extra"]),
   startedAt: z.number().int().positive(),

@@ -36,6 +36,17 @@ const MIGRATIONS = [
     bytes INTEGER NOT NULL,
     PRIMARY KEY (day, session)
   )`,
+  // 노래 학습(src/lib/store/songs.ts). lines는 [{ ja, start?, end?, note?, tokens? }] JSON
+  `CREATE TABLE IF NOT EXISTS songs (
+    slug TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    artist TEXT NOT NULL,
+    audio_file TEXT NOT NULL,
+    lines TEXT NOT NULL,
+    lyrics_public INTEGER NOT NULL DEFAULT 1,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  )`,
 ];
 
 export function openDb(file: string): DatabaseSync {

@@ -12,6 +12,10 @@ describe("requiresAdmin", () => {
     ["GET", "/api/transcripts/ilmuta/L01"],
     ["POST", "/api/login"],
     ["POST", "/api/logout"],
+    ["GET", "/songs"],
+    ["GET", "/songs/test-song"],
+    ["GET", "/api/songs"],
+    ["GET", "/api/songs/test-song"],
   ])("%s %s는 누구나", (method, path) => {
     expect(requiresAdmin(method, path)).toBe(false);
   });
@@ -24,6 +28,11 @@ describe("requiresAdmin", () => {
     ["GET", "/api/export"],
     ["GET", "/settings"],
     ["POST", "/api/settings"],
+    ["GET", "/songs/new"],
+    ["GET", "/songs/test-song/edit"],
+    ["GET", "/songs/test-song/sync"],
+    ["PUT", "/api/songs/test-song"],
+    ["DELETE", "/api/songs/test-song"],
   ])("%s %s는 관리자만", (method, path) => {
     expect(requiresAdmin(method, path)).toBe(true);
   });
@@ -31,5 +40,7 @@ describe("requiresAdmin", () => {
   it("이름이 비슷한 경로를 관리자 경로로 잘못 보지 않는다", () => {
     expect(requiresAdmin("GET", "/settingsx")).toBe(false);
     expect(requiresAdmin("GET", "/api/exports-public")).toBe(false);
+    expect(requiresAdmin("GET", "/songs/editor")).toBe(false);
+    expect(requiresAdmin("GET", "/songs/a/edit/more")).toBe(false);
   });
 });
