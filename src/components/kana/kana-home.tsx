@@ -8,6 +8,7 @@ import { streak } from "@/lib/kana/state";
 import { useKanaStore } from "@/lib/kana/store";
 import { BackupPanel } from "./backup-panel";
 import s from "./kana.module.css";
+import { LessonList } from "./lesson-list";
 import { ProgressMap } from "./progress-map";
 import { cn, Glyph } from "./ui";
 
@@ -16,35 +17,44 @@ export function KanaHome() {
   const [now] = useState(() => Date.now());
   const plan = todayPlan(data, now);
   const days = streak(data, now);
-  const doneCount = Object.keys(data.lessons).length;
+  const completed = new Set(Object.keys(data.lessons));
+  const doneCount = LESSONS.filter((l) => completed.has(l.id)).length;
 
   const today =
-    plan.kind === "lesson"
+    plan.kind === "bridge"
       ? {
-          href: `/kana/lesson/${plan.lesson.id}`,
-          eyebrow:
-            doneCount === 0
-              ? "첫걸음"
-              : `레슨 ${LESSONS.indexOf(plan.lesson) + 1}`,
-          title: plan.lesson.title,
-          glyphs: plan.lesson.glyphs,
-          sub: "소개 → 알아보기 → 쓰기 → 낱말 읽기 → 입력",
+          href: `/kana/read/${plan.bridge.id}`,
+          eyebrow: "바로 읽기",
+          title: plan.bridge.title,
+          glyphs: plan.bridge.glyphs,
+          sub: "배운 글자만으로 교재 문장을 읽어 봅니다",
         }
-      : plan.kind === "review"
+      : plan.kind === "lesson"
         ? {
-            href: "/kana/review",
-            eyebrow: "오늘 복습",
-            title: `${plan.due}글자가 기다려요`,
-            glyphs: "復習",
-            sub: "틀렸던 글자와 잊을 때가 된 글자부터",
+            href: `/kana/lesson/${plan.lesson.id}`,
+            eyebrow:
+              doneCount === 0
+                ? "첫걸음"
+                : `레슨 ${LESSONS.indexOf(plan.lesson) + 1}`,
+            title: plan.lesson.title,
+            glyphs: plan.lesson.glyphs,
+            sub: "소개 → 알아보기 → 쓰기 → 낱말 읽기 → 입력",
           }
-        : {
-            href: "/kana/game/rush",
-            eyebrow: "다 배웠어요",
-            title: "빠르게 읽기로 손 풀기",
-            glyphs: "速",
-            sub: "60초 동안 최고 기록에 도전",
-          };
+        : plan.kind === "review"
+          ? {
+              href: "/kana/review",
+              eyebrow: "오늘 복습",
+              title: `${plan.due}글자가 기다려요`,
+              glyphs: "復習",
+              sub: "틀렸던 글자와 잊을 때가 된 글자부터",
+            }
+          : {
+              href: "/kana/game/rush",
+              eyebrow: "다 배웠어요",
+              title: "빠르게 읽기로 손 풀기",
+              glyphs: "速",
+              sub: "60초 동안 최고 기록에 도전",
+            };
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-5 pt-[max(env(safe-area-inset-top),1.5rem)] pb-10">
@@ -114,49 +124,12 @@ export function KanaHome() {
 
       <ProgressMap cards={data.cards} />
 
-      <section>
-        <h2 className="pb-2 text-sm text-ink-faint">레슨</h2>
-        <ol className="flex flex-col gap-2">
-          {LESSONS.map((l, k) => {
-            const done = Boolean(data.lessons[l.id]);
-            const isNext = plan.lesson?.id === l.id;
-            return (
-              <li key={l.id}>
-                <Link
-                  href={`/kana/lesson/${l.id}`}
-                  className={cn(
-                    "flex items-center gap-3 rounded-2xl bg-bg-raised px-4 py-3",
-                    isNext && "ring-2 ring-accent",
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm",
-                      done
-                        ? "bg-good/20 text-good"
-                        : "bg-bg-sunken text-ink-faint",
-                    )}
-                  >
-                    {done ? "✓" : k + 1}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-medium">{l.title}</span>
-                    <span
-                      lang="ja"
-                      className="block truncate text-xs text-ink-soft"
-                    >
-                      {l.glyphs}
-                    </span>
-                  </span>
-                  <span className="text-xs text-ink-faint">
-                    {l.script === "hira" ? "ひ" : "カ"}
-                  </span>
-                </Link>
-              </li>
-            );
-          })}
-        </ol>
-      </section>
+      <LessonList
+        completed={completed}
+        nextId={
+          plan.kind === "bridge" ? plan.bridge.id : (plan.lesson?.id ?? null)
+        }
+      />
 
       <BackupPanel />
     </main>
