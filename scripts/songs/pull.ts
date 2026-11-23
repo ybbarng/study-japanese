@@ -48,43 +48,53 @@ async function loginCookie(): Promise<string | undefined> {
   return cookie.split(";")[0];
 }
 
-const cookie = await loginCookie();
-const res = await fetch(`${base}/api/songs/${slug}`, {
-  headers: cookie ? { cookie } : {},
-});
-if (!res.ok) {
-  console.error(
-    res.status === 404
-      ? `노래가 없거나 가사를 공개하지 않았습니다(${base}). 비공개면 STUDY_PASSWORD를 주세요.`
-      : `가사 받기 실패 (HTTP ${res.status})`,
-  );
-  process.exit(1);
+async function fetchSong(): Promise<Song> {
+  const cookie = await loginCookie();
+  const res = await fetch(`${base}/api/songs/${slug}`, {
+    headers: cookie ? { cookie } : {},
+  });
+  if (!res.ok) {
+    console.error(
+      res.status === 404
+        ? `노래가 없거나 가사를 공개하지 않았습니다(${base}). 비공개면 STUDY_PASSWORD를 주세요.`
+        : `가사 받기 실패 (HTTP ${res.status})`,
+    );
+    process.exit(1);
+  }
+  return ((await res.json()) as { item: Song }).item;
 }
-const { item } = (await res.json()) as { item: Song };
 
-const dir = path.join(contentDir(), "songs");
-mkdirSync(dir, { recursive: true });
-const file = path.join(dir, `${slug}.lyrics.json`);
-writeFileSync(
-  file,
-  `${JSON.stringify(
-    {
-      slug: item.slug,
-      title: item.title,
-      artist: item.artist,
-      pulledAt: new Date().toISOString(),
-      // 분석 파일에는 index·hash만 옮겨 적고 ja(가사 글)는 옮기지 않는다(docs/song-analysis.md)
-      lines: item.lines.map((l, index) => ({
-        index,
-        hash: lineHash(l.ja),
-        chars: Array.from(l.ja).length,
-        ja: l.ja,
-      })),
-    },
-    null,
-    2,
-  )}\n`,
-);
-console.log(
-  `가사 ${item.lines.length}줄 → ${path.relative(process.cwd(), file)}`,
-);
+// tsx가 이 파일을 CommonJS로 바꿔 돌려서 맨 위에서 await를 쓸 수 없다
+fetchSong().then(writeLyrics, (err) => {
+  console.error(`가사 받기 실패: ${(err as Error).message}`);
+  process.exit(1);
+});
+
+function writeLyrics(item: Song) {
+  const dir = path.join(contentDir(), "songs");
+  mkdirSync(dir, { recursive: true });
+  const file = path.join(dir, `${slug}.lyrics.json`);
+  writeFileSync(
+    file,
+    `${JSON.stringify(
+      {
+        slug: item.slug,
+        title: item.title,
+        artist: item.artist,
+        pulledAt: new Date().toISOString(),
+        // 분석 파일에는 index·hash만 옮겨 적고 ja(가사 글)는 옮기지 않는다(docs/song-analysis.md)
+        lines: item.lines.map((l, index) => ({
+          index,
+          hash: lineHash(l.ja),
+          chars: Array.from(l.ja).length,
+          ja: l.ja,
+        })),
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  console.log(
+    `가사 ${item.lines.length}줄 → ${path.relative(process.cwd(), file)}`,
+  );
+}
