@@ -2,16 +2,25 @@ import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import type { DatabaseSync } from "node:sqlite";
 import { Readable } from "node:stream";
+import {
+  canSeeSource,
+  type SiteSettings,
+  sourceOfMedia,
+} from "@/lib/sources/registry";
 import { type MediaLimits, sessionKey, takeMediaQuota } from "./quota";
 import { parseRange, resolveMediaPath } from "./resolve";
 
-// 로그인 뒤 교재 오디오·PDF를 내준다. 로그인 확인은 src/proxy.ts가 먼저 한다.
+// 남의 자료(교재 오디오·PDF)를 내준다. 출처마다 공개 여부를 따르고(src/lib/sources),
+// 하루 전송량 상한을 센다(관리자는 세션별, 방문자는 모두 합쳐 한 세션).
 
 export interface ServeDeps {
   mediaDir: string;
   db: DatabaseSync;
-  /** 로그인 쿠키 값(전송량을 세션별로 세는 데만 쓴다) */
+  /** 관리자 로그인 쿠키 값(관리자 전송량을 따로 세는 데만 쓴다) */
   sessionToken: string | undefined;
+  /** 쿠키가 확인된 관리자인지. 아니면 모든 방문자를 한 세션으로 묶어 센다 */
+  isAdmin: boolean;
+  settings: SiteSettings;
   now: number;
   limits?: MediaLimits;
 }
@@ -26,6 +35,12 @@ export async function serveMedia(
 ): Promise<Response> {
   const resolved = resolveMediaPath(deps.mediaDir, segments);
   if (!resolved) return new Response("없음", { status: 404 });
+  if (!canSeeSource(sourceOfMedia(segments[0]), deps.isAdmin, deps.settings)) {
+    return new Response(
+      "지금은 공개하지 않는 자료입니다. 원래 자료는 출판사에서 받을 수 있습니다.",
+      { status: 403, headers: { "Content-Type": "text/plain; charset=utf-8" } },
+    );
+  }
 
   let size: number;
   try {
@@ -53,7 +68,11 @@ export async function serveMedia(
   const bytes = range === null ? size : range.end - range.start + 1;
   const verdict = takeMediaQuota(
     deps.db,
-    { session: sessionKey(deps.sessionToken), bytes, now: deps.now },
+    {
+      session: deps.isAdmin ? sessionKey(deps.sessionToken) : "anonymous",
+      bytes,
+      now: deps.now,
+    },
     deps.limits,
   );
   if (!verdict.ok) {

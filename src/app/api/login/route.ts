@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { readAuthConfig } from "@/lib/auth/config";
+import { ADMIN_HINT_COOKIE } from "@/lib/auth/hint";
 import { loginLockout } from "@/lib/auth/lockout";
 import { safeNextPath } from "@/lib/auth/safe-next";
 import {
@@ -46,16 +47,18 @@ export async function POST(request: Request) {
   }
 
   const response = seeOther(next);
+  const cookieOptions = {
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: Math.floor(SESSION_TTL_MS / 1000),
+  };
   response.cookies.set(
     SESSION_COOKIE,
     await createSessionToken(config.secret, Date.now()),
-    {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: Math.floor(SESSION_TTL_MS / 1000),
-    },
+    { ...cookieOptions, httpOnly: true },
   );
+  // 화면용 표시(비밀 아님): 기록을 서버로 보낼지·설정 단추를 보일지에만 쓴다
+  response.cookies.set(ADMIN_HINT_COOKIE, "1", cookieOptions);
   return response;
 }

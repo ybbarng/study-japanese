@@ -1,4 +1,7 @@
 import { connection } from "next/server";
+import { isAdminRequest } from "@/lib/auth/server";
+import { canSeeSource, sourceOfBook } from "@/lib/sources/registry";
+import { readSiteSettings } from "@/lib/sources/settings";
 import { getDb } from "@/lib/store/db";
 import { summarizeListening } from "@/lib/store/listen";
 import {
@@ -18,6 +21,7 @@ import {
   type ListenIndex,
   lessonProgress,
 } from "./progress";
+import { redactIlmutaLesson } from "./redact";
 import { buildGlossary, type Glossary } from "./ruby";
 import { lectureItem } from "./tracks";
 
@@ -76,6 +80,8 @@ export async function loadMapData(): Promise<MapData | null> {
 
 export interface LessonData {
   lesson: IlmutaLesson;
+  /** 이 교재 출처를 닫아 두어 방문자에게 글·자막·오디오를 보이지 않는 중 */
+  sourceClosed: boolean;
   prevNo: number | null;
   nextNo: number | null;
   glossary: Glossary;
@@ -98,14 +104,23 @@ export async function loadLessonData(no: number): Promise<LessonLoad> {
   const nos = book.lessons.map((l) => l.no).toSorted((a, b) => a - b);
   const at = nos.indexOf(no);
   const db = getDb();
+  // 출처를 닫았으면(설정) 방문자에게는 소책자 글·자막을 빼고 보인다
+  const visible = canSeeSource(
+    sourceOfBook("ilmuta"),
+    await isAdminRequest(),
+    readSiteSettings(db),
+  );
   return {
     kind: "ok",
     data: {
-      lesson,
+      lesson: visible ? lesson : redactIlmutaLesson(lesson),
+      sourceClosed: !visible,
       prevNo: at > 0 ? nos[at - 1] : null,
       nextNo: at < nos.length - 1 ? nos[at + 1] : null,
-      glossary: buildGlossary(book.lessons, no),
-      transcript: loadIlmutaTranscript(lectureItem(no)),
+      glossary: visible
+        ? buildGlossary(book.lessons, no)
+        : buildGlossary([], no),
+      transcript: visible ? loadIlmutaTranscript(lectureItem(no)) : null,
       listens: indexListens(summarizeListening(db, "ilmuta")),
       writing: getWriting(db, "ilmuta", no),
     },

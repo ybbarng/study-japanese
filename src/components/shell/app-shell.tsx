@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { useIsAdmin } from "@/lib/auth/client";
 import { activeNav, showsNav } from "@/lib/shell/nav";
 import { SideNav } from "./side-nav";
 import { useNavProgress } from "./use-nav-progress";
@@ -13,10 +14,15 @@ import { useNavProgress } from "./use-nav-progress";
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const progress = useNavProgress(pathname);
+  const isAdmin = useIsAdmin();
   if (!showsNav(pathname)) return <>{children}</>;
   return (
     <div className="lg:flex">
-      <SideNav active={activeNav(pathname)} progress={progress} />
+      <SideNav
+        active={activeNav(pathname)}
+        progress={progress}
+        isAdmin={isAdmin}
+      />
       <div className="min-w-0 flex-1">{children}</div>
     </div>
   );

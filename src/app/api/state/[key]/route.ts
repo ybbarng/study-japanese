@@ -27,6 +27,12 @@ export async function PUT(
   const { key } = await params;
   if (!KEY.test(key))
     return NextResponse.json({ error: "잘못된 키" }, { status: 400 });
+  // 사이트 설정은 검증하는 전용 경로(/api/settings)로만 바꾼다
+  if (key === "site-settings")
+    return NextResponse.json(
+      { error: "/api/settings를 쓰세요" },
+      { status: 400 },
+    );
   const text = await request.text();
   if (text.length > MAX_BYTES)
     return NextResponse.json({ error: "너무 큼" }, { status: 413 });
