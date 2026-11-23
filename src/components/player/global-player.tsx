@@ -229,7 +229,11 @@ export function GlobalPlayer() {
   // PC 키보드 단축키(재생 로직은 위 손잡이를 그대로 부른다)
   usePlayerShortcuts({
     hasTrack: !!track && !onLoginPage,
-    onToggle: () => s.setPlaying(paused),
+    // 화면의 paused는 다시 그린 뒤에야 바뀌어, 키를 빨리 두 번 누르면 놓친다. 원하는 상태를 바로 뒤집는다
+    onToggle: () => {
+      const st = usePlayer.getState();
+      st.setPlaying(!st.wantPlaying);
+    },
     onSeekBy: seekBy,
     onPrev: prev,
     onNext: advance,

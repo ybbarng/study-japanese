@@ -66,6 +66,11 @@ export function usePlayerShortcuts(handlers: Handlers) {
       }
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    // 단축키를 듣기 시작했다는 표시(E2E가 화면이 뜨자마자 키를 눌러 놓치지 않게 이것을 기다린다)
+    document.documentElement.dataset.shortcuts = "on";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      delete document.documentElement.dataset.shortcuts;
+    };
   }, []);
 }
