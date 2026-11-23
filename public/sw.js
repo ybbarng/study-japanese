@@ -2,11 +2,14 @@
 // - 오디오(/media/*): 강 단위로 받아 둔 파일은 캐시에서 준다. <audio>가 보내는 Range 요청도 캐시에서 잘라 준다.
 // - 화면: 네트워크 먼저, 끊기거나 4초 안에 오지 않으면 받아 둔 화면(강을 받을 때 앱이 함께 넣는다).
 // - 빌드 파일(/_next/static/*): 캐시 먼저(파일 이름에 해시가 있어 바뀌지 않는다).
+// - 형태소 분석기 사전(/kuromoji-dict/*): 관리자가 노래를 저장할 때 처음 받은 것을 캐시에 두고 다시 쓴다.
+//   미리 받게 하지 않는다(방문자는 쓰지 않는다). kuromoji 판을 올려 사전이 바뀌면 DICT_CACHE 이름을 바꾼다.
 
 const AUDIO_CACHE = "sj-audio-v1"; // 받아 둔 강 오디오. 앱 화면이 넣고 지운다.
 const PAGE_CACHE = "sj-pages-v1";
 const STATIC_CACHE = "sj-static-v1";
-const KEEP = new Set([AUDIO_CACHE, PAGE_CACHE, STATIC_CACHE]);
+const DICT_CACHE = "sj-kuromoji-0.1.2";
+const KEEP = new Set([AUDIO_CACHE, PAGE_CACHE, STATIC_CACHE, DICT_CACHE]);
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -35,6 +38,10 @@ self.addEventListener("fetch", (event) => {
   }
   if (url.pathname.startsWith("/_next/static/")) {
     event.respondWith(cacheFirst(request, STATIC_CACHE));
+    return;
+  }
+  if (url.pathname.startsWith("/kuromoji-dict/")) {
+    event.respondWith(cacheFirst(request, DICT_CACHE));
     return;
   }
   if (request.mode === "navigate") {

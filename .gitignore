@@ -44,6 +44,9 @@ yarn-error.log*
 /content/textbook/
 /content/transcripts/
 
+# 형태소 분석기 사전 복사본(scripts/copy-kuromoji-dict.mjs가 빌드 때 node_modules에서 복사)
+/public/kuromoji-dict/
+
 # 서브에이전트 작업 트리·화면 확인 스크린샷
 /.claude/worktrees/
 /.claude/screenshots/
