@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Noto_Sans_JP, Noto_Sans_KR, Noto_Serif_JP } from "next/font/google";
+import { GlobalPlayer } from "@/components/player/global-player";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import "./globals.css";
 
@@ -51,6 +52,7 @@ export default function RootLayout({
     >
       <body className="font-sans antialiased">
         {children}
+        <GlobalPlayer />
         <ServiceWorkerRegister />
       </body>
     </html>
