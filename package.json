@@ -15,6 +15,8 @@
     "test:run": "vitest run",
     "progress:pull": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/progress-pull.ts",
     "textbook:build": "tsx scripts/textbook/build.ts",
+    "transcribe": "tsx scripts/transcribe/run.ts",
+    "transcribe:verify": "tsx scripts/transcribe/verify.ts",
     "prepare": "command -v git >/dev/null 2>&1 || exit 0 && lefthook install"
   },
   "dependencies": {

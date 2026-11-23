@@ -38,6 +38,7 @@ yarn-error.log*
 /textbook-src/
 # 교재에서 뽑은 글: 저장소 공개 여부를 정하기 전까지 git 밖에 둔다
 /content/textbook/
+/content/transcripts/
 
 # 서브에이전트 작업 트리
 /.claude/worktrees/
