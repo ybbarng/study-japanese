@@ -27,6 +27,8 @@ const child = spawn(nextBin, ["start", "--port", port], {
     CONTENT_DIR: contentDir,
     MEDIA_DIR: mediaDir,
     DATA_DIR: dataDir,
+    // 첫 화면을 날짜별로 시험하려고 ?now=를 받게 한다(운영에서는 받지 않는다)
+    ALLOW_NOW_PARAM: "1",
   },
 });
 
