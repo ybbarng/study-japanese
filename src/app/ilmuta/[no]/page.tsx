@@ -34,18 +34,18 @@ export default async function IlmutaLessonPage({
   const initialStep = parseStep((await searchParams).step, steps);
   const source = sourceById("gilbut-ilmuta");
   return (
-    <>
-      <LessonFlow
-        key={no}
-        data={loaded.data}
-        steps={steps}
-        initialStep={initialStep}
-      />
-      {source ? (
-        <div className="mx-auto max-w-md px-5 pb-6 lg:max-w-[96rem] lg:px-10">
-          <SourceCredit source={source} closed={loaded.data.sourceClosed} />
-        </div>
-      ) : null}
-    </>
+    <LessonFlow
+      key={no}
+      data={loaded.data}
+      steps={steps}
+      initialStep={initialStep}
+      footer={
+        source ? (
+          <div className="mx-auto mt-8 max-w-md px-5 pb-6 lg:mt-0 lg:max-w-[96rem] lg:px-10">
+            <SourceCredit source={source} closed={loaded.data.sourceClosed} />
+          </div>
+        ) : null
+      }
+    />
   );
 }
