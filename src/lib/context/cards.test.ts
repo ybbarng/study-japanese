@@ -73,6 +73,17 @@ describe("소책자 문장 카드", () => {
     expect(card.words.map((w) => w.ja)).toEqual(["山", "今日"]);
   });
 
+  it("구체적인 낱말 카드에는 그림 문자를 붙이고, 그림이 없는 낱말은 그대로 둔다", () => {
+    const card = buildCards(
+      [ja("山は高い。今日はまったくべつのはなし。")],
+      source,
+    )["0"];
+    expect(card.words).toEqual([
+      { ja: "山", reading: "やま", ko: "산", emoji: "⛰️" },
+      { ja: "今日", reading: "きょう", ko: "오늘" },
+    ]);
+  });
+
   it("맞춘 문장도 아는 낱말도 없으면 카드를 두지 않는다", () => {
     expect(buildCards([ja("まったくべつのはなし")], source)).toEqual({});
   });

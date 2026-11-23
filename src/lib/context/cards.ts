@@ -7,6 +7,7 @@ import {
   splitOkurigana,
 } from "@/lib/ilmuta/ruby";
 import type { Sentence } from "@/lib/textbook/schema";
+import { emojiOf } from "./emoji";
 import {
   type MatchCandidate,
   matchSegment,
@@ -34,6 +35,8 @@ export const cueWordSchema = z.object({
   ja: z.string(),
   reading: z.string().optional(),
   ko: z.string(),
+  /** 구체적인 낱말이면 그림 문자 하나(emoji.ts) */
+  emoji: z.string().optional(),
 });
 export type CueWord = z.infer<typeof cueWordSchema>;
 
@@ -136,6 +139,12 @@ export function findWords(text: string, words: CueWord[]): CueWord[] {
   return out;
 }
 
+/** 그림 문자가 있는 낱말이면 붙인다 */
+function withEmoji(w: CueWord): CueWord {
+  const emoji = emojiOf(w.ja);
+  return emoji ? { ...w, emoji } : w;
+}
+
 /**
  * 자막 구간마다 카드를 만든다. 열쇠는 원래 segments의 차례(문자열).
  * 일본어 구간만 보고, 맞춘 문장도 낱말도 없으면 카드를 두지 않는다(화면은 자막만 보인다).
@@ -167,9 +176,9 @@ export function buildCards(
     ].join("　");
     // 문장이 곧 그 낱말이면(단어 코너) 낱말 칸에 다시 두지 않는다
     const own = new Set(matched.map((s) => s.ja));
-    const words = findWords(wordText, source.words).filter(
-      (w) => !own.has(w.ja),
-    );
+    const words = findWords(wordText, source.words)
+      .filter((w) => !own.has(w.ja))
+      .map(withEmoji);
     if (matched.length === 0 && words.length === 0) return;
     out[String(i)] = {
       sentences: matched.map((s) => ({

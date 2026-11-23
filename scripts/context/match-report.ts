@@ -24,6 +24,12 @@ type Tally = {
   sentence: number;
   whole: number;
   word: number;
+  /** 화면에 뜨는 낱말 칩 수와 그중 그림 문자가 붙은 수 */
+  chips: number;
+  emojiChips: number;
+  /** 서로 다른 낱말 수와 그중 그림 문자가 붙은 수 */
+  distinct: Set<string>;
+  distinctEmoji: Set<string>;
 };
 const blank = (): Tally => ({
   files: 0,
@@ -31,6 +37,10 @@ const blank = (): Tally => ({
   sentence: 0,
   whole: 0,
   word: 0,
+  chips: 0,
+  emojiChips: 0,
+  distinct: new Set(),
+  distinctEmoji: new Set(),
 });
 const tallies: Record<string, Tally> = {};
 
@@ -66,13 +76,23 @@ for (const book of ["ilmuta", "ilmunta"] as const) {
       if (card?.sentences.length) tally.sentence++;
       if (card?.whole) tally.whole++;
       if (card?.words.length) tally.word++;
+      for (const w of card?.words ?? []) {
+        tally.chips++;
+        tally.distinct.add(w.ja);
+        if (w.emoji) {
+          tally.emojiChips++;
+          tally.distinctEmoji.add(w.ja);
+        }
+      }
     });
   }
 }
 
 const pct = (n: number, d: number) =>
   d === 0 ? "-" : `${Math.round((n / d) * 100)}%`;
-console.log("묶음\t파일\t일본어 구간\t문장 맞춤\t구간 전체 맞춤\t낱말 있음");
+console.log(
+  "묶음\t파일\t일본어 구간\t문장 맞춤\t구간 전체 맞춤\t낱말 있음\t그림 붙은 칩\t그림 붙은 낱말(서로 다른)",
+);
 for (const [key, t] of Object.entries(tallies))
   console.log(
     [
@@ -82,5 +102,7 @@ for (const [key, t] of Object.entries(tallies))
       `${t.sentence} (${pct(t.sentence, t.ja)})`,
       `${t.whole} (${pct(t.whole, t.ja)})`,
       `${t.word} (${pct(t.word, t.ja)})`,
+      `${t.emojiChips}/${t.chips} (${pct(t.emojiChips, t.chips)})`,
+      `${t.distinctEmoji.size}/${t.distinct.size} (${pct(t.distinctEmoji.size, t.distinct.size)})`,
     ].join("\t"),
   );
