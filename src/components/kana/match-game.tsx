@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { KeyHelp, SidePanel } from "@/components/keyboard/key-help";
 import { toKeyInput } from "@/components/keyboard/key-input";
 import { type CardId, cardId, getSound, type Script } from "@/lib/kana/data";
 import { pickPairs } from "@/lib/kana/games";
@@ -14,11 +15,9 @@ import {
   ChoiceKey,
   cn,
   Glyph,
-  KeyHelp,
   PrimaryButton,
   Screen,
   SecondaryButton,
-  SidePanel,
 } from "./ui";
 
 const PAIRS = 6;

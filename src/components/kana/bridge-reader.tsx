@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useNowPlaying, usePlay } from "@/components/ilmuta/use-player-bridge";
+import { InlineKey, KeyHelp, SidePanel } from "@/components/keyboard/key-help";
 import { toKeyInput } from "@/components/keyboard/key-input";
 import type { Bridge } from "@/lib/bridge/bridges";
 import { BRIDGE_KEY_HELP, bridgeKeyAction } from "@/lib/bridge/keys";
@@ -14,15 +15,7 @@ import { useKanaStore } from "@/lib/kana/store";
 import type { Track } from "@/lib/player/queue";
 import { BridgeSentence } from "./bridge-sentence";
 import s from "./kana.module.css";
-import {
-  cn,
-  InlineKey,
-  KeyHelp,
-  PrimaryButton,
-  Screen,
-  SecondaryButton,
-  SidePanel,
-} from "./ui";
+import { cn, PrimaryButton, Screen, SecondaryButton } from "./ui";
 
 function exampleTrack(x: Sentence): Track {
   return {
