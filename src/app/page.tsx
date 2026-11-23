@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { IlmutaEntry } from "@/components/ilmuta/ilmuta-entry";
 
 export default function Home() {
   return (
@@ -8,6 +9,7 @@ export default function Home() {
       </p>
       <p className="mt-2 text-ink-soft">2027년 1월 1일에 시작합니다.</p>
       <nav className="mt-12 flex flex-col gap-3">
+        <IlmutaEntry />
         <Link href="/lab/player" className="rounded-2xl bg-bg-raised p-5">
           <span className="block text-lg font-medium">재생 시험</span>
           <span className="text-sm text-ink-soft">
