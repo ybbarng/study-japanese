@@ -11,7 +11,8 @@ import { writeFakeTextbook } from "./fixtures/textbook";
 
 const port = process.env.E2E_PORT ?? "3471";
 const repo = path.join(import.meta.dirname, "..");
-const root = path.join(repo, "test-results", "e2e-server");
+// 폰·PC 프로젝트가 서버(와 DB)를 따로 쓰도록 포트마다 폴더를 나눈다
+const root = path.join(repo, "test-results", `e2e-server-${port}`);
 rmSync(root, { recursive: true, force: true });
 mkdirSync(root, { recursive: true });
 const contentDir = path.join(root, "content");

@@ -8,6 +8,20 @@ import { silentMp3 } from "./silent-mp3";
 /** 강의·예문 mp3 길이(초). 들은 기록은 1초 넘게 들어야 남고, 90% 넘게 들으면 끝까지 들은 것이다 */
 export const AUDIO_SECONDS = 3;
 
+/**
+ * 3강 강의만 길게 둔다. PC 시험이 단축키로 5초씩 옮기고 자막 줄을 눌러 그 자리로 가 보려면
+ * 끝나기 전에 여유가 있어야 해서다(다른 시험은 3초짜리로 기록이 끝까지 남는지 본다).
+ */
+export const LONG_LECTURE = { no: 3, seconds: 40 } as const;
+
+/** 3강 강의의 가짜 자막. 교재 글이 아니라 모양만 같은 줄이다 */
+export const LONG_LECTURE_CUES = [
+  { start: 0, end: 8, text: "시험 강의 첫 줄입니다.", lang: "ko" },
+  { start: 10, end: 18, text: "テストのぶんです。", lang: "ja" },
+  { start: 20, end: 28, text: "시험 강의 셋째 줄입니다.", lang: "ko" },
+  { start: 30, end: 38, text: "もういちどテスト。", lang: "ja" },
+] as const;
+
 const ILMUTA_LESSONS = [0, 1, 2, 3];
 const ILMUNTA_LESSONS = [1, 2];
 
@@ -30,7 +44,11 @@ function ilmutaLesson(no: number) {
     title: no === 0 ? "" : `テスト${no}だ。`,
     titleKo: no === 0 ? undefined : `시험 ${no}이다.`,
     register: "casual",
-    lecture: { file: `1. 음성 강의/L${n}.mp3`, durationSec: AUDIO_SECONDS },
+    lecture: {
+      file: `1. 음성 강의/L${n}.mp3`,
+      durationSec:
+        no === LONG_LECTURE.no ? LONG_LECTURE.seconds : AUDIO_SECONDS,
+    },
     examples:
       no === 0
         ? []
@@ -97,7 +115,23 @@ export function writeFakeTextbook(contentDir: string, mediaDir: string) {
     JSON.stringify(ilmunta),
   );
 
+  const longItem = `L${nn(LONG_LECTURE.no)}`;
+  mkdirSync(path.join(contentDir, "transcripts", "ilmuta"), {
+    recursive: true,
+  });
+  writeFileSync(
+    path.join(contentDir, "transcripts", "ilmuta", `${longItem}.json`),
+    JSON.stringify({
+      book: "ilmuta",
+      item: longItem,
+      kind: "lecture",
+      durationSec: LONG_LECTURE.seconds,
+      segments: LONG_LECTURE_CUES,
+    }),
+  );
+
   const mp3 = silentMp3(AUDIO_SECONDS);
+  const longMp3 = silentMp3(LONG_LECTURE.seconds);
   const files = [
     ...ilmuta.lessons.flatMap((l) => [
       ["ilmuta", l.lecture.file],
@@ -111,6 +145,9 @@ export function writeFakeTextbook(contentDir: string, mediaDir: string) {
   for (const [book, file] of files) {
     const target = path.join(mediaDir, book, file);
     mkdirSync(path.dirname(target), { recursive: true });
-    writeFileSync(target, mp3);
+    writeFileSync(
+      target,
+      file.endsWith(`${longItem}.mp3`) && book === "ilmuta" ? longMp3 : mp3,
+    );
   }
 }

@@ -6,14 +6,19 @@ test.describe("입력기 안내", () => {
     await login(page, "/ime");
   });
 
-  test("안드로이드 폰으로 열면 Gboard 안내가 맨 위에 펼쳐져 있다", async ({
+  test("접속한 기기의 안내가 맨 위에 펼쳐져 있다(안드로이드 폰은 Gboard, 윈도우 PC는 Microsoft IME)", async ({
     page,
-  }) => {
+  }, testInfo) => {
+    // 폰 프로젝트는 Pixel 7(안드로이드), PC 프로젝트는 Desktop Chrome(윈도우) 브라우저로 연다
+    const [mine, other] =
+      testInfo.project.name === "desktop-chrome"
+        ? ["windows", "android"]
+        : ["android", "windows"];
     const guides = page.locator("details[data-device]");
-    await expect(guides.first()).toHaveAttribute("data-device", "android");
+    await expect(guides.first()).toHaveAttribute("data-device", mine);
     await expect(guides.first()).toHaveAttribute("open", "");
     await expect(
-      page.locator('details[data-device="windows"]'),
+      page.locator(`details[data-device="${other}"]`),
     ).not.toHaveAttribute("open", "");
   });
 
