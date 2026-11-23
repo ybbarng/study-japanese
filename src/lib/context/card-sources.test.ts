@@ -48,11 +48,27 @@ describe("일무따 카드 재료", () => {
 });
 
 describe("일문따 카드 재료", () => {
-  it("짝지은 소책자 문장이 없어 문장 후보는 비우고 드릴 낱말을 쓴다", () => {
+  it("짝이 없으면 문장 후보는 비우고 드릴 낱말을 쓴다", () => {
     const src = ilmuntaCardSource(null);
     expect(src.sentences).toEqual([]);
     expect(src.words.length).toBeGreaterThan(50);
     expect(src.words.some((w) => w.ja === "山")).toBe(false);
+  });
+
+  it("자막에서 찾은 짝을 문장 후보로 쓰고 출처를 받아 적은 글로 둔다", () => {
+    const src = ilmuntaCardSource(null, [
+      {
+        ja: "猫が好きです。",
+        ko: "고양이를 좋아합니다.",
+        start: 1,
+        end: 6,
+        score: 1,
+      },
+    ]);
+    expect(src.sentences).toEqual([
+      { ja: "猫が好きです。", ko: "고양이를 좋아합니다." },
+    ]);
+    expect(src.origin).toBe("transcript");
   });
 
   it("일무따를 볼 수 있으면 일무따 단어도 낱말로 쓴다", () => {

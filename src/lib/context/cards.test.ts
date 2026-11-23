@@ -91,6 +91,28 @@ describe("소책자 문장 카드", () => {
   it("한국어 구간에는 카드를 두지 않는다", () => {
     expect(buildCards([ko("山は高い")], source)).toEqual({});
   });
+
+  it("소책자 문장 카드에는 출처 필드를 두지 않는다(일무따 카드가 그대로)", () => {
+    expect(buildCards([ja("山は高い")], source)["0"]).not.toHaveProperty(
+      "origin",
+    );
+  });
+});
+
+describe("받아 적은 글 카드", () => {
+  const fromTranscript: CardSource = { ...source, origin: "transcript" };
+
+  it("자막 짝으로 맞춘 문장 카드는 출처를 transcript로 표시한다", () => {
+    expect(buildCards([ja("山は高い")], fromTranscript)["0"].origin).toBe(
+      "transcript",
+    );
+  });
+
+  it("문장 없이 낱말만 붙은 카드는 출처를 표시하지 않는다", () => {
+    const card = buildCards([ja("今日のはなし")], fromTranscript)["0"];
+    expect(card.sentences).toEqual([]);
+    expect(card).not.toHaveProperty("origin");
+  });
 });
 
 describe("비교용 글", () => {

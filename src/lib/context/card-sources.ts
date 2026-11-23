@@ -3,6 +3,7 @@ import { ADJECTIVES } from "@/lib/ilmunta/words";
 import { buildGlossary, type Glossary, hasKanji } from "@/lib/ilmuta/ruby";
 import type { IlmutaLesson, Sentence } from "@/lib/textbook/schema";
 import type { CardSource, CueWord } from "./cards";
+import type { TranscriptPair } from "./transcript-pairs";
 
 // 자막 하나에 카드를 붙일 재료(맞출 소책자 문장·읽는 법 사전·낱말)를 고른다. 파일을 읽지 않는 순수 함수다.
 
@@ -71,11 +72,13 @@ function drillWords(): CueWord[] {
 }
 
 /**
- * 일문따: 예문 mp3와 짝지은 소책자 문장이 없어 문장 카드는 만들지 않고 낱말 카드만 붙인다.
+ * 일문따: 소책자에 예문 글이 없어서, 그 과 문법 예문 자막에서 찾은 일본어·뜻 되풀이 짝
+ * (transcript-pairs.ts)을 문장 후보로 쓴다. 받아 적은 글이라 출처를 transcript로 둔다.
  * 낱말은 일문따 드릴 낱말과, 일무따 출처를 볼 수 있으면 일무따 전체 단어.
  */
 export function ilmuntaCardSource(
   ilmutaLessons: IlmutaLesson[] | null,
+  pairs: TranscriptPair[] = [],
 ): CardSource {
   const fromIlmuta = ilmutaLessons
     ? ilmutaWords(ilmutaLessons, Number.POSITIVE_INFINITY)
@@ -85,5 +88,10 @@ export function ilmuntaCardSource(
   for (const w of words)
     if (w.reading && hasKanji(w.ja) && !(w.ja in glossary))
       glossary[w.ja] = w.reading;
-  return { sentences: [], glossary, words };
+  return {
+    sentences: pairs.map((p) => ({ ja: p.ja, ko: p.ko })),
+    origin: "transcript",
+    glossary,
+    words,
+  };
 }

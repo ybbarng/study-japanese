@@ -6,6 +6,7 @@ import {
   lessonNoOfItem,
 } from "@/lib/context/card-sources";
 import { buildCards } from "@/lib/context/cards";
+import { ilmuntaLessonPairs } from "@/lib/context/ilmunta-pairs";
 import { contentDir, loadIlmuta, loadTranscript } from "@/lib/textbook/load";
 
 // 강의·예문 자막의 일본어 구간이 소책자 문장·낱말과 얼마나 맞았는지 숫자로만 보인다.
@@ -62,7 +63,10 @@ for (const book of ["ilmuta", "ilmunta"] as const) {
         ? no === null
           ? null
           : ilmutaCardSource(ilmuta.lessons, no)
-        : ilmuntaCardSource(ilmuta.lessons);
+        : ilmuntaCardSource(
+            ilmuta.lessons,
+            no === null ? [] : ilmuntaLessonPairs(no, dir),
+          );
     if (!source) continue;
     const cards = buildCards(t.segments, source);
     const key = `${book} ${t.kind}`;

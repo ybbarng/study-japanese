@@ -40,7 +40,13 @@ export const cueWordSchema = z.object({
 });
 export type CueWord = z.infer<typeof cueWordSchema>;
 
+/** 카드 문장이 어디서 왔나: 소책자의 정확한 글(booklet), 자막에서 받아 적은 글(transcript) */
+export const cueOriginSchema = z.enum(["booklet", "transcript"]);
+export type CueOrigin = z.infer<typeof cueOriginSchema>;
+
 export const cueCardSchema = z.object({
+  /** 문장 출처. 없으면 소책자(booklet) */
+  origin: cueOriginSchema.optional(),
   /** 맞춘 소책자 문장(조각 차례대로) */
   sentences: z.array(cueSentenceSchema),
   /** 구간의 모든 조각을 맞췄으면 true. 이때 화면은 자막 글 대신 소책자 글을 보인다 */
@@ -52,8 +58,10 @@ export type CueCard = z.infer<typeof cueCardSchema>;
 
 /** 카드를 만들 재료 */
 export interface CardSource {
-  /** 맞출 소책자 문장 */
+  /** 맞출 문장(소책자 문장, 또는 자막에서 받아 적은 짝) */
   sentences: Sentence[];
+  /** 문장 출처. 없으면 소책자 */
+  origin?: CueOrigin;
   /** 한자 낱말 → 읽는 법(문장에 후리가나를 단다) */
   glossary: Glossary;
   /** 낱말 카드로 띄울 낱말 */
@@ -181,6 +189,10 @@ export function buildCards(
       .map(withEmoji);
     if (matched.length === 0 && words.length === 0) return;
     out[String(i)] = {
+      // 받아 적은 글로 만든 문장이면 화면이 "교재와 다를 수 있음"을 보이도록 표시한다
+      ...(source.origin === "transcript" && matched.length > 0
+        ? { origin: "transcript" as const }
+        : {}),
       sentences: matched.map((s) => ({
         ja: s.ja,
         ko: s.ko,

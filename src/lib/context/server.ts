@@ -12,6 +12,8 @@ import {
 } from "./card-sources";
 import { buildCards } from "./cards";
 import type { Transcript } from "./cues";
+import { ilmuntaLessonPairs } from "./ilmunta-pairs";
+import type { TranscriptPair } from "./transcript-pairs";
 
 // 서버에서 자막을 읽어 맥락 카드를 붙인다. 자막 API와 강·과 화면이 함께 쓴다.
 
@@ -23,8 +25,12 @@ export async function visibleBooks(): Promise<(book: string) => boolean> {
 }
 
 // 자막·교재 파일이 그대로면(readJson이 같은 객체를 돌려준다) 맞추기를 다시 하지 않는다
-// (일무따 교재 객체가 바뀌거나 볼 수 있는지가 달라지면 새로 맞춘다)
-type Entry = { ilmuta: Ilmuta | null; result: Transcript };
+// (일무따 교재 객체·일문따 짝이 바뀌거나 볼 수 있는지가 달라지면 새로 맞춘다)
+type Entry = {
+  ilmuta: Ilmuta | null;
+  pairs: TranscriptPair[] | null;
+  result: Transcript;
+};
 const cache = new WeakMap<Transcript, Entry[]>();
 
 /**
@@ -41,8 +47,12 @@ export function loadContextTranscript(
   const transcript = loadTranscript(book, item, dir);
   if (!transcript) return null;
   const ilmuta = canSee("ilmuta") ? loadIlmuta(dir) : null;
+  const no = lessonNoOfItem(item);
+  // 일문따는 그 과 문법 예문 자막에서 찾은 짝을 문장으로 쓴다
+  const pairs =
+    book === "ilmunta" && no !== null ? ilmuntaLessonPairs(no, dir) : null;
   const entries = cache.get(transcript) ?? [];
-  const hit = entries.find((e) => e.ilmuta === ilmuta);
+  const hit = entries.find((e) => e.ilmuta === ilmuta && e.pairs === pairs);
   if (hit) return hit.result;
 
   // 음악 구간에서 음성 인식이 지어낸 줄(기호만, 제작진 표기)은 내주지 않는다.
@@ -53,20 +63,21 @@ export function loadContextTranscript(
       ? transcript
       : { ...transcript, segments };
 
-  const no = lessonNoOfItem(item);
   const source =
     book === "ilmuta"
       ? ilmuta && no !== null
         ? ilmutaCardSource(ilmuta.lessons, no)
         : null
-      : ilmuntaCardSource(ilmuta?.lessons ?? null);
+      : ilmuntaCardSource(ilmuta?.lessons ?? null, pairs ?? []);
   const withCards: Transcript = source
     ? { ...clean, cards: buildCards(clean.segments, source) }
     : clean;
-  // 교재가 바뀐 옛 결과는 버리고, 볼 수 있는 경우(일무따 있음·없음) 둘까지만 둔다
+  // 교재·짝이 바뀐 옛 결과는 버리고, 볼 수 있는 경우(일무따 있음·없음) 둘까지만 둔다
   cache.set(transcript, [
-    ...entries.filter((e) => e.ilmuta === null).slice(0, ilmuta ? 1 : 0),
-    { ilmuta, result: withCards },
+    ...entries
+      .filter((e) => e.ilmuta === null && e.pairs === pairs)
+      .slice(0, ilmuta ? 1 : 0),
+    { ilmuta, pairs, result: withCards },
   ]);
   return withCards;
 }
