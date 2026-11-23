@@ -3,9 +3,11 @@ import {
   compact,
   hasRunawayRepeat,
   isKnownHallucination,
+  isNoiseLine,
   isNonSpeech,
   isSuspectText,
   longestSameRun,
+  withoutNoise,
 } from "./hallucination";
 
 describe("정해진 환각 문구", () => {
@@ -50,6 +52,42 @@ describe("구간 안 되풀이", () => {
   it("환각 의심은 문구·소리 표시·되풀이 가운데 하나라도 맞으면 참이다", () => {
     expect(isSuspectText("[音楽]")).toBe(true);
     expect(isSuspectText("ねこだ")).toBe(false);
+  });
+});
+
+describe("자막을 내줄 때 거를 잡음 줄", () => {
+  it("장음 기호·문장부호만 있는 줄을 거른다", () => {
+    expect(isNoiseLine("ー")).toBe(true);
+    expect(isNoiseLine("ーーー")).toBe(true);
+    expect(isNoiseLine("…。")).toBe(true);
+    expect(isNoiseLine("♪〜 ♪")).toBe(true);
+    expect(isNoiseLine("  ")).toBe(true);
+  });
+
+  it("제작진 표기 줄을 거른다", () => {
+    expect(isNoiseLine("作詞・作曲・編曲 아무개")).toBe(true);
+    expect(isNoiseLine("作曲：なにがし")).toBe(true);
+    expect(isNoiseLine("작사 아무개")).toBe(true);
+    expect(isNoiseLine("Lyrics by Someone")).toBe(true);
+  });
+
+  it("글자가 하나라도 있는 짧은 대답은 남긴다", () => {
+    expect(isNoiseLine("え")).toBe(false);
+    expect(isNoiseLine("はい。")).toBe(false);
+    expect(isNoiseLine("ネ")).toBe(false);
+    expect(isNoiseLine("응")).toBe(false);
+    expect(isNoiseLine("3")).toBe(false);
+    expect(isNoiseLine("ゴール！")).toBe(false);
+  });
+
+  it("문장 속 제작진 낱말은 남긴다", () => {
+    expect(isNoiseLine("作曲家になりたいです")).toBe(false);
+    expect(isNoiseLine("작곡했어요")).toBe(false);
+  });
+
+  it("잡음 줄만 빼고 나머지 구간은 차례대로 남긴다", () => {
+    const segs = [{ text: "ー" }, { text: "ねこだ" }, { text: "作詞 아무개" }];
+    expect(withoutNoise(segs)).toEqual([{ text: "ねこだ" }]);
   });
 });
 

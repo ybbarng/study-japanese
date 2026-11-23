@@ -4,6 +4,7 @@ import { readSiteSettings } from "@/lib/sources/settings";
 import { getDb } from "@/lib/store/db";
 import { contentDir, loadIlmuta, loadTranscript } from "@/lib/textbook/load";
 import type { Ilmuta } from "@/lib/textbook/schema";
+import { withoutNoise } from "@/lib/transcript/hallucination";
 import {
   ilmuntaCardSource,
   ilmutaCardSource,
@@ -44,6 +45,14 @@ export function loadContextTranscript(
   const hit = entries.find((e) => e.ilmuta === ilmuta);
   if (hit) return hit.result;
 
+  // 음악 구간에서 음성 인식이 지어낸 줄(기호만, 제작진 표기)은 내주지 않는다.
+  // 카드 열쇠(segments 차례)가 어긋나지 않게 거른 뒤에 카드를 붙인다
+  const segments = withoutNoise(transcript.segments);
+  const clean: Transcript =
+    segments.length === transcript.segments.length
+      ? transcript
+      : { ...transcript, segments };
+
   const no = lessonNoOfItem(item);
   const source =
     book === "ilmuta"
@@ -52,8 +61,8 @@ export function loadContextTranscript(
         : null
       : ilmuntaCardSource(ilmuta?.lessons ?? null);
   const withCards: Transcript = source
-    ? { ...transcript, cards: buildCards(transcript.segments, source) }
-    : transcript;
+    ? { ...clean, cards: buildCards(clean.segments, source) }
+    : clean;
   // 교재가 바뀐 옛 결과는 버리고, 볼 수 있는 경우(일무따 있음·없음) 둘까지만 둔다
   cache.set(transcript, [
     ...entries.filter((e) => e.ilmuta === null).slice(0, ilmuta ? 1 : 0),
