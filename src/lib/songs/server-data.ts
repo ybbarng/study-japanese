@@ -1,3 +1,5 @@
+import { readdir } from "node:fs/promises";
+import path from "node:path";
 import { connection } from "next/server";
 import { isAdminRequest } from "@/lib/auth/server";
 import { canSeeSource, sourceOfBook } from "@/lib/sources/registry";
@@ -13,19 +15,34 @@ import {
   learnedForSong,
 } from "./learned";
 import { canSeeLyrics, type Song, type SongSummary } from "./schema";
+import { SONG_MEDIA_DIR } from "./track";
+import { unregisteredAudio } from "./unregistered";
 
 // 노래 화면(서버 컴포넌트)이 쓰는 데이터. 요청 때마다 DB를 읽는다.
 
 export async function loadSongList(): Promise<{
   songs: SongSummary[];
   isAdmin: boolean;
+  /** 관리자에게만: 서버에 음원은 있는데 아직 넣지 않은 파일 */
+  unregistered: string[];
 }> {
   await connection();
   const isAdmin = await isAdminRequest();
-  const songs = listSongs(getDb())
-    .filter((s) => canSeeLyrics(s, isAdmin))
-    .map(toSummary);
-  return { songs, isAdmin };
+  const all = listSongs(getDb());
+  const songs = all.filter((s) => canSeeLyrics(s, isAdmin)).map(toSummary);
+  const unregistered = isAdmin
+    ? unregisteredAudio(await listSongAudioFiles(), all)
+    : [];
+  return { songs, isAdmin, unregistered };
+}
+
+async function listSongAudioFiles(): Promise<string[]> {
+  const mediaDir = process.env.MEDIA_DIR ?? path.join(process.cwd(), "media");
+  try {
+    return await readdir(path.join(mediaDir, SONG_MEDIA_DIR));
+  } catch {
+    return [];
+  }
 }
 
 export interface SongPageData {

@@ -16,11 +16,14 @@ import {
   SLUG_PATTERN,
   type Song,
 } from "@/lib/songs/schema";
+import { slugFromAudioFile } from "@/lib/songs/unregistered";
 import { saveSong } from "./save-song";
 
 interface Props {
   /** 고칠 노래(없으면 새로 넣기) */
   song?: Song;
+  /** 새로 넣을 때 미리 채울 음원 파일 이름(서버 목록에서 고른 것) */
+  initialFile?: string;
 }
 
 const field =
@@ -31,13 +34,17 @@ const field =
  * 가사를 고쳐도 글이 그대로인 줄의 박자·메모는 남는다(linesFromText).
  * 한국어 해석은 따로 붙여 넣고 가사와 줄 수를 맞춘다(applyKo). PC는 가사 옆, 폰은 아래.
  */
-export function SongForm({ song }: Props) {
+export function SongForm({ song, initialFile }: Props) {
   const router = useRouter();
   const creating = !song;
   const [title, setTitle] = useState(song?.title ?? "");
   const [artist, setArtist] = useState(song?.artist ?? "");
-  const [slug, setSlug] = useState(song?.slug ?? "");
-  const [audioFile, setAudioFile] = useState(song?.audioFile ?? "");
+  const [slug, setSlug] = useState(
+    song?.slug ?? (initialFile ? slugFromAudioFile(initialFile) : ""),
+  );
+  const [audioFile, setAudioFile] = useState(
+    song?.audioFile ?? initialFile ?? "",
+  );
   const [lyrics, setLyrics] = useState(song ? lyricsText(song.lines) : "");
   const [lyricsPublic, setLyricsPublic] = useState(song?.lyricsPublic ?? true);
   const [error, setError] = useState<string | null>(null);
