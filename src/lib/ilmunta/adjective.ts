@@ -17,6 +17,8 @@ export interface Adjective {
   ko: string;
   /** 명사: 살아 있는 것(いる로 있다)인지 */
   alive?: boolean;
+  /** 드릴에서 쓰기 시작하는 일문따 과(0이나 비움이면 처음부터, word-lessons.ts) */
+  lesson?: number;
 }
 
 export const ADJ_FORMS = [

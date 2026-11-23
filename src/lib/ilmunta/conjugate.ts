@@ -26,7 +26,7 @@ export interface Verb {
   group: VerbGroup;
   /** 한국어 뜻 */
   ko: string;
-  /** 교재에서 처음 나오는 과(모르면 비움) */
+  /** 드릴에서 쓰기 시작하는 일문따 과(0이나 비움이면 처음부터, word-lessons.ts) */
   lesson?: number;
   /** 수동·사역·가능·명령·의지처럼 쓰임이 어색한 활용은 묻지 않는다(ある·わかる 등) */
   basicOnly?: boolean;

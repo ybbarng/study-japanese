@@ -1,6 +1,7 @@
 import type { Adjective, AdjKind } from "./adjective";
+import { drillLessonOf } from "./word-lessons";
 
-/** 드릴·시험에 쓰는 기초 형용사·명사. 세션이 직접 골랐다. */
+/** 드릴·시험에 쓰는 기초 형용사·명사. 세션이 직접 골랐다. 쓰기 시작하는 과(lesson)는 word-lessons.ts에서 붙인다. */
 
 type Row = [dict: string, reading: string, ko: string, alive?: true];
 
@@ -71,6 +72,7 @@ function rows(kind: AdjKind, list: Row[]): Adjective[] {
     reading,
     ko,
     kind,
+    lesson: drillLessonOf(dict),
     ...(alive ? { alive } : {}),
   }));
 }

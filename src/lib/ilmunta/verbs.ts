@@ -1,8 +1,9 @@
 import type { Verb, VerbGroup } from "./conjugate";
+import { drillLessonOf } from "./word-lessons";
 
 /**
  * 드릴·시험에 쓰는 기초 동사. 세션이 흔한 기초 동사를 직접 골랐다(교재 단어 색인을 옮기지 않음).
- * 처음 나오는 과(lesson)는 모르므로 비워 둔다.
+ * 쓰기 시작하는 과(lesson)는 word-lessons.ts에서 붙인다.
  */
 
 type Row = [dict: string, reading: string, ko: string, basicOnly?: true];
@@ -140,6 +141,7 @@ function rows(group: VerbGroup, list: Row[]): Verb[] {
     reading,
     ko,
     group,
+    lesson: drillLessonOf(dict),
     ...(basicOnly ? { basicOnly } : {}),
   }));
 }
