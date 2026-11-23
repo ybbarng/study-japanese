@@ -78,12 +78,12 @@ export function KanaHome() {
         )}
       >
         <p className="text-sm opacity-80">{today.eyebrow}</p>
-        <p className="mt-1 text-2xl font-bold">{today.title}</p>
-        <Glyph className="mt-4 block text-3xl tracking-wider opacity-95">
+        <p className="mt-1 pr-14 text-2xl font-bold">{today.title}</p>
+        <Glyph className="mt-4 block text-3xl leading-snug tracking-wider opacity-95">
           {today.glyphs}
         </Glyph>
         <p className="mt-4 text-sm opacity-80">{today.sub}</p>
-        <span className="absolute right-5 bottom-5 flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-2xl">
+        <span className="absolute top-5 right-5 flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-2xl">
           ▶
         </span>
       </Link>

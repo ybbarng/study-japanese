@@ -171,7 +171,7 @@ export function LessonRunner({ lessonId }: { lessonId: string }) {
         <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
           <div className={cn("flex flex-wrap justify-center gap-2", s.pop)}>
             {cards.slice(0, 12).map((c) => (
-              <Glyph key={c} className="text-4xl text-accent">
+              <Glyph key={c} className="text-3xl text-accent">
                 {cardChar(c)}
               </Glyph>
             ))}

@@ -113,13 +113,14 @@ export function SoundButton({
 
   const play = async () => {
     setState("playing");
-    const ok = soundId
+    const r = soundId
       ? await playSound(soundId)
       : word
         ? await playWord(word)
-        : false;
-    setState(ok ? "idle" : "none");
-    if (!ok) onUnavailable?.();
+        : "missing";
+    // 다른 소리에 끊긴 것(skipped)은 다시 누르면 되니 그대로 둔다
+    setState(r === "missing" ? "none" : "idle");
+    if (r === "missing") onUnavailable?.();
   };
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: 글자가 바뀔 때만 자동 재생한다

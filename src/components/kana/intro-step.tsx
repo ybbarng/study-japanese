@@ -6,6 +6,7 @@ import {
   cardChar,
   confusablesOf,
   getSound,
+  hasAudio,
   parseCardId,
 } from "@/lib/kana/data";
 import { hintFor } from "@/lib/kana/hints";
@@ -109,13 +110,17 @@ function CardPage({ id }: { id: CardId }) {
   const confusing = confusablesOf(id);
   return (
     <div className="flex flex-col items-center gap-4">
-      <Glyph className="text-[11rem]">{cardChar(id)}</Glyph>
+      <Glyph
+        className={cardChar(id).length > 1 ? "text-[7rem]" : "text-[11rem]"}
+      >
+        {cardChar(id)}
+      </Glyph>
       <div className="flex items-center gap-4">
         <div className="text-left">
           <p className="text-3xl font-bold">{sound.ko}</p>
           <p className="text-ink-soft">{sound.romaji}</p>
         </div>
-        <SoundButton soundId={soundId} autoPlay />
+        {hasAudio(soundId) && <SoundButton soundId={soundId} autoPlay />}
       </div>
       <p className="max-w-xs text-ink-soft leading-relaxed">{hintFor(id)}</p>
       <div className="flex flex-wrap justify-center gap-2 text-sm">

@@ -83,10 +83,12 @@ export function QuizRunner({
     } else {
       setCombo(0);
       stats.current.missed.add(q.answer);
-      // 틀린 문제는 끝에 한 번 더
-      const again: Question = { ...q, choices: [...q.choices].reverse() };
-      retried.current.add(queue.length);
-      setQueue([...queue, again]);
+      // 틀린 문제는 끝에 한 번 더(다시 낸 문제를 또 틀려도 더 붙이지 않는다. 그 글자는 복습에 먼저 나온다)
+      if (!retried.current.has(index)) {
+        const again: Question = { ...q, choices: [...q.choices].reverse() };
+        retried.current.add(queue.length);
+        setQueue([...queue, again]);
+      }
       void playSound(soundId);
     }
   };
@@ -153,7 +155,7 @@ export function QuizRunner({
             <p className="text-sm text-ink-soft">이 글자의 소리는?</p>
             <Glyph
               className={cn(
-                "text-[9rem]",
+                cardChar(q.answer).length > 1 ? "text-[6.5rem]" : "text-[9rem]",
                 answered && isRight && s.pop,
                 answered && !isRight && s.shake,
               )}
@@ -189,7 +191,9 @@ export function QuizRunner({
       <div className="h-20 pt-4">
         {answered && !isRight && (
           <PrimaryButton onClick={next}>
-            다음 (끝에 한 번 더 나와요)
+            {retried.current.has(index)
+              ? "다음 (복습에 먼저 나와요)"
+              : "다음 (끝에 한 번 더 나와요)"}
           </PrimaryButton>
         )}
       </div>

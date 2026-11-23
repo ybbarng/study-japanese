@@ -96,8 +96,8 @@ export function WritePad({
     <div className="flex flex-1 flex-col">
       <div className="flex items-center justify-between pb-3">
         <p className="text-ink-soft">
-          <span className="text-2xl font-bold text-ink">{romaji}</span> 를 써
-          보세요
+          <span className="text-2xl font-bold text-ink">{romaji}</span> 소리의
+          글자 쓰기
         </p>
         <label className="flex items-center gap-2 text-sm text-ink-soft">
           <input
@@ -125,7 +125,13 @@ export function WritePad({
                 : "opacity-0",
           )}
         >
-          <Glyph className={cn("text-[15rem] font-medium", revealed && s.pop)}>
+          <Glyph
+            className={cn(
+              char.length > 1 ? "text-[9rem]" : "text-[15rem]",
+              "font-medium",
+              revealed && s.pop,
+            )}
+          >
             {char}
           </Glyph>
         </div>
