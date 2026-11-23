@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
+import { StickyPanel } from "./sticky-panel";
 
 const WIDTH = {
   /** 글 읽는 화면(안내·설정): 한 줄이 너무 길지 않게 */
@@ -84,22 +85,5 @@ export function SplitColumns({
   );
 }
 
-/** 화면을 내려도 따라오는 곁칸. 아래 재생 막대 자리만큼 높이를 줄인다 */
-export function StickyPanel({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "sticky top-6 flex max-h-[calc(100dvh-9rem)] flex-col gap-4",
-        className,
-      )}
-    >
-      {children}
-    </div>
-  );
-}
+/** 화면을 내려도 따라오는 곁칸(재생 막대 위에서 끝나게 높이를 잰다) */
+export { StickyPanel };

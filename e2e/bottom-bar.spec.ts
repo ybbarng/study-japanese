@@ -53,6 +53,42 @@ test("폰 강 화면에서 재생 막대가 떠 있어도 끝까지 내리면 �
   expect(l?.navBottom).toBe(l?.viewport);
 });
 
+test("PC 일문따 과 화면에서 재생 막대가 뜨면, 내리기 전에도 오른쪽 자막 칸이 다 자라도 끝이 막대 위에 있다", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "desktop-chrome",
+    "폰은 자막 곁칸이 없다",
+  );
+  await login(page, "/ilmunta/1");
+  await page.getByRole("button", { name: /처음부터 듣기|이어서 듣기/ }).click();
+  const bar = page.locator("[data-player-bar]:visible");
+  await expect(bar).toBeVisible();
+  await page.evaluate(() => window.scrollTo(0, 0));
+
+  // 칸이 가장 크게 자랐을 때의 끝(지금 위치 + 최대 높이)이 막대 위쪽보다 위여야 한다.
+  // 자막 길이와 상관없이 보려고 실제 높이가 아니라 최대 높이로 잰다
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const panel = document.querySelector<HTMLElement>(
+          'aside[aria-label="강의 자막"] [data-sticky-panel]',
+        );
+        // 막대는 position: fixed라 offsetParent가 없다. 감춘 쪽은 높이가 0
+        const dock = [
+          ...document.querySelectorAll<HTMLElement>("[data-player-bar]"),
+        ].find((el) => el.getBoundingClientRect().height > 0);
+        if (!panel || !dock) return null;
+        const max = Number.parseFloat(getComputedStyle(panel).maxHeight);
+        return (
+          panel.getBoundingClientRect().top + max <=
+          dock.getBoundingClientRect().top
+        );
+      }),
+    )
+    .toBe(true);
+});
+
 test("재생 막대가 떠 있을 때 가나 레슨 아래에 붙은 단계 표가 막대에 가리지 않는다", async ({
   page,
 }) => {
