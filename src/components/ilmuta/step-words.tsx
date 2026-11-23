@@ -56,7 +56,7 @@ export function StepWords({ data, listens }: StepProps) {
                 </span>
               ) : null}
             </div>
-            <ul className="grid grid-cols-2 gap-3">
+            <ul className="grid grid-cols-2 gap-3 lg:grid-cols-3 2xl:grid-cols-4">
               {example.sentences.map((w) => (
                 <li key={w.ja}>
                   <WordCard
@@ -90,7 +90,7 @@ function WordCard({
     <button
       type="button"
       onClick={onPress}
-      className="flex h-full min-h-32 w-full flex-col items-center justify-center rounded-2xl bg-bg-raised px-2 py-4 text-center active:bg-bg-sunken"
+      className="flex h-full min-h-32 w-full flex-col items-center justify-center rounded-2xl bg-bg-raised px-2 py-4 text-center active:bg-bg-sunken lg:min-h-40 lg:hover:ring-1 lg:hover:ring-accent/50"
     >
       <RubyText
         text={word.ja}

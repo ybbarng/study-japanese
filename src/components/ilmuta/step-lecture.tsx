@@ -21,34 +21,40 @@ export function StepLecture({ data, listens }: StepProps) {
 
   return (
     <div className="space-y-5">
-      <PlayCard
-        big
-        title={active && now.playing ? "강의 듣는 중" : "강의 듣기"}
-        note={
-          lesson.examples.length > 0
-            ? `끝나면 이 강 예문 ${lesson.examples.length}개가 이어집니다`
-            : undefined
-        }
-        durationSec={lesson.lecture.durationSec}
-        count={listens[item]}
-        playing={active && now.playing}
-        onPress={() => play(lessonQueue(lesson), 0)}
-      />
+      {/* PC에서는 강의 재생과 자막 전체가 오른쪽 곁칸(LessonAside)에 있다 */}
+      <div className="space-y-5 lg:hidden">
+        <PlayCard
+          big
+          title={active && now.playing ? "강의 듣는 중" : "강의 듣기"}
+          note={
+            lesson.examples.length > 0
+              ? `끝나면 이 강 예문 ${lesson.examples.length}개가 이어집니다`
+              : undefined
+          }
+          durationSec={lesson.lecture.durationSec}
+          count={listens[item]}
+          playing={active && now.playing}
+          onPress={() => play(lessonQueue(lesson), 0)}
+        />
 
-      <LectureContext transcript={transcript} book="ilmuta" item={item} />
+        <LectureContext transcript={transcript} book="ilmuta" item={item} />
+      </div>
 
       {lesson.no === 0 ? <OrientationGuide /> : null}
 
       {patterns.length > 0 ? (
         <section>
           <h2 className="text-sm text-ink-faint">이 강에서 익힐 문형</h2>
-          <ol className="mt-2 space-y-3">
+          <ol className="mt-2 space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
             {patterns.map((p) => (
-              <li key={p.no} className="rounded-2xl bg-bg-raised px-4 py-3">
-                <p lang="ja" className="font-ja-serif text-xl">
+              <li
+                key={p.no}
+                className="rounded-2xl bg-bg-raised px-4 py-3 lg:px-5 lg:py-4"
+              >
+                <p lang="ja" className="font-ja-serif text-xl lg:text-2xl">
                   {p.ja}
                 </p>
-                <p className="text-sm text-ink-soft">{p.ko}</p>
+                <p className="text-sm text-ink-soft lg:text-base">{p.ko}</p>
               </li>
             ))}
           </ol>

@@ -32,12 +32,15 @@ export function StepPatterns({ data, listens }: StepProps) {
           {groupByPattern(example).map((g) => (
             <article
               key={g.head?.no ?? `loose`}
-              className="rounded-2xl bg-bg-raised p-4"
+              className="rounded-2xl bg-bg-raised p-4 lg:p-6"
             >
               {g.head ? (
                 <header className="border-b border-line pb-3">
                   <p className="text-xs text-accent">문형 {g.head.no}</p>
-                  <p lang="ja" className="mt-1 font-ja-serif text-2xl">
+                  <p
+                    lang="ja"
+                    className="mt-1 font-ja-serif text-2xl lg:text-4xl"
+                  >
                     {g.head.ja}
                   </p>
                   <p className="text-sm text-ink-soft">{g.head.ko}</p>

@@ -76,7 +76,8 @@ export function SentenceView({
           showReading={display.reading}
           className={cn(
             "block leading-loose",
-            size === "lg" ? "text-2xl" : "text-xl",
+            // PC에서는 넓이를 살려 한 단계 크게(책보다 큰 글자로 읽는 법까지)
+            size === "lg" ? "text-2xl lg:text-3xl" : "text-xl lg:text-2xl",
           )}
         />
       ) : (
@@ -85,7 +86,7 @@ export function SentenceView({
         </span>
       )}
       {showKo ? (
-        <span className="block text-ink-soft">{sentence.ko}</span>
+        <span className="block text-ink-soft lg:text-lg">{sentence.ko}</span>
       ) : (
         <span className="block text-sm text-ink-faint">뜻은?</span>
       )}

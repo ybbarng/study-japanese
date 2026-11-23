@@ -28,7 +28,7 @@ export function StepConversation({ data, listens }: StepProps) {
         const sides = speakerSides(script.sentences);
         return (
           <section key={script.examples[0].id} className="space-y-4">
-            <div className="space-y-2">
+            <div className="space-y-2 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
               {script.examples.map((e) => (
                 <PlayCard
                   key={e.id}
@@ -68,7 +68,7 @@ export function StepConversation({ data, listens }: StepProps) {
                     ) : null}
                     <div
                       className={cn(
-                        "max-w-[85%] rounded-2xl px-4 py-3",
+                        "max-w-[85%] rounded-2xl px-4 py-3 lg:max-w-[75%] lg:px-6 lg:py-4",
                         side === "right"
                           ? "rounded-tr-sm bg-accent-soft"
                           : "rounded-tl-sm bg-bg-raised",

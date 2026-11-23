@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
-import { examplesOf } from "@/lib/ilmuta/steps";
 import {
   draftKey,
   initialTexts,
@@ -11,7 +10,7 @@ import {
 } from "@/lib/ilmuta/writing-draft";
 import type { WritingDoc } from "@/lib/store/writings";
 import type { StepProps } from "./lesson-types";
-import { RubyText } from "./ruby-text";
+import { WritingReference } from "./writing-reference";
 
 type SaveState = "saved" | "dirty" | "saving" | "offline";
 
@@ -38,7 +37,7 @@ function writeDraft(no: number, texts: string[] | null) {
 
 /** 문장 3개 쓰기: 그 강 문형을 보며 스스로 만든다. 세션이 읽고 고쳐 준다 */
 export function StepWriting({ data }: StepProps) {
-  const { lesson, glossary } = data;
+  const { lesson } = data;
   const [doc, setDoc] = useState<WritingDoc | null>(data.writing);
   const [texts, setTexts] = useState(
     () => initialTexts(data.writing, null).texts,
@@ -53,10 +52,6 @@ export function StepWriting({ data }: StepProps) {
       setSave("dirty");
     }
   }, [data.writing, lesson.no]);
-
-  const patterns = examplesOf(lesson, "patterns");
-  const heads = patterns.flatMap((e) => e.patterns ?? []);
-  const words = examplesOf(lesson, "words").flatMap((e) => e.sentences);
 
   const onChange = (i: number, value: string) => {
     const next = texts.map((t, j) => (j === i ? value : t));
@@ -86,47 +81,14 @@ export function StepWriting({ data }: StepProps) {
 
   return (
     <div className="space-y-5">
-      {heads.length > 0 ? (
-        <section className="rounded-2xl bg-bg-raised p-4">
-          <h2 className="text-sm text-ink-faint">이 강의 문형</h2>
-          <ul className="mt-2 space-y-2">
-            {heads.map((p) => (
-              <li key={p.no}>
-                <span lang="ja" className="font-ja-serif text-xl">
-                  {p.ja}
-                </span>
-                <span className="ml-2 text-sm text-ink-soft">{p.ko}</span>
-              </li>
-            ))}
-          </ul>
-          <details className="mt-3 text-sm">
-            <summary className="cursor-pointer text-ink-faint">
-              막히면 예문·단어 보기
-            </summary>
-            <ul className="mt-2 space-y-1">
-              {patterns
-                .flatMap((e) => e.sentences)
-                .slice(0, 8)
-                .map((s) => (
-                  <li key={s.ja}>
-                    <RubyText text={s.ja} glossary={glossary} />
-                    <span className="ml-2 text-ink-faint">{s.ko}</span>
-                  </li>
-                ))}
-            </ul>
-            {words.length > 0 ? (
-              <p className="mt-3 flex flex-wrap gap-x-3 gap-y-1">
-                {words.map((w) => (
-                  <span key={w.ja}>
-                    <RubyText text={w.ja} reading={w.reading} />
-                    <span className="ml-1 text-ink-faint">{w.ko}</span>
-                  </span>
-                ))}
-              </p>
-            ) : null}
-          </details>
-        </section>
-      ) : null}
+      {/* PC에서는 같은 참고가 오른쪽 곁칸에 펼쳐져 있다 */}
+      <div className="lg:hidden">
+        <WritingReference data={data} layout="fold" />
+      </div>
+      <p className="hidden text-sm text-ink-soft lg:block">
+        오른쪽 문형을 보며 실제 키보드로 써 보세요. 일본어 입력기로 쳐도 되고,
+        세션이 읽고 고쳐 줍니다.
+      </p>
 
       <ol className="space-y-4">
         {texts.map((t, i) => {
@@ -146,12 +108,23 @@ export function StepWriting({ data }: StepProps) {
                 lang="ja"
                 value={t}
                 onChange={(e) => onChange(i, e.target.value)}
+                onKeyDown={(e) => {
+                  // PC: Ctrl·Cmd+Enter로 저장(입력기 변환 중 Enter는 변환 확정이라 건드리지 않는다)
+                  if (
+                    e.key === "Enter" &&
+                    (e.metaKey || e.ctrlKey) &&
+                    !e.nativeEvent.isComposing
+                  ) {
+                    e.preventDefault();
+                    if (save === "dirty" || save === "offline") void onSave();
+                  }
+                }}
                 rows={2}
                 autoCapitalize="off"
                 autoCorrect="off"
                 spellCheck={false}
                 placeholder="日本語で一文"
-                className="mt-1 w-full resize-none rounded-2xl border border-line bg-bg-sunken p-4 text-2xl leading-relaxed outline-none focus:border-accent"
+                className="mt-1 w-full resize-none rounded-2xl border border-line bg-bg-sunken p-4 text-2xl leading-relaxed outline-none focus:border-accent lg:min-h-28 lg:resize-y lg:p-5 lg:text-3xl"
               />
               {corrected?.correction ? (
                 <div className="mt-2 rounded-xl bg-accent-soft p-3 text-sm">
@@ -189,9 +162,13 @@ export function StepWriting({ data }: StepProps) {
       </button>
       {save === "dirty" || save === "offline" ? (
         <p className="text-center text-xs text-ink-faint">
-          저장하기 전 글은 이 폰에 남아 있습니다.
+          저장하기 전 글은 이 기기에 남아 있습니다.
         </p>
       ) : null}
+      <p className="hidden text-center text-xs text-ink-faint lg:block">
+        <kbd className="font-mono">Ctrl</kbd>·<kbd className="font-mono">⌘</kbd>
+        +<kbd className="font-mono">Enter</kbd>로 저장
+      </p>
     </div>
   );
 }
