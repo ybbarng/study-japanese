@@ -41,6 +41,18 @@ export interface Question {
   rule: string;
   /** 고르기 보기(정답 포함, 섞음). 2~4개 */
   choices: Form[];
+  /** 문장 빈칸 문제면 그 문장(sentence.ts). 없으면 활용표 문제 */
+  sentence?: SentenceView;
+}
+
+/** 문장 빈칸 문제의 문장. 일본어는 `[漢字|かな]` 표기(ruby-text.ts) */
+export interface SentenceView {
+  frameId: string;
+  /** 빈칸 앞·뒤 일본어 */
+  before: string;
+  after: string;
+  /** 한국어 뜻(정답을 채운 문장의 뜻) */
+  ko: string;
 }
 
 const sameForm = (a: Form, b: Form) => a.reading === b.reading;
@@ -113,15 +125,27 @@ function verbDistractors(v: Verb, form: VerbFormId): Form[] {
   return out;
 }
 
+/** 이 동사로 이 활용형을 물어도 되는지(ある·わかる 같은 말은 기본 활용만) */
+export function verbFitsForm(v: Verb, form: VerbFormId): boolean {
+  return !v.basicOnly || BASIC_FORMS.has(form);
+}
+
 function verbQuestion(
   skill: Extract<Skill, { kind: "verb" }>,
   rng: Rng,
   avoid?: string,
 ): Question {
-  const pool = verbsOf(skill.group).filter(
-    (v) => !v.basicOnly || BASIC_FORMS.has(skill.form),
-  );
+  const pool = verbsOf(skill.group).filter((v) => verbFitsForm(v, skill.form));
   const v = pickAvoiding(pool, rng, (x) => x.dict, avoid);
+  return verbQuestionOf(skill, v, rng);
+}
+
+/** 정한 동사로 활용 문제를 만든다(문장 빈칸 문제도 이것으로 정답·규칙·보기를 얻는다) */
+export function verbQuestionOf(
+  skill: Extract<Skill, { kind: "verb" }>,
+  v: Verb,
+  rng: Rng,
+): Question {
   // 사전형을 물을 때는 ます형을 보여 준다
   const givenForm: VerbFormId = skill.form === "dict" ? "masu" : "dict";
   const given = conjugate(v, givenForm);
@@ -151,6 +175,15 @@ function adjQuestion(
   avoid?: string,
 ): Question {
   const a = pickAvoiding(wordsOf(skill.adjKind), rng, (x) => x.dict, avoid);
+  return adjQuestionOf(skill, a, rng);
+}
+
+/** 정한 형용사·명사로 활용 문제를 만든다 */
+export function adjQuestionOf(
+  skill: Extract<Skill, { kind: "adj" }>,
+  a: Adjective,
+  rng: Rng,
+): Question {
   const c = conjugateAdj(a, skill.form);
   const accepted = acceptedForms(c);
   const candidates: Form[] = [];
@@ -297,7 +330,7 @@ function existQuestion(skill: Skill, rng: Rng, avoid?: string): Question {
 }
 
 /** 같은 낱말이 잇달아 나오지 않게 고른다 */
-function pickAvoiding<T>(
+export function pickAvoiding<T>(
   pool: readonly T[],
   rng: Rng,
   keyOf: (x: T) => string,
