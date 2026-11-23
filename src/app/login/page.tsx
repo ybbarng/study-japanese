@@ -19,7 +19,7 @@ export default async function LoginPage({
       <form
         method="post"
         action="/api/login"
-        className="mt-12 flex w-full max-w-xs flex-col gap-3"
+        className="mt-12 flex w-full max-w-xs flex-col gap-3 lg:max-w-sm"
       >
         <input type="hidden" name="next" value={safeNextPath(next ?? "/")} />
         <label className="sr-only" htmlFor="password">
