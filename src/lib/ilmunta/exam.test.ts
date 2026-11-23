@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import { SKILL_BY_KEY } from "./curriculum";
 import { buildExam, examLessons, scoreExam } from "./exam";
 import { monthOfLesson, monthRange } from "./months";
+import { wordOf } from "./question";
 import { seededRng } from "./random";
+import { VERB_BY_DICT } from "./verbs";
+import { ADJECTIVES } from "./words";
 
 const april = monthRange(4);
 const may = monthRange(5);
@@ -44,6 +47,69 @@ describe("buildExam", () => {
       buildExam(april, seededRng(9)),
     );
   });
+});
+
+describe("buildExam 낱말 범위", () => {
+  /** 드릴 낱말(동사·형용사·명사)이 쓰이기 시작하는 과. 자타동사 짝·경어는 없음 */
+  const LESSON_OF = new Map<string, number>([
+    ...[...VERB_BY_DICT.values()].map((v) => [v.dict, v.lesson ?? 0] as const),
+    ...ADJECTIVES.map((a) => [a.dict, a.lesson ?? 0] as const),
+  ]);
+  const SEEDS = Array.from({ length: 20 }, (_, i) => i + 1);
+
+  it.each([april, may, june])(
+    "%o: 그 달 마지막 과까지 배운 낱말만 낸다",
+    (range) => {
+      const late: string[] = [];
+      for (const seed of SEEDS)
+        for (const q of buildExam(range, seededRng(seed))) {
+          const word = wordOf(q.id);
+          const lesson = LESSON_OF.get(word);
+          if (lesson != null && lesson > range.to)
+            late.push(`${seed}: ${word}(${lesson}과)`);
+        }
+      expect(late).toEqual([]);
+    },
+  );
+
+  it("4월 시험(1~24과)에는 25과에 처음 나오는 遅れる가 나오지 않고, 5월 시험에는 나온다", () => {
+    const words = (range: typeof april) =>
+      new Set(
+        SEEDS.flatMap((seed) =>
+          buildExam(range, seededRng(seed)).map((q) => wordOf(q.id)),
+        ),
+      );
+    expect(VERB_BY_DICT.get("遅れる")?.lesson).toBe(25);
+    expect(words(april).has("遅れる")).toBe(false);
+    expect(words(may).has("遅れる")).toBe(true);
+  });
+
+  it("일무따에 나온 낱말은 일문따 과와 상관없이 4월 시험에도 나온다", () => {
+    // 考える는 일문따 28과에 나오지만 일무따에 먼저 나와 처음부터 쓴다
+    expect(VERB_BY_DICT.get("考える")?.lesson).toBe(0);
+    const words = new Set(
+      SEEDS.flatMap((seed) =>
+        buildExam(april, seededRng(seed)).map((q) => wordOf(q.id)),
+      ),
+    );
+    expect(words.has("考える")).toBe(true);
+  });
+
+  it.each([april, may, june])(
+    "%o: 바로 앞 문제와 같은 낱말을 잇달아 내지 않는다",
+    (range) => {
+      const repeats: string[] = [];
+      for (const seed of SEEDS) {
+        const words = buildExam(range, seededRng(seed)).map((q) =>
+          wordOf(q.id),
+        );
+        for (let i = 1; i < words.length; i++)
+          if (words[i] === words[i - 1])
+            repeats.push(`${seed}: ${i}번 ${words[i]}`);
+      }
+      expect(repeats).toEqual([]);
+    },
+  );
 });
 
 describe("examLessons", () => {

@@ -1,6 +1,6 @@
 import { firstLesson, type Skill, skillsInLessons } from "./curriculum";
 import { type MonthRange, PASS_SCORE } from "./months";
-import { makeQuestion, type Question } from "./question";
+import { makeQuestion, type Question, wordOf } from "./question";
 import { type Rng, shuffle } from "./random";
 
 /** 시험 문제: 입력해서 답하는 문제와 고르는 문제를 번갈아 둔다 */
@@ -41,7 +41,11 @@ function spreadByLesson(
   return out;
 }
 
-/** 그 달 범위의 기술로 시험지를 만든다. 같은 문제(기술 + 낱말)는 두 번 내지 않는다 */
+/**
+ * 그 달 범위의 기술로 시험지를 만든다. 같은 문제(기술 + 낱말)는 두 번 내지 않는다.
+ * 낱말은 드릴과 같은 규칙으로 고른다: 그 달 마지막 과까지 배운 낱말만(일무따에 나온 낱말은 처음부터),
+ * 바로 앞 문제와 같은 낱말은 피한다
+ */
 export function buildExam(
   range: MonthRange,
   rng: Rng,
@@ -49,16 +53,22 @@ export function buildExam(
 ): ExamQuestion[] {
   const skills = skillsInLessons(range.from, range.to);
   if (skills.length === 0) return [];
-  const plan = spreadByLesson(skills, range.from, rng, count);
+  const upTo = range.to;
   const used = new Set<string>();
   const out: ExamQuestion[] = [];
-  for (const skill of plan) {
-    let q = makeQuestion(skill, rng);
-    for (let tries = 0; used.has(q.id) && tries < 10; tries++)
-      q = makeQuestion(skill, rng);
-    if (used.has(q.id)) continue;
-    used.add(q.id);
-    out.push({ ...q, mode: out.length % 2 === 0 ? "input" : "choice" });
+  // 배운 낱말이 적은 기술은 겹쳐서 빠질 수 있으니, 모자라면 한 바퀴 더 돈다
+  for (let round = 0; round < 3 && out.length < count; round++) {
+    for (const skill of spreadByLesson(skills, range.from, rng, count)) {
+      if (out.length >= count) break;
+      const prev = out.at(-1);
+      const avoid = prev ? wordOf(prev.id) : undefined;
+      let q = makeQuestion(skill, rng, avoid, upTo);
+      for (let tries = 0; used.has(q.id) && tries < 10; tries++)
+        q = makeQuestion(skill, rng, avoid, upTo);
+      if (used.has(q.id)) continue;
+      used.add(q.id);
+      out.push({ ...q, mode: out.length % 2 === 0 ? "input" : "choice" });
+    }
   }
   return out;
 }
