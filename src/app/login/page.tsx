@@ -3,9 +3,10 @@ import { safeNextPath } from "@/lib/auth/safe-next";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; error?: string }>;
+  searchParams: Promise<{ next?: string; error?: string; locked?: string }>;
 }) {
-  const { next, error } = await searchParams;
+  const { next, error, locked } = await searchParams;
+  const lockedMinutes = Number(locked);
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center px-6">
       <p
@@ -33,7 +34,12 @@ export default async function LoginPage({
           placeholder="암호"
           className="h-14 rounded-2xl border border-line bg-bg-raised px-5 text-lg text-ink outline-none placeholder:text-ink-faint focus:border-accent"
         />
-        {error ? (
+        {lockedMinutes > 0 ? (
+          <p className="text-sm text-accent">
+            틀린 시도가 많아 잠시 잠겼습니다. 약 {lockedMinutes}분 뒤에 다시 해
+            주세요. 이미 로그인된 기기는 그대로 쓸 수 있습니다.
+          </p>
+        ) : error ? (
           <p className="text-sm text-accent">암호가 맞지 않습니다.</p>
         ) : null}
         <button

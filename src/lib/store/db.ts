@@ -29,6 +29,13 @@ const MIGRATIONS = [
     updated_at INTEGER NOT NULL,
     PRIMARY KEY (book, lesson)
   )`,
+  // 교재 오디오 전송량(한국 날짜·로그인 세션별). 세션은 쿠키 값이 아니라 그 해시
+  `CREATE TABLE IF NOT EXISTS media_usage (
+    day TEXT NOT NULL,
+    session TEXT NOT NULL,
+    bytes INTEGER NOT NULL,
+    PRIMARY KEY (day, session)
+  )`,
 ];
 
 export function openDb(file: string): DatabaseSync {
