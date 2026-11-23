@@ -46,7 +46,11 @@ function ilmutaLesson(no: number) {
             }),
             example(`${n}-3`, "patterns", {
               patterns: [{ no: 1, ja: "～は～だ。", ko: "~는 ~이다." }],
-              sentences: [{ ja: "山は山だ。", ko: "산은 산이다.", pattern: 1 }],
+              sentences: [
+                { ja: "山は山だ。", ko: "산은 산이다.", pattern: 1 },
+                // 히라가나 기본 글자와 후리가나만으로 읽히는 문장(가나 첫 읽기에 골린다)
+                { ja: "山のうえ。", ko: "산 위.", pattern: 1 },
+              ],
             }),
           ],
   };

@@ -4,6 +4,7 @@ import { LectureContext } from "@/components/context/lecture-context";
 import { examplesOf } from "@/lib/ilmuta/steps";
 import { lectureItem, lessonQueue } from "@/lib/ilmuta/tracks";
 import type { StepProps } from "./lesson-types";
+import { OrientationGuide } from "./orientation-guide";
 import { PlayCard } from "./play-card";
 import { useNowPlaying, usePlay } from "./use-player-bridge";
 
@@ -35,6 +36,8 @@ export function StepLecture({ data, listens }: StepProps) {
       />
 
       <LectureContext transcript={transcript} book="ilmuta" item={item} />
+
+      {lesson.no === 0 ? <OrientationGuide /> : null}
 
       {patterns.length > 0 ? (
         <section>
