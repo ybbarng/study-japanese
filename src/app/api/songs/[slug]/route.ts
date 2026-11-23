@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { isAdminRequest } from "@/lib/auth/server";
-import { loadTokenizer } from "@/lib/songs/analyzer";
-import { annotateLines } from "@/lib/songs/annotate";
+import { keepStoredTokens } from "@/lib/songs/annotate";
 import { canSeeLyrics, isSlug, songInputSchema } from "@/lib/songs/schema";
 import { getDb } from "@/lib/store/db";
 import { deleteSong, getSong, putSong } from "@/lib/store/songs";
@@ -9,7 +8,8 @@ import { deleteSong, getSong, putSong } from "@/lib/store/songs";
 // 노래 한 곡. 읽기는 가사를 공개했으면 누구나, 아니면 관리자만.
 // 넣기·고치기·지우기는 관리자만(proxy.ts가 먼저 막고, 여기서도 다시 본다).
 
-const MAX_BYTES = 256 * 1024;
+// 낱말 조각까지 실은 본문. 보통 노래(50줄 안팎)는 50KB쯤이고, 300줄을 꽉 채워도 넘지 않을 만큼
+const MAX_BYTES = 1024 * 1024;
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -58,11 +58,9 @@ export async function PUT(request: Request, { params }: Params) {
       { error: "같은 주소 이름의 노래가 있음" },
       { status: 409 },
     );
-  const lines = await annotateLines(
-    parsed.data.lines,
-    stored?.lines ?? [],
-    loadTokenizer,
-  );
+  // 낱말 조각은 관리자 브라우저가 분석해 보낸다. 서버는 모양만 확인하고(songInputSchema)
+  // 조각 없이 온 줄에 저장돼 있던 조각을 이어 붙인다
+  const lines = keepStoredTokens(parsed.data.lines, stored?.lines ?? []);
   const song = putSong(db, slug, { ...parsed.data, lines }, Date.now());
   return NextResponse.json({ item: song });
 }

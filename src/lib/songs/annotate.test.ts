@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { annotateLines } from "./annotate";
+import { annotateLines, keepStoredTokens } from "./annotate";
 import type { SongToken } from "./schema";
 
 /** 분석기 대신: 글자 하나를 조각 하나로 */
@@ -42,12 +42,35 @@ describe("annotateLines", () => {
     expect(tokenize).toHaveBeenCalledTimes(1);
   });
 
-  it("들어온 줄에 조각이 섞여 와도 서버가 만든 조각으로 바꾼다", async () => {
+  it("줄에 붙어 있던 조각은 믿지 않고 저장된 조각이나 새 분석으로 바꾼다", async () => {
     const lines = await annotateLines(
-      [{ ja: "あ", tokens: [{ surface: "가짜" }] } as never],
+      [{ ja: "あ", tokens: [{ surface: "い" }] }],
       [],
       async () => fakeTokenize,
     );
     expect(lines[0].tokens).toEqual([{ surface: "あ" }]);
+  });
+});
+
+describe("keepStoredTokens(서버: 분석 없이 저장된 조각만 이어 붙인다)", () => {
+  const stored = [{ ja: "あい", tokens: [{ surface: "あい", pos: "名詞" }] }];
+
+  it("조각 없이 온 줄에 같은 글의 저장된 조각을 붙인다", () => {
+    expect(keepStoredTokens([{ ja: "あい", start: 2 }], stored)).toEqual([
+      { ja: "あい", start: 2, tokens: [{ surface: "あい", pos: "名詞" }] },
+    ]);
+  });
+
+  it("브라우저가 보낸 조각은 저장된 것보다 앞선다", () => {
+    const sent = [{ surface: "あ" }, { surface: "い" }];
+    expect(keepStoredTokens([{ ja: "あい", tokens: sent }], stored)).toEqual([
+      { ja: "あい", tokens: sent },
+    ]);
+  });
+
+  it("저장된 같은 글이 없으면 조각 없이 둔다(화면은 글만 보인다)", () => {
+    expect(keepStoredTokens([{ ja: "うえ" }], stored)).toEqual([
+      { ja: "うえ" },
+    ]);
   });
 });

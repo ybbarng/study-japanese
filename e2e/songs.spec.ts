@@ -1,5 +1,5 @@
 import { type Browser, expect, type Page, test } from "@playwright/test";
-import { FAKE_LYRICS, SONG_FILE } from "./fixtures/song";
+import { FAKE_LYRIC_TOKENS, FAKE_LYRICS, SONG_FILE } from "./fixtures/song";
 import { login } from "./helpers/auth";
 import { audioIsPlaying } from "./helpers/listen";
 
@@ -19,7 +19,7 @@ async function putSong(page: Page, slug: string, lyricsPublic: boolean) {
       artist: "시험 가수",
       audioFile: SONG_FILE,
       lyricsPublic,
-      lines: FAKE_LYRICS.map((ja) => ({ ja })),
+      lines: FAKE_LYRICS.map((ja) => ({ ja, tokens: FAKE_LYRIC_TOKENS[ja] })),
     },
   });
   expect(res.status()).toBe(200);
@@ -101,10 +101,15 @@ test("관리자는 노래를 넣고, 박자를 맞춘 뒤, 줄을 누르면 그 
   await page.getByLabel("가수").fill("시험 가수");
   await page.getByLabel("주소 이름(slug)").fill("e2e-flow");
   await page.getByLabel("오디오 파일 이름").fill(SONG_FILE);
+  // 저장할 때 이 브라우저가 사전을 받아 형태소 분석으로 읽는 법과 낱말을 만들어 함께 보낸다
+  const dictRequests: string[] = [];
+  page.on("request", (r) => {
+    if (r.url().includes("/kuromoji-dict/")) dictRequests.push(r.url());
+  });
   await page.getByRole("button", { name: "저장" }).click();
-  await expect(page).toHaveURL("/songs/e2e-flow");
+  await expect(page).toHaveURL("/songs/e2e-flow", { timeout: 20_000 });
+  expect(dictRequests).toHaveLength(12);
 
-  // 저장할 때 서버가 형태소 분석으로 읽는 법과 낱말을 만들어 둔다
   const lyrics = page.getByRole("list", { name: "가사" });
   await expect(lyrics.locator("rt", { hasText: "そら" })).toBeVisible();
   await lyrics.getByRole("button", { name: /降/ }).click();

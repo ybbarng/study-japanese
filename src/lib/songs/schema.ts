@@ -12,10 +12,16 @@ export const AUDIO_FILE_PATTERN =
 export const MAX_LINES = 300;
 const MAX_SEC = 60 * 60;
 
-/** 형태소 분석기가 나눈 낱말 조각 하나. 저장할 때 서버가 만든다 */
+/** 한 줄에 둘 수 있는 낱말 조각 수. 줄 글이 200자까지라 조각도 그 이상 나올 수 없다 */
+export const MAX_TOKENS_PER_LINE = 200;
+
+/**
+ * 형태소 분석기가 나눈 낱말 조각 하나. 관리자 브라우저가 저장할 때 분석해 보낸다
+ * (분석기가 메모리를 많이 써 서버에서 돌리지 않는다, src/lib/songs/browser-analyzer.ts)
+ */
 export const songTokenSchema = z.object({
   /** 가사에 나온 그대로 */
-  surface: z.string().max(100),
+  surface: z.string().min(1).max(100),
   /** 히라가나 읽는 법(한자가 들어 있을 때만) */
   reading: z.string().max(200).optional(),
   /** 기본형(겉모양과 다를 때만, 예: 降っ → 降る) */
@@ -29,19 +35,24 @@ export type SongToken = z.infer<typeof songTokenSchema>;
 
 const timeSchema = z.number().min(0).max(MAX_SEC);
 
-/** 관리자가 보내는 가사 한 줄(읽는 법은 보내지 않는다) */
-export const songLineInputSchema = z.object({
-  ja: z.string().trim().min(1).max(200),
-  start: timeSchema.optional(),
-  end: timeSchema.optional(),
-  note: z.string().max(1000).optional(),
-});
-export type SongLineInput = z.infer<typeof songLineInputSchema>;
-
-/** 저장된 가사 한 줄: 보낸 것 + 서버가 만든 낱말 조각 */
-export const songLineSchema = songLineInputSchema.extend({
-  tokens: z.array(songTokenSchema).max(200).optional(),
-});
+/**
+ * 가사 한 줄. 낱말 조각(tokens)은 브라우저가 분석해 붙여 보낸다.
+ * 조각을 이으면 줄 글과 같아야 한다(다른 줄의 조각이 섞이거나 글자가 빠진 것을 막는다).
+ * 조각 없이 오면 서버가 같은 글로 저장돼 있던 조각을 이어 쓴다(src/lib/songs/annotate.ts).
+ */
+export const songLineSchema = z
+  .object({
+    ja: z.string().trim().min(1).max(200),
+    start: timeSchema.optional(),
+    end: timeSchema.optional(),
+    note: z.string().max(1000).optional(),
+    tokens: z.array(songTokenSchema).max(MAX_TOKENS_PER_LINE).optional(),
+  })
+  .refine(
+    (line) =>
+      !line.tokens || line.tokens.map((t) => t.surface).join("") === line.ja,
+    { message: "낱말 조각을 이은 글이 줄 글과 다름", path: ["tokens"] },
+  );
 export type SongLine = z.infer<typeof songLineSchema>;
 
 /** PUT /api/songs/[slug]의 본문 */
@@ -50,7 +61,7 @@ export const songInputSchema = z.object({
   artist: z.string().trim().min(1).max(100),
   audioFile: z.string().regex(AUDIO_FILE_PATTERN),
   lyricsPublic: z.boolean().default(true),
-  lines: z.array(songLineInputSchema).max(MAX_LINES),
+  lines: z.array(songLineSchema).max(MAX_LINES),
 });
 export type SongInput = z.infer<typeof songInputSchema>;
 
@@ -92,11 +103,12 @@ export function canSeeLyrics(
   return isAdmin || song.lyricsPublic;
 }
 
-/** 줄에서 서버가 만든 낱말 조각을 빼고 보낼 모양만 남긴다 */
-export function toLineInput(line: SongLine): SongLineInput {
-  const out: SongLineInput = { ja: line.ja };
+/** 서버에 보낼 줄 모양만 남긴다(화면이 덧붙인 다른 필드는 뺀다) */
+export function toLineBody(line: SongLine): SongLine {
+  const out: SongLine = { ja: line.ja };
   if (line.start !== undefined) out.start = line.start;
   if (line.end !== undefined) out.end = line.end;
   if (line.note !== undefined) out.note = line.note;
+  if (line.tokens !== undefined) out.tokens = line.tokens;
   return out;
 }

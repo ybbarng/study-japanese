@@ -122,3 +122,64 @@ describe("들어오는 노래 검사", () => {
     expect(songInputSchema.safeParse({ ...body, ...over }).success).toBe(false);
   });
 });
+
+describe("들어오는 낱말 조각 검사(브라우저가 분석해 보낸 것)", () => {
+  // 지어낸 줄 "雨が降る"를 분석기가 나눈 모양
+  const tokens = [
+    { surface: "雨", reading: "あめ", pos: "名詞", posDetail: "一般" },
+    { surface: "が", pos: "助詞", posDetail: "格助詞" },
+    { surface: "降る", reading: "ふる", pos: "動詞", posDetail: "自立" },
+  ];
+  const songWith = (line: object) => ({
+    title: "t",
+    artist: "a",
+    audioFile: "test-song.mp3",
+    lines: [line],
+  });
+  const firstIssue = (line: object) =>
+    songInputSchema.safeParse(songWith(line)).error?.issues[0];
+
+  it("조각을 이으면 줄 글이 되는 조각은 그대로 받는다", () => {
+    const parsed = songInputSchema.parse(songWith({ ja: "雨が降る", tokens }));
+    expect(parsed.lines[0].tokens).toEqual(tokens);
+  });
+
+  it("조각 없는 줄도 받는다(박자·메모만 고칠 때)", () => {
+    expect(
+      songInputSchema.parse(songWith({ ja: "雨が降る" })).lines[0],
+    ).toEqual({ ja: "雨が降る" });
+  });
+
+  it("조각을 이은 글이 줄 글과 다르면 tokens 자리의 오류로 거부한다", () => {
+    const issue = firstIssue({ ja: "雨が降った", tokens });
+    expect(issue?.path).toEqual(["lines", 0, "tokens"]);
+    expect(issue?.message).toBe("낱말 조각을 이은 글이 줄 글과 다름");
+  });
+
+  it.each([
+    ["빈 겉모양", [{ surface: "" }], ["lines", 0, "tokens", 0, "surface"]],
+    ["숫자 겉모양", [{ surface: 1 }], ["lines", 0, "tokens", 0, "surface"]],
+    [
+      "21자 넘는 품사",
+      [{ surface: "あ", pos: "名".repeat(21) }],
+      ["lines", 0, "tokens", 0, "pos"],
+    ],
+    [
+      "201자 넘는 읽는 법",
+      [{ surface: "あ", reading: "あ".repeat(201) }],
+      ["lines", 0, "tokens", 0, "reading"],
+    ],
+    ["배열이 아닌 tokens", "あ", ["lines", 0, "tokens"]],
+  ])("%s은 거부한다", (_, bad, path) => {
+    expect(firstIssue({ ja: "あ", tokens: bad })?.path).toEqual(path);
+  });
+
+  it("한 줄에 조각을 200개까지 받고, 201개면 거부한다", () => {
+    const ja = "あ".repeat(200);
+    const max = [...ja].map((surface) => ({ surface }));
+    expect(firstIssue({ ja, tokens: max })).toBeUndefined();
+    const issue = firstIssue({ ja, tokens: [...max, { surface: "あ" }] });
+    expect(issue?.code).toBe("too_big");
+    expect(issue?.path).toEqual(["lines", 0, "tokens"]);
+  });
+});

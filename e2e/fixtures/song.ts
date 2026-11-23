@@ -16,6 +16,27 @@ export const FAKE_LYRICS = [
   "もういちどうたう",
 ] as const;
 
+/**
+ * API로 바로 넣을 때 함께 보낼 낱말 조각(관리자 브라우저의 분석기가 내는 모양).
+ * 화면으로 넣는 시험은 브라우저가 실제로 분석하므로 이것을 쓰지 않는다.
+ */
+export const FAKE_LYRIC_TOKENS: Record<string, object[]> = {
+  空を見ていた: [
+    { surface: "空", reading: "そら", pos: "名詞", posDetail: "一般" },
+    { surface: "を", pos: "助詞", posDetail: "格助詞" },
+    {
+      surface: "見",
+      reading: "み",
+      base: "見る",
+      pos: "動詞",
+      posDetail: "自立",
+    },
+    { surface: "て", pos: "助詞", posDetail: "接続助詞" },
+    { surface: "い", base: "いる", pos: "動詞", posDetail: "非自立" },
+    { surface: "た", pos: "助動詞" },
+  ],
+};
+
 export function writeFakeSong(mediaDir: string) {
   const dir = path.join(mediaDir, "songs");
   mkdirSync(dir, { recursive: true });
