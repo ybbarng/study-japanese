@@ -36,8 +36,9 @@ yarn-error.log*
 # 산 교재 자료: 오디오·원본은 git에 넣지 않는다 (docs/standing-rules.md "저작권")
 /media/
 /textbook-src/
-# 교재에서 뽑은 글: 저장소 공개 여부를 정하기 전까지 git 밖에 둔다
+# 교재에서 뽑은 글·자막: 공개 저장소라 git 밖에 둔다(docs/standing-rules.md "저작권")
 /content/textbook/
+/content/transcripts/
 
 # 서브에이전트 작업 트리
 /.claude/worktrees/
