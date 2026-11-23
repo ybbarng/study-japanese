@@ -7,6 +7,7 @@ import {
   type StateStorage,
 } from "zustand/middleware";
 import * as D from "./drill-state";
+import type { QuestionStyle } from "./sentence";
 import * as T from "./test-state";
 
 /** localStorage가 막힌 곳(사생활 보호 창 등)에서도 화면이 돌게 */
@@ -39,6 +40,8 @@ export interface DrillPrefs {
   /** 어디까지 연 과 */
   maxLesson: number;
   answerMode: "type" | "choose";
+  /** 문장 속 빈칸(기본) 또는 활용표만 빠르게. 예전 기록에는 없을 수 있다 */
+  questionStyle?: QuestionStyle;
 }
 
 interface DrillStore {
@@ -58,7 +61,7 @@ export const useDrillStore = create<DrillStore>()(
   persist(
     (set, get) => ({
       data: D.emptyDrillData(),
-      prefs: { maxLesson: 25, answerMode: "type" },
+      prefs: { maxLesson: 25, answerMode: "type", questionStyle: "sentence" },
       answer: (key, correct, now = Date.now()) =>
         set({ data: D.recordAnswer(get().data, key, correct, now) }),
       recordBest: (kind, score, now = Date.now()) => {

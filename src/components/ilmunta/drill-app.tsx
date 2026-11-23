@@ -12,13 +12,15 @@ import {
   skillsInLessons,
   skillsOfLesson,
 } from "@/lib/ilmunta/curriculum";
-import { makeQuestion, type Question, wordOf } from "@/lib/ilmunta/question";
+import { type Question, wordOf } from "@/lib/ilmunta/question";
 import { type Rng, seededRng } from "@/lib/ilmunta/random";
+import { makeDrillQuestion, type QuestionStyle } from "@/lib/ilmunta/sentence";
 import { useDrillStore } from "@/lib/ilmunta/stores";
 import { pickSkill, weakestSkills } from "@/lib/ilmunta/weakness";
 import { AnswerFeedback } from "./answer-feedback";
 import { ChooseAnswer, NextButton, TypeAnswer } from "./answer-input";
 import { QuestionCard } from "./question-card";
+import { SentenceCard } from "./sentence-card";
 import { useDrillReady } from "./use-synced-store";
 
 const SPRINT_SEC = 60;
@@ -67,6 +69,7 @@ function DrillSession({ onlyLesson }: { onlyLesson?: number }) {
     [onlyLesson, prefs.maxLesson],
   );
 
+  const style: QuestionStyle = prefs.questionStyle ?? "sentence";
   const rng = useRef<Rng>(seededRng(Date.now()));
   const next = useCallback(
     (prev?: Question): Question => {
@@ -78,13 +81,14 @@ function DrillSession({ onlyLesson }: { onlyLesson?: number }) {
         rng.current,
         prev?.skillKey,
       );
-      return makeQuestion(
+      return makeDrillQuestion(
         skill,
+        style,
         rng.current,
         prev ? wordOf(prev.id) : undefined,
       );
     },
-    [skills],
+    [skills, style],
   );
 
   const [q, setQ] = useState<Question>(() => next());
@@ -211,6 +215,24 @@ function DrillSession({ onlyLesson }: { onlyLesson?: number }) {
             </fieldset>
           </div>
 
+          <fieldset className="flex self-start overflow-hidden rounded-full bg-bg-raised text-sm whitespace-nowrap">
+            <legend className="sr-only">문제 방식</legend>
+            {(["sentence", "table"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                aria-pressed={style === m}
+                onClick={() => setPrefs({ questionStyle: m })}
+                className={cn(
+                  "px-3 py-1.5",
+                  style === m ? "bg-accent text-white" : "text-ink-soft",
+                )}
+              >
+                {m === "sentence" ? "문장 속 빈칸" : "활용표만 빠르게"}
+              </button>
+            ))}
+          </fieldset>
+
           <div className="flex items-center justify-between rounded-2xl bg-bg-raised px-4 py-3">
             <span>
               <span className="text-2xl font-bold">{streak}</span>
@@ -251,7 +273,11 @@ function DrillSession({ onlyLesson }: { onlyLesson?: number }) {
             </p>
           ) : null}
 
-          <QuestionCard q={q} />
+          {q.sentence ? (
+            <SentenceCard key={q.id} q={q} sentence={q.sentence} />
+          ) : (
+            <QuestionCard q={q} />
+          )}
 
           {answered ? (
             <AnswerFeedback
@@ -290,6 +316,7 @@ function DrillSession({ onlyLesson }: { onlyLesson?: number }) {
       side={
         <>
           <KeyboardHint mode={prefs.answerMode} />
+          {style === "sentence" ? <SentenceClues /> : null}
           {weak.length > 0 ? (
             <section className="mt-4 lg:mt-0 lg:rounded-2xl lg:bg-bg-raised lg:p-5">
               <h2 className="text-sm text-ink-soft">자주 틀리는 활용</h2>
@@ -325,6 +352,31 @@ function DrillMain({ children }: { children: React.ReactNode }) {
     <div className="flex flex-col gap-5 lg:rounded-3xl lg:bg-bg-sunken lg:p-8">
       {children}
     </div>
+  );
+}
+
+/** PC 곁칸: 문장 속에서 활용형을 알려 주는 말(폰에서는 감춘다) */
+function SentenceClues() {
+  const clues = [
+    ["昨日 · 前は · 昔", "과거"],
+    ["先生、 · ～です · ～ます", "정중체"],
+    ["ねえ、 · ～だけど · ～から", "보통체"],
+    ["あまり · 뒤 문장", "부정"],
+  ];
+  return (
+    <section className="hidden rounded-2xl border border-line p-5 lg:block">
+      <h2 className="text-sm text-ink-soft">문장이 알려 주는 것</h2>
+      <dl className="mt-3 space-y-2 text-sm">
+        {clues.map(([ja, ko]) => (
+          <div key={ko} className="flex items-baseline gap-3">
+            <dt lang="ja" className="font-ja">
+              {ja}
+            </dt>
+            <dd className="text-ink-soft">→ {ko}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
   );
 }
 

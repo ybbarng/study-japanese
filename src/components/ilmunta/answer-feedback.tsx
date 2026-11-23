@@ -2,6 +2,7 @@ import { cn } from "@/lib/cn";
 import { splitChange } from "@/lib/ilmunta/check";
 import type { Question } from "@/lib/ilmunta/question";
 import { RubyWord } from "./ruby-word";
+import { SentenceLine } from "./sentence-card";
 
 /**
  * 답한 뒤: 정답을 읽는 법과 함께 크게, 바뀐 끝을 색으로(飲|む → 飲|んで), 틀렸으면 규칙 한 줄.
@@ -48,6 +49,16 @@ export function AnswerFeedback({
         </p>
       ) : null}
       <p className="text-sm">{q.rule}</p>
+      {q.sentence ? (
+        <div data-testid="drill-filled" className="border-t border-line pt-3">
+          <SentenceLine sentence={q.sentence} className="text-xl lg:text-2xl">
+            <span className="font-bold text-accent">
+              <RubyWord form={q.answer} />
+            </span>
+          </SentenceLine>
+          <p className="text-sm text-ink-soft">{q.sentence.ko}</p>
+        </div>
+      ) : null}
       {others.length > 0 ? (
         <p className="text-sm text-ink-soft">
           이것도 맞아요:{" "}
