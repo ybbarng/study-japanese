@@ -12,6 +12,12 @@ describe("activeNav", () => {
     expect(activeNav("/kana/lesson/h-a")).toBe("kana");
   });
 
+  it("노래 목록·가사·박자 맞추기 화면은 노래 자리다", () => {
+    expect(activeNav("/songs")).toBe("songs");
+    expect(activeNav("/songs/test-song")).toBe("songs");
+    expect(activeNav("/songs/test-song/sync")).toBe("songs");
+  });
+
   it("이름 앞부분만 같은 주소를 다른 책으로 잘못 잡지 않는다", () => {
     // /ilmunta는 /ilmuta로 시작하지 않지만, 앞부분 비교만 하면 헷갈리기 쉬운 짝이다
     expect(activeNav("/ilmunta")).toBe("ilmunta");

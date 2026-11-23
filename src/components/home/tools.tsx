@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 const TOOLS = [
+  { href: "/songs", label: "노래로 배우기", sub: "외워 부르는 노래의 낱말" },
   {
     href: "/ime",
     label: "일본어 입력기 켜는 법",
@@ -15,7 +16,7 @@ export function Tools() {
   return (
     <section aria-label="도구">
       <h2 className="pb-2 text-sm text-ink-faint">도구</h2>
-      <ul className="grid grid-cols-3 gap-2">
+      <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {TOOLS.map((t) => (
           <li key={t.href}>
             <Link

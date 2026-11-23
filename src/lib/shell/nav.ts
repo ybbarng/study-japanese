@@ -1,6 +1,13 @@
 // PC 왼쪽 탐색: 어떤 자리가 있고, 지금 주소가 어느 자리인지, 자리마다 진도 한 줄.
 
-export type NavId = "today" | "kana" | "ilmuta" | "ilmunta" | "ime" | "offline";
+export type NavId =
+  | "today"
+  | "kana"
+  | "ilmuta"
+  | "ilmunta"
+  | "songs"
+  | "ime"
+  | "offline";
 
 export interface NavItem {
   id: NavId;
@@ -15,6 +22,7 @@ export const STUDY_ITEMS: NavItem[] = [
   { id: "kana", href: "/kana", label: "가나", ja: "あ" },
   { id: "ilmuta", href: "/ilmuta", label: "일무따", ja: "話" },
   { id: "ilmunta", href: "/ilmunta", label: "일문따", ja: "文" },
+  { id: "songs", href: "/songs", label: "노래", ja: "歌" },
 ];
 
 export const TOOL_ITEMS: NavItem[] = [
