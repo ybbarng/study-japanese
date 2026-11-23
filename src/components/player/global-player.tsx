@@ -205,6 +205,9 @@ export function GlobalPlayer() {
       if (document.visibilityState === "hidden") {
         if (audioRef.current?.paused) finalize();
         void flushQueue();
+      } else {
+        // 화면이 꺼진 채 다시 연결되면 online 이벤트를 놓칠 수 있어, 돌아올 때도 보낸다
+        void flushQueue();
       }
     };
     const onOnline = () => void flushQueue();

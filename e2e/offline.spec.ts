@@ -49,6 +49,10 @@ test("받아 둔 강은 통신이 끊겨도 화면이 열리고 강의가 재생
 
   await page.getByRole("button", { name: /강의 듣기/ }).click();
   await expect.poll(() => audioIsPlaying(page)).toBe(true);
+  // 재생 막대가 받아 둔 트랙임을 알려 준다(터널 들어가기 전 안심용)
+  await expect(
+    page.getByRole("button", { name: "재생 화면 펼치기" }),
+  ).toContainText("받아 둠");
   // 3초짜리 강의가 끝나 다음 예문으로 넘어갈 때까지 기다린다(기록은 폰 대기열에 쌓인다)
   await expect(
     page.getByRole("button", { name: "재생 화면 펼치기" }),

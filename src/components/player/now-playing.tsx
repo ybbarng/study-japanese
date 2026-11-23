@@ -2,6 +2,7 @@
 
 import { LectureContext } from "@/components/context/lecture-context";
 import { useTranscript } from "@/components/context/use-transcript";
+import { useCachedAudio } from "@/components/offline/use-cached-audio";
 import { cn } from "@/lib/cn";
 import type { Track } from "@/lib/player/queue";
 import { usePlayer } from "@/lib/player/store";
@@ -34,6 +35,8 @@ function clock(sec: number): string {
 export function NowPlaying(p: Props) {
   const expanded = usePlayer((s) => s.expanded);
   const setExpanded = usePlayer((s) => s.setExpanded);
+  // 터널에 들어가기 전에 안심하도록, 지금 트랙을 받아 두었으면 표시한다
+  const cached = useCachedAudio(p.track.src);
   const progress = p.gap
     ? p.pos / p.gap
     : Number.isFinite(p.duration) && p.duration > 0
@@ -61,6 +64,11 @@ export function NowPlaying(p: Props) {
             >
               <p className="truncate font-medium">{p.track.title}</p>
               <p className="truncate text-xs text-ink-soft">
+                {cached ? (
+                  <span className="mr-1.5 text-good" title="폰에 받아 둠">
+                    ● 받아 둠
+                  </span>
+                ) : null}
                 {p.gap
                   ? "따라 말해 보세요"
                   : (p.track.subtitle ?? `${p.index + 1} / ${p.queueLength}`)}
