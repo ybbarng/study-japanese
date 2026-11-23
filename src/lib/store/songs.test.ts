@@ -13,7 +13,10 @@ function input(over: Partial<Parameters<typeof putSong>[2]> = {}) {
     artist: "시험 가수",
     audioFile: "test-song.mp3",
     lyricsPublic: true,
-    lines: [{ ja: "あめのひ", start: 1.5, note: "메모" }, { ja: "くりかえし" }],
+    lines: [
+      { ja: "あめのひ", start: 1.5, note: "메모", ko: "비 오는 날" },
+      { ja: "くりかえし" },
+    ],
     ...over,
   };
 }
@@ -111,6 +114,7 @@ describe("들어오는 노래 검사", () => {
     ["빈 가사 줄", { lines: [{ ja: "   " }] }],
     ["한 시간을 넘는 시각", { lines: [{ ja: "あ", start: 3601 }] }],
     ["301줄", { lines: Array.from({ length: 301 }, () => ({ ja: "あ" })) }],
+    ["501자 해석", { lines: [{ ja: "あ", ko: "가".repeat(501) }] }],
   ])("%s은 받지 않는다", (_, over) => {
     expect(songInputSchema.safeParse({ ...body, ...over }).success).toBe(false);
   });

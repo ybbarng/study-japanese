@@ -16,6 +16,8 @@ interface Props {
   words: SongWord[];
   /** 분석의 문법 메모 */
   grammar: readonly GrammarNote[];
+  /** 해석 모두 보기가 켜졌는지(꺼져 있어도 줄마다 눌러 본다) */
+  showKo: boolean;
   current: boolean;
   /** 반복 구간 안의 줄 */
   inLoop: boolean;
@@ -39,6 +41,7 @@ export function LyricLine({
   index,
   words,
   grammar,
+  showKo,
   current,
   inLoop,
   showReading,
@@ -54,6 +57,14 @@ export function LyricLine({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(line.note ?? "");
   const [saving, setSaving] = useState(false);
+  // 이 줄만 열거나 가린 해석. 해석 모두 보기를 바꾸면 줄마다 바꾼 것은 버린다
+  const [koOverride, setKoOverride] = useState<{
+    all: boolean;
+    shown: boolean;
+  } | null>(null);
+  const koShown =
+    koOverride && koOverride.all === showKo ? koOverride.shown : showKo;
+  const setKoOpen = (shown: boolean) => setKoOverride({ all: showKo, shown });
 
   const save = async () => {
     if (!onSaveNote) return;
@@ -123,6 +134,23 @@ export function LyricLine({
             <span lang="ja">{line.ja}</span>
           )}
         </div>
+
+        {line.ko && !covered ? (
+          <button
+            type="button"
+            onClick={() => setKoOpen(!koShown)}
+            aria-expanded={koShown}
+            aria-label={`${index + 1}번째 줄 해석 ${koShown ? "가리기" : "보기"}`}
+            className={cn(
+              "mt-1 block w-full rounded-lg px-1.5 py-0.5 text-left text-sm",
+              koShown
+                ? "text-ink-soft"
+                : "w-fit text-ink-faint hover:bg-bg-raised",
+            )}
+          >
+            {koShown ? line.ko : "해석 보기"}
+          </button>
+        ) : null}
 
         {covered ? null : <GrammarNotes notes={grammar} index={index} />}
 

@@ -17,6 +17,7 @@ import { inputOf, saveSong } from "./save-song";
 import { SongControls } from "./song-controls";
 import { SongCredit } from "./song-credit";
 import { useFollowLine } from "./use-follow-line";
+import { useShowKo } from "./use-show-ko";
 import { useSongPlayback } from "./use-song-playback";
 import { useSongsStudyReady } from "./use-songs-study";
 import { WordDetail } from "./word-detail";
@@ -54,6 +55,8 @@ export function SongStudy({
   const [selected, setSelected] = useState<Selected>(null);
   const [loop, setLoop] = useState<LoopChoice>(LOOP_OFF);
   const [noteError, setNoteError] = useState<string | null>(null);
+  const [showKo, setShowKo] = useShowKo();
+  const hasKo = song.lines.some((l) => l.ko);
 
   const ready = useSongsStudyReady();
   const study = useSongsStudyStore((s) => s.data);
@@ -114,6 +117,9 @@ export function SongStudy({
         setRevealed(new Set());
         if (on) setSelected(null);
       }}
+      hasKo={hasKo}
+      showKo={showKo}
+      onShowKo={setShowKo}
       loop={loop}
       onLoop={setLoop}
     />
@@ -168,6 +174,7 @@ export function SongStudy({
             index={i}
             words={words[i]}
             grammar={merged.byLine[i]?.grammar ?? EMPTY}
+            showKo={showKo}
             current={i === current}
             inLoop={inLoop(loop, i)}
             showReading={showReading}

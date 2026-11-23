@@ -15,7 +15,7 @@ const MAX_SEC = 60 * 60;
 const timeSchema = z.number().min(0).max(MAX_SEC);
 
 /**
- * 가사 한 줄: 글·박자·메모만. 읽는 법·낱말 뜻·문법 메모는 DB가 아니라
+ * 가사 한 줄: 글·박자·메모·관리자가 붙여 넣은 해석. 읽는 법·낱말 뜻·문법 메모는 DB가 아니라
  * 세션이 쓴 분석 파일(content/songs/<slug>.json, src/lib/songs/analysis.ts)에 둔다.
  * 예전에 저장된 tokens 같은 다른 필드는 받지 않고(zod가 버린다) 읽을 때도 뺀다.
  */
@@ -24,6 +24,8 @@ export const songLineSchema = z.object({
   start: timeSchema.optional(),
   end: timeSchema.optional(),
   note: z.string().max(1000).optional(),
+  /** 한국어 해석. 관리자가 직접 붙여 넣는다(세션이 만들지 않는다) */
+  ko: z.string().trim().min(1).max(500).optional(),
 });
 export type SongLine = z.infer<typeof songLineSchema>;
 
@@ -81,5 +83,6 @@ export function toLineBody(line: SongLine): SongLine {
   if (line.start !== undefined) out.start = line.start;
   if (line.end !== undefined) out.end = line.end;
   if (line.note !== undefined) out.note = line.note;
+  if (line.ko !== undefined) out.ko = line.ko;
   return out;
 }

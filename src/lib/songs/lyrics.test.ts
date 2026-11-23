@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { linesFromText, lyricsText, splitLyrics } from "./lyrics";
+import {
+  applyKo,
+  koText,
+  linesFromText,
+  lyricsText,
+  splitLyrics,
+} from "./lyrics";
 
 // 가사는 실제 노래가 아니라 모양만 같은 가짜 줄이다(공개 저장소).
 
@@ -18,6 +24,48 @@ describe("splitLyrics", () => {
 describe("lyricsText", () => {
   it("줄을 줄바꿈으로 잇는다", () => {
     expect(lyricsText([{ ja: "いち" }, { ja: "に" }])).toBe("いち\nに");
+  });
+});
+
+describe("해석 붙이기(koText·applyKo)", () => {
+  const lines = [
+    { ja: "いちばんめ", start: 1 },
+    { ja: "にばんめ", ko: "옛 해석" },
+  ];
+
+  it("붙여 넣은 해석을 줄마다 붙이고, 빈 줄은 버리며 -는 해석 없음으로 둔다", () => {
+    expect(applyKo(lines, "첫째 줄\n\n-\n")).toEqual({
+      ok: true,
+      lines: [
+        { ja: "いちばんめ", start: 1, ko: "첫째 줄" },
+        { ja: "にばんめ" },
+      ],
+    });
+  });
+
+  it("해석 칸이 비면 모든 줄의 해석을 지운다", () => {
+    expect(applyKo(lines, "  \n")).toEqual({
+      ok: true,
+      lines: [{ ja: "いちばんめ", start: 1 }, { ja: "にばんめ" }],
+    });
+  });
+
+  it("줄 수가 가사와 다르면 붙이지 않고 두 줄 수를 돌려준다", () => {
+    expect(applyKo(lines, "하나\n둘\n셋")).toEqual({
+      ok: false,
+      lyricLines: 2,
+      koLines: 3,
+    });
+  });
+
+  it("고치기 칸에 다시 넣을 때 해석 없는 줄은 -로 적고, 해석이 하나도 없으면 빈 글", () => {
+    expect(koText(lines)).toBe("-\n옛 해석");
+    expect(koText([{ ja: "いち" }])).toBe("");
+  });
+
+  it("koText로 꺼낸 글을 다시 붙이면 해석이 그대로다", () => {
+    const back = applyKo(lines, koText(lines));
+    expect(back.ok && back.lines).toEqual(lines);
   });
 });
 

@@ -18,6 +18,10 @@ interface Props {
   onShowReading: (on: boolean) => void;
   covered: boolean;
   onCovered: (on: boolean) => void;
+  /** 해석이 있는 노래일 때만 해석 스위치를 보인다 */
+  hasKo: boolean;
+  showKo: boolean;
+  onShowKo: (on: boolean) => void;
   loop: LoopChoice;
   onLoop: (loop: LoopChoice) => void;
 }
@@ -33,6 +37,9 @@ export function SongControls({
   onShowReading,
   covered,
   onCovered,
+  hasKo,
+  showKo,
+  onShowKo,
   loop,
   onLoop,
 }: Props) {
@@ -77,11 +84,14 @@ export function SongControls({
       <ToggleChips
         toggles={[
           { id: "reading", label: "읽는 법", on: showReading },
+          ...(hasKo ? [{ id: "ko", label: "해석", on: showKo }] : []),
           { id: "cover", label: "가리고 듣기", on: covered, strike: false },
         ]}
-        onChange={(id, on) =>
-          id === "reading" ? onShowReading(on) : onCovered(on)
-        }
+        onChange={(id, on) => {
+          if (id === "reading") onShowReading(on);
+          else if (id === "ko") onShowKo(on);
+          else onCovered(on);
+        }}
       />
 
       {isAdmin && timed ? (
