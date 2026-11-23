@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { IlmuntaEntry } from "@/components/ilmunta/ilmunta-entry";
 import { IlmutaEntry } from "@/components/ilmuta/ilmuta-entry";
 
 export default function Home() {
@@ -18,6 +19,7 @@ export default function Home() {
           </span>
         </Link>
         <IlmutaEntry />
+        <IlmuntaEntry />
         <Link href="/lab/player" className="rounded-2xl bg-bg-raised p-5">
           <span className="block text-lg font-medium">재생 시험</span>
           <span className="text-sm text-ink-soft">
