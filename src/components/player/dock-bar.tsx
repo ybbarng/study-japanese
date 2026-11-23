@@ -25,7 +25,10 @@ export function DockBar({
   const openHelp = useShortcutHelp((s) => s.setOpen);
   const max = p.gap ?? (Number.isFinite(p.duration) ? p.duration : 0);
   return (
-    <div className="fixed right-0 bottom-0 left-56 z-40 hidden border-t border-line bg-bg-raised/95 backdrop-blur lg:block">
+    <div
+      data-player-bar
+      className="fixed right-0 bottom-0 left-56 z-40 hidden border-t border-line bg-bg-raised/95 backdrop-blur lg:block"
+    >
       <div className="grid h-20 grid-cols-[minmax(0,16rem)_minmax(0,1fr)_auto] items-center gap-6 px-6 xl:grid-cols-[minmax(0,20rem)_minmax(0,1fr)_auto]">
         <button
           type="button"

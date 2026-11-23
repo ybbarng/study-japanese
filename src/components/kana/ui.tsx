@@ -4,6 +4,7 @@ import { clsx } from "clsx";
 import Link from "next/link";
 import { type ReactNode, useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
+import { usePlayer } from "@/lib/player/store";
 import { canPlay, playSound, playWord } from "./audio";
 
 export function cn(...args: Parameters<typeof clsx>) {
@@ -31,11 +32,20 @@ export function Screen({
   aside?: ReactNode;
   asideLabel?: string;
 }) {
+  const barVisible = usePlayer((s) => s.queue.length > 0);
   const body = (
     <>
       <main className="flex flex-1 flex-col px-5 pb-4">{children}</main>
       {footer && (
-        <footer className="sticky bottom-0 bg-gradient-to-t from-bg via-bg to-transparent px-5 pt-6 pb-[max(env(safe-area-inset-bottom),1.25rem)]">
+        <footer
+          className={cn(
+            "sticky bottom-0 bg-gradient-to-t from-bg via-bg to-transparent px-5 pt-6",
+            // 재생 막대(폰 MiniBar·PC DockBar)가 화면 아래에 떠 있으면 그 위로 단추를 올린다
+            barVisible
+              ? "pb-[calc(max(env(safe-area-inset-bottom),0.75rem)+5.75rem)] lg:pb-[6.25rem]"
+              : "pb-[max(env(safe-area-inset-bottom),1.25rem)]",
+          )}
+        >
           {footer}
         </footer>
       )}

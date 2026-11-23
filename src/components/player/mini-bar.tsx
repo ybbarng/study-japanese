@@ -15,7 +15,10 @@ export function MiniBar({
   onExpand: () => void;
 }) {
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] lg:hidden">
+    <div
+      data-player-bar
+      className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] lg:hidden"
+    >
       <div className="mx-auto max-w-md overflow-hidden rounded-2xl border border-line bg-bg-raised/95 shadow-2xl backdrop-blur">
         <div className="h-0.5 bg-line">
           <div
