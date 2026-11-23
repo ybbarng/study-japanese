@@ -90,9 +90,45 @@ export function isNoiseLine(text: string): boolean {
   );
 }
 
-/** 잡음 줄을 뺀 구간들. 원본 자막 파일은 그대로 두고 내줄 때만 거른다 */
-export function withoutNoise<T extends { text: string }>(segments: T[]): T[] {
-  return segments.filter((s) => !isNoiseLine(s.text));
+/** 길이가 이보다 짧은 구간은 소리가 아니라 음성 인식이 끼워 넣은 자리로 본다(초) */
+const BLIP_SEC = 0.05;
+/** 되풀이 묶음으로 볼 짧은 글의 최대 글자 수와 최소 횟수 */
+const BLIP_RUN_CHARS = 2;
+const BLIP_RUN_MIN = 3;
+
+type Timed = { text: string; start: number; end: number };
+
+/**
+ * 같은 짧은 글(부호 뺀 1~2글자)이 잇달아 3번 넘게 나오고 그 안에 길이 0에 가까운 구간이 낀 묶음.
+ * 음악 구간에서 「一」 같은 글자를 0.1초 간격으로 지어낼 때 생긴다.
+ * 반복 연습처럼 사람이 같은 낱말을 세 번 말한 것은 구간마다 길이가 있어 걸리지 않는다.
+ */
+export function blipRunIndexes(segments: Timed[]): Set<number> {
+  const out = new Set<number>();
+  let i = 0;
+  while (i < segments.length) {
+    const c = compact(segments[i].text);
+    let j = i + 1;
+    while (j < segments.length && compact(segments[j].text) === c) j++;
+    const run = segments.slice(i, j);
+    if (
+      run.length >= BLIP_RUN_MIN &&
+      [...c].length <= BLIP_RUN_CHARS &&
+      run.some((s) => s.end - s.start < BLIP_SEC)
+    )
+      for (let k = i; k < j; k++) out.add(k);
+    i = j;
+  }
+  return out;
+}
+
+/**
+ * 잡음 줄(isNoiseLine)과 지어낸 되풀이 묶음(blipRunIndexes)을 뺀 구간들.
+ * 원본 자막 파일은 그대로 두고 내줄 때만 거른다.
+ */
+export function withoutNoise<T extends Timed>(segments: T[]): T[] {
+  const blips = blipRunIndexes(segments);
+  return segments.filter((s, i) => !blips.has(i) && !isNoiseLine(s.text));
 }
 
 /** 같은 글(부호·공백 무시)이 잇달아 나온 가장 긴 횟수와 그 글 */

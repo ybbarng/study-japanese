@@ -86,8 +86,44 @@ describe("자막을 내줄 때 거를 잡음 줄", () => {
   });
 
   it("잡음 줄만 빼고 나머지 구간은 차례대로 남긴다", () => {
-    const segs = [{ text: "ー" }, { text: "ねこだ" }, { text: "作詞 아무개" }];
-    expect(withoutNoise(segs)).toEqual([{ text: "ねこだ" }]);
+    const segs = [
+      seg(0, 1, "ー"),
+      seg(1, 2, "ねこだ"),
+      seg(2, 3, "作詞 아무개"),
+    ];
+    expect(withoutNoise(segs)).toEqual([seg(1, 2, "ねこだ")]);
+  });
+});
+
+/** 시각 붙은 자막 구간 하나(가짜 글) */
+function seg(start: number, end: number, text: string) {
+  return { start, end, text };
+}
+
+describe("지어낸 되풀이 묶음", () => {
+  it("같은 한 글자가 잇달아 나오고 길이 0인 구간이 끼면 묶음 전체를 뺀다", () => {
+    const segs = [
+      seg(0, 1, "ねこだ"),
+      seg(7.0, 7.4, "木"),
+      seg(7.4, 7.5, "木"),
+      seg(7.5, 7.5, "木"),
+      seg(7.5, 7.6, "木"),
+      seg(8, 10, "고양이예요"),
+    ];
+    expect(withoutNoise(segs).map((s) => s.text)).toEqual([
+      "ねこだ",
+      "고양이예요",
+    ]);
+  });
+
+  it("사람이 같은 낱말을 세 번 말한 반복 연습(구간마다 길이가 있음)은 남긴다", () => {
+    const segs = [seg(0, 0.7, "木"), seg(0.8, 1.5, "木"), seg(1.6, 2.3, "木")];
+    expect(withoutNoise(segs)).toHaveLength(3);
+  });
+
+  it("길이 0인 구간이 있어도 두 번만 나오면 묶음으로 보지 않는다", () => {
+    const segs = [seg(0, 0.5, "え"), seg(0.5, 0.5, "え")];
+    expect(withoutNoise(segs)).toHaveLength(2);
   });
 });
 
