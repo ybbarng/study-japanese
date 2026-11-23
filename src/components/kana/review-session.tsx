@@ -2,11 +2,14 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { KeyHelp } from "@/components/keyboard/key-help";
 import { type CardId, cardChar, hasAudio, parseCardId } from "@/lib/kana/data";
+import { chartViewFor } from "@/lib/kana/lesson-side";
 import { makeQuestion, type Question } from "@/lib/kana/quiz";
 import { type CardState, dueQueue } from "@/lib/kana/srs";
 import { useKanaStore } from "@/lib/kana/store";
 import s from "./kana.module.css";
+import { type Answered, AnsweredPanel, CharChart } from "./lesson-side";
 import { type QuizResult, QuizRunner } from "./quiz-runner";
 import { cn, Glyph, PrimaryButton, Screen, SecondaryButton } from "./ui";
 
@@ -27,6 +30,32 @@ export function ReviewSession() {
   });
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<QuizResult | null>(null);
+  const [answered, setAnswered] = useState<Answered[]>([]);
+  // 복습할 글자(겹치지 않게, 나온 차례대로). 다 풀기 전에는 읽는 법을 가린다
+  const [queueCards] = useState(() => [
+    ...new Set(questions.map((q) => q.answer)),
+  ]);
+
+  /** PC 곁칸: 푼 글자, 오늘 복습할 글자, 키보드 */
+  const aside = (finished: boolean) => (
+    <>
+      <AnsweredPanel answered={answered} total={questions.length} />
+      <CharChart
+        title={`오늘 복습할 글자 ${queueCards.length}자`}
+        cards={queueCards}
+        current={null}
+        view={chartViewFor(finished ? "done" : "quiz")}
+      />
+      {!finished && (
+        <KeyHelp
+          items={[
+            { key: "1~4", label: "보기 고르기" },
+            { key: "Enter", label: "틀린 뒤 다음 문제" },
+          ]}
+        />
+      )}
+    </>
+  );
 
   if (questions.length === 0) {
     return (
@@ -54,7 +83,11 @@ export function ReviewSession() {
 
   if (result) {
     return (
-      <Screen title="오늘 복습">
+      <Screen
+        title="오늘 복습"
+        aside={aside(true)}
+        asideLabel="복습 진행과 푼 글자"
+      >
         <div className="flex flex-1 flex-col items-center justify-center gap-5 text-center">
           <p className={cn("text-6xl font-bold text-accent", s.pop)}>
             {result.correct} / {result.total}
@@ -85,13 +118,20 @@ export function ReviewSession() {
   }
 
   return (
-    <Screen progress={progress}>
+    <Screen
+      progress={progress}
+      aside={aside(false)}
+      asideLabel="복습 진행과 푼 글자"
+    >
       <p className="pt-3 text-center text-sm text-ink-faint">
         오늘 복습 · {questions.length}글자
       </p>
       <QuizRunner
         questions={questions}
-        onAnswer={(id, ok) => answer(id, ok)}
+        onAnswer={(id, ok) => {
+          answer(id, ok);
+          setAnswered((a) => [...a, { id, ok }]);
+        }}
         onProgress={setProgress}
         onDone={setResult}
       />
