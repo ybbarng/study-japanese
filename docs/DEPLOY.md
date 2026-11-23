@@ -1,6 +1,6 @@
 # 배포
 
-`study-ja.byb.kr` → byb.kr 서버 → nginx(TLS) → Traefik → `study-ja` 컨테이너. FTF와 같은 흐름이다.
+`study-ja.byb.kr` → byb.kr 서버 → Traefik(TLS) → `study-ja` 컨테이너. 앞단 구성은 servers 저장소 방식을 따른다.
 
 - 서버를 돌리는 설정(compose·배포 스크립트)은 `ybbarng/servers` 저장소의 `byb.kr/apps/study-ja/`에 둔다(servers 세션 몫). 이 저장소는 앱 코드와 이미지 빌드만 맡는다.
 - `main`에 push하면 `.github/workflows/image.yml`이 검사(lint·타입·테스트) → 이미지 빌드(`ghcr.io/ybbarng/study-japanese`) → 배포 키로 서버에 `deploy <sha>`를 보낸다. `docs/`·`study/`·`*.md`만 바뀐 push는 건너뛴다.
