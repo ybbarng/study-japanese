@@ -12,6 +12,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:run": "vitest run",
+    "kana:audio": "node scripts/kana/cut.mjs",
+    "kana:audio:verify": "node scripts/kana/verify.mjs --rows",
     "prepare": "command -v git >/dev/null 2>&1 || exit 0 && lefthook install"
   },
   "dependencies": {
