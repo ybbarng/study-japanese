@@ -10,6 +10,14 @@ import {
 
 const FAILURE_DELAY_MS = 800;
 
+/** 상대 주소로 넘긴다. 컨테이너 안 주소(0.0.0.0:3000)가 바깥 브라우저로 새지 않게. */
+function seeOther(location: string): NextResponse {
+  return new NextResponse(null, {
+    status: 303,
+    headers: { Location: location },
+  });
+}
+
 export async function POST(request: Request) {
   const config = readAuthConfig();
   if (!config)
@@ -22,13 +30,10 @@ export async function POST(request: Request) {
   if (!timingSafeEqual(password, config.password)) {
     // 사용자 한 명인 사이트라 IP 제한 대신 실패마다 늦춰 대입 속도만 떨어뜨린다. 주된 방어는 긴 암호다.
     await new Promise((r) => setTimeout(r, FAILURE_DELAY_MS));
-    return NextResponse.redirect(
-      new URL(`/login?error=1&next=${encodeURIComponent(next)}`, request.url),
-      303,
-    );
+    return seeOther(`/login?error=1&next=${encodeURIComponent(next)}`);
   }
 
-  const response = NextResponse.redirect(new URL(next, request.url), 303);
+  const response = seeOther(next);
   response.cookies.set(
     SESSION_COOKIE,
     await createSessionToken(config.secret, Date.now()),
