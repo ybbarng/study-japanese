@@ -14,7 +14,7 @@
 ## 저작권 (2026-11-23)
 - 일무따·일문따 오디오, 소책자 PDF, xlsx는 산 자료다. 공개 저장소·공개 주소에 두지 않는다.
 - 오디오·원본은 git에 넣지 않는다(`media/`, `textbook-src/`는 `.gitignore`, `scripts/guard-textbook-files.sh`가 pre-commit에서 막는다). 서버에 두고 로그인한 사람만 받는다.
-- 교재에서 뽑은 글은 `content/textbook/`에 둔다. 저장소 공개 여부를 정하기 전까지 git 밖이다.
+- **저장소는 공개다(2026-11-23 사용자 결정).** 교재에서 뽑은 글(`content/textbook/`)·자막(`content/transcripts/`)·잘라 낸 오디오(`media/`)는 git 밖에 두고, 서버에는 rsync로 옮긴다(docs/DEPLOY.md). 테스트 고정 데이터·문서·커밋 메시지에도 교재 문장을 옮겨 적지 않는다(모양만 같은 가짜 문장을 쓴다).
 - 사이트 전체가 로그인 뒤에 있다. 로그인 없이 열리는 경로는 로그인 화면·PWA manifest·아이콘뿐이다.
 
 ## 커밋 나누기 (2026-11-23)
