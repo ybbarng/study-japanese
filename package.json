@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:run": "vitest run",
+    "progress:pull": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/progress-pull.ts",
     "prepare": "command -v git >/dev/null 2>&1 || exit 0 && lefthook install"
   },
   "dependencies": {
@@ -28,7 +29,7 @@
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^8.0.0",
     "@testing-library/react": "^16.3.3",
-    "@types/node": "^20",
+    "@types/node": "^24.19.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "jsdom": "^31.0.1",
