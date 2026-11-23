@@ -10,22 +10,44 @@ export function cn(...args: Parameters<typeof clsx>) {
   return twMerge(clsx(...args));
 }
 
-/** 가나 화면 한 장: 위에 돌아가기·제목, 가운데 내용, 아래 엄지 버튼 자리 */
+/**
+ * 가나 화면 한 장: 위에 돌아가기·제목, 가운데 내용, 아래 엄지 버튼 자리.
+ * `aside`를 주면 PC(lg)에서 넓게 펴고 오른쪽에 곁칸을 둔다(폰에서는 그리지 않는다).
+ */
 export function Screen({
   title,
   back = "/kana",
   progress,
   children,
   footer,
+  aside,
+  asideLabel,
 }: {
   title?: string;
   back?: string;
   progress?: number;
   children: ReactNode;
   footer?: ReactNode;
+  aside?: ReactNode;
+  asideLabel?: string;
 }) {
+  const body = (
+    <>
+      <main className="flex flex-1 flex-col px-5 pb-4">{children}</main>
+      {footer && (
+        <footer className="sticky bottom-0 bg-gradient-to-t from-bg via-bg to-transparent px-5 pt-6 pb-[max(env(safe-area-inset-bottom),1.25rem)]">
+          {footer}
+        </footer>
+      )}
+    </>
+  );
   return (
-    <div className="mx-auto flex min-h-dvh max-w-md flex-col lg:max-w-3xl lg:pt-6">
+    <div
+      className={cn(
+        "mx-auto flex min-h-dvh max-w-md flex-col lg:max-w-3xl lg:pt-6",
+        aside && "lg:max-w-6xl lg:px-5",
+      )}
+    >
       <header className="flex items-center gap-3 px-4 pt-[max(env(safe-area-inset-top),1rem)]">
         <Link
           href={back}
@@ -45,13 +67,72 @@ export function Screen({
           <h1 className="flex-1 truncate text-sm text-ink-soft">{title}</h1>
         )}
       </header>
-      <main className="flex flex-1 flex-col px-5 pb-4">{children}</main>
-      {footer && (
-        <footer className="sticky bottom-0 bg-gradient-to-t from-bg via-bg to-transparent px-5 pt-6 pb-[max(env(safe-area-inset-bottom),1.25rem)]">
-          {footer}
-        </footer>
+      {aside ? (
+        <div className="flex flex-1 flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
+          <div className="flex min-w-0 flex-1 flex-col">{body}</div>
+          <aside
+            aria-label={asideLabel}
+            className="hidden pt-3 pr-5 pb-24 lg:block"
+          >
+            <div className="sticky top-6 flex flex-col gap-4">{aside}</div>
+          </aside>
+        </div>
+      ) : (
+        body
       )}
     </div>
+  );
+}
+
+/** PC 곁칸의 판 하나(제목 + 내용) */
+export function SidePanel({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="rounded-2xl border border-line p-5">
+      <h2 className="text-sm text-ink-soft">{title}</h2>
+      <div className="mt-3">{children}</div>
+    </section>
+  );
+}
+
+/** PC 곁칸의 "키보드로 하기" 목록 */
+export function KeyHelp({
+  items,
+}: {
+  items: { key: string; label: string }[];
+}) {
+  return (
+    <SidePanel title="키보드로 하기">
+      <dl className="space-y-2 text-sm">
+        {items.map((it) => (
+          <div key={it.key} className="flex items-center gap-3">
+            <dt>
+              <kbd className="rounded-md border border-line bg-bg-sunken px-2 py-0.5 font-mono text-xs">
+                {it.key}
+              </kbd>
+            </dt>
+            <dd className="text-ink-soft">{it.label}</dd>
+          </div>
+        ))}
+      </dl>
+    </SidePanel>
+  );
+}
+
+/** 단추 안에 붙이는 키 표시(PC에서만 보인다) */
+export function InlineKey({ k }: { k: string }) {
+  return (
+    <kbd
+      aria-hidden
+      className="ml-2 hidden rounded border border-line px-1.5 font-mono text-xs text-ink-faint lg:inline"
+    >
+      {k}
+    </kbd>
   );
 }
 
@@ -151,14 +232,14 @@ export function SoundButton({
   );
 }
 
-/** PC에서 보기 왼쪽 위에 붙이는 숫자 키 표시(1~4 키로 고른다). 폰에서는 감춘다 */
-export function ChoiceKey({ n }: { n: number }) {
+/** PC에서 보기 왼쪽 위에 붙이는 키 표시(1~4 키나 글자 키로 고른다). 폰에서는 감춘다 */
+export function ChoiceKey({ n, label }: { n?: number; label?: string }) {
   return (
     <kbd
       aria-hidden
       className="absolute top-2 left-2 hidden rounded-md border border-line px-1.5 font-mono text-xs text-ink-faint lg:block"
     >
-      {n}
+      {label ?? n}
     </kbd>
   );
 }
