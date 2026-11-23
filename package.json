@@ -16,6 +16,8 @@
     "test:e2e": "pnpm build && playwright test",
     "progress:pull": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/progress-pull.ts",
     "textbook:build": "tsx scripts/textbook/build.ts",
+    "songs:pull": "tsx scripts/songs/pull.ts",
+    "songs:check": "tsx scripts/songs/check.ts",
     "kana:audio": "node scripts/kana/cut.mjs",
     "kana:audio:verify": "node scripts/kana/verify.mjs --rows",
     "prepare": "command -v git >/dev/null 2>&1 || exit 0 && lefthook install"
