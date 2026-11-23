@@ -52,3 +52,25 @@ test("폰 강 화면에서 재생 막대가 떠 있어도 끝까지 내리면 �
   // 단추와 재생 막대 사이 틈으로 글이 보이지 않게 단추 영역이 화면 맨 아래까지 이어진다
   expect(l?.navBottom).toBe(l?.viewport);
 });
+
+test("재생 막대가 떠 있을 때 가나 레슨 아래에 붙은 단계 표가 막대에 가리지 않는다", async ({
+  page,
+}) => {
+  await login(page, "/ilmuta/1");
+  await page.getByRole("button", { name: /강의 듣기/ }).click();
+  const bar = page.locator("[data-player-bar]:visible");
+  await expect(bar).toBeVisible();
+
+  // 재생 대기열은 브라우저에 남으므로 다른 화면으로 옮겨 가도 막대가 그대로 뜬다
+  await page.goto("/kana/lesson/h1");
+  // 레슨 아래에 붙은 단계 표(소개·알아보기·…)
+  const steps = page.locator("footer").getByText("소개", { exact: true });
+  await expect(steps).toBeVisible();
+  await expect(bar).toBeVisible();
+
+  const stepsBox = await steps.boundingBox();
+  const barBox = await bar.boundingBox();
+  expect(stepsBox && barBox).toBeTruthy();
+  if (!stepsBox || !barBox) return;
+  expect(stepsBox.y + stepsBox.height).toBeLessThanOrEqual(barBox.y);
+});
