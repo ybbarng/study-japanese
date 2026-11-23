@@ -3,10 +3,7 @@ import Link from "next/link";
 export default function Home() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col px-6 pt-[max(env(safe-area-inset-top),3rem)]">
-      <p
-        lang="ja"
-        className="font-[family-name:var(--font-jp-serif)] text-5xl font-bold tracking-widest"
-      >
+      <p lang="ja" className="font-ja-serif text-5xl font-bold tracking-widest">
         にほんご
       </p>
       <p className="mt-2 text-ink-soft">2027년 1월 1일에 시작합니다.</p>

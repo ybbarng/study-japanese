@@ -15,6 +15,8 @@
   --warn: #e9b44c;
 }
 
+/* --font-kr·--font-jp·--font-jp-serif는 layout.tsx의 next/font가 <html>에 단다.
+   유틸리티 이름(font-ja, font-ja-serif)은 그와 다르게 지어 서로를 가리키지 않게 한다. */
 @theme inline {
   --color-bg: var(--bg);
   --color-bg-raised: var(--bg-raised);
@@ -28,25 +30,27 @@
   --color-good: var(--good);
   --color-warn: var(--warn);
   --font-sans: var(--font-kr), var(--font-jp), system-ui, sans-serif;
-  --font-jp: var(--font-jp), system-ui, sans-serif;
-  --font-jp-serif: var(--font-jp-serif), serif;
+  --font-ja: var(--font-jp), system-ui, sans-serif;
+  --font-ja-serif: var(--font-jp-serif), var(--font-jp), serif;
 }
 
-html {
-  background: var(--bg);
-  color-scheme: dark;
-}
+@layer base {
+  html {
+    background: var(--bg);
+    color-scheme: dark;
+  }
 
-body {
-  background: var(--bg);
-  color: var(--ink);
-  min-height: 100dvh;
-  -webkit-tap-highlight-color: transparent;
-  overscroll-behavior-y: none;
-}
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100dvh;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
 
-:lang(ja),
-.ja {
-  font-family: var(--font-jp), system-ui, sans-serif;
-  line-break: strict;
+  /* 일본어는 일본어 글꼴로. base 층이라 font-ja-serif 같은 유틸리티가 이긴다. */
+  :lang(ja) {
+    font-family: var(--font-jp), system-ui, sans-serif;
+    line-break: strict;
+  }
 }

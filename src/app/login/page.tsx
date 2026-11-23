@@ -10,7 +10,7 @@ export default async function LoginPage({
     <main className="flex min-h-dvh flex-col items-center justify-center px-6">
       <p
         lang="ja"
-        className="font-[family-name:var(--font-jp-serif)] text-6xl font-bold tracking-widest text-ink"
+        className="font-ja-serif text-6xl font-bold tracking-widest text-ink"
       >
         ようこそ
       </p>
