@@ -2,8 +2,9 @@
 
 import type { ReactNode } from "react";
 import { useKanaHydrated } from "@/lib/kana/store";
+import { KanaSync } from "./kana-sync";
 
-/** 기기에 저장된 진도를 읽어 온 뒤에만 그린다(서버 화면과 어긋나지 않게). */
+/** 기기에 저장된 진도를 읽어 온 뒤에만 그리고, 그때부터 서버와 진도를 맞춘다. */
 export function Hydrated({ children }: { children: ReactNode }) {
   const ready = useKanaHydrated();
   if (!ready)
@@ -14,5 +15,10 @@ export function Hydrated({ children }: { children: ReactNode }) {
         </span>
       </div>
     );
-  return <>{children}</>;
+  return (
+    <>
+      <KanaSync />
+      {children}
+    </>
+  );
 }
