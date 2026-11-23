@@ -88,6 +88,16 @@ export function GlobalPlayer() {
       audioRef.current.playbackRate = s.rate;
   }, [s.rate, phase.kind]);
 
+  // 자막 줄을 눌렀을 때: 지금 트랙의 그 위치로(따라 말하기 간격 중이면 무시)
+  const seekRequest = s.seekRequest;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: 요청이 새로 올 때만 따른다(간격 상태가 바뀌었다고 다시 옮기지 않게)
+  useEffect(() => {
+    const a = audioRef.current;
+    if (!a || !seekRequest || phase.kind !== "track") return;
+    a.currentTime = seekRequest.sec;
+    if (a.paused) a.play().catch(() => usePlayer.getState().setPlaying(false));
+  }, [seekRequest]);
+
   const advance = useCallback(() => {
     const st = usePlayer.getState();
     const n = nextIndex(st.index, st.queue.length, st.repeat);
