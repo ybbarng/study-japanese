@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:run": "vitest run",
+    "textbook:build": "tsx scripts/textbook/build.ts",
     "prepare": "command -v git >/dev/null 2>&1 || exit 0 && lefthook install"
   },
   "dependencies": {
@@ -34,6 +35,7 @@
     "jsdom": "^31.0.1",
     "lefthook": "^2.2.2",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "4.0.18"
   }
