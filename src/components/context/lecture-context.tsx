@@ -9,6 +9,7 @@ import {
   transcriptCues,
 } from "@/lib/context/cues";
 import { usePositionOf } from "@/lib/player/clock";
+import { usePlayer } from "@/lib/player/store";
 
 interface Props {
   transcript: Transcript | null;
@@ -59,6 +60,9 @@ export function LectureContext({
       ) : (
         <p className="text-ink-faint">…</p>
       )}
+      <p className="mt-3 text-xs text-ink-faint">
+        못 알아들었으면 자막을 눌러 그 말부터 다시 들으세요.
+      </p>
     </section>
   );
 }
@@ -74,11 +78,15 @@ function CueView({
 }) {
   // kind가 늘면 여기서 갈라 그린다(문장 카드·낱말 카드·그림)
   const ja = cue.lang === "ja";
+  const seekTo = usePlayer((s) => s.seekTo);
   return (
-    <p
+    <button
+      type="button"
       lang={cue.lang}
+      onClick={() => seekTo(cue.start)}
+      title="이 말부터 다시 듣기"
       className={cn(
-        "leading-relaxed",
+        "block w-full text-left leading-relaxed active:opacity-60",
         dim
           ? "mb-3 text-sm text-ink-faint"
           : ja
@@ -92,6 +100,6 @@ function CueView({
       )}
     >
       {cue.text}
-    </p>
+    </button>
   );
 }

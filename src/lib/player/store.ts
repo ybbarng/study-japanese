@@ -17,8 +17,12 @@ interface PlayerState {
   repeat: RepeatMode;
   shadowGap: boolean;
   expanded: boolean;
+  /** 이 위치(초)로 옮겨 달라는 요청. token이 바뀔 때마다 GlobalPlayer가 따른다 */
+  seekRequest: { sec: number; token: number } | null;
 
   playQueue: (tracks: Track[], start?: number) => void;
+  /** 지금 트랙의 그 위치부터 재생(자막 줄을 눌러 다시 듣기) */
+  seekTo: (sec: number) => void;
   jump: (index: number) => void;
   restart: () => void;
   setPlaying: (playing: boolean) => void;
@@ -40,6 +44,13 @@ export const usePlayer = create<PlayerState>()(
       repeat: "off",
       shadowGap: false,
       expanded: false,
+      seekRequest: null,
+
+      seekTo: (sec) =>
+        set((s) => ({
+          seekRequest: { sec, token: (s.seekRequest?.token ?? 0) + 1 },
+          wantPlaying: true,
+        })),
 
       playQueue: (tracks, start = 0) =>
         set((s) => ({
