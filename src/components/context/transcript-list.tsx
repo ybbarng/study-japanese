@@ -3,12 +3,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 import {
+  type ContextCue,
   cueIndexAt,
   type Transcript,
   transcriptCues,
 } from "@/lib/context/cues";
-import { usePositionOf } from "@/lib/player/clock";
+import { usePlaybackClock, usePositionOf } from "@/lib/player/clock";
 import { usePlayer } from "@/lib/player/store";
+import { CueExtras, CueHeadline } from "./cue-card";
+import { LoopButton } from "./loop-button";
+import { useCueActions } from "./use-cue-actions";
 
 interface Props {
   transcript: Transcript;
@@ -36,6 +40,8 @@ export function TranscriptList({
   const cues = useMemo(() => transcriptCues(transcript), [transcript]);
   const pos = usePositionOf(book, item);
   const seekTo = usePlayer((s) => s.seekTo);
+  const actions = useCueActions(book, item);
+  const loopPause = usePlaybackClock((s) => s.loopPause);
   const at = pos === null ? -1 : cueIndexAt(cues, pos);
   const listRef = useRef<HTMLOListElement>(null);
   const heldUntil = useRef(0);
@@ -69,12 +75,12 @@ export function TranscriptList({
     }, HOLD_MS + 50);
   };
 
-  const play = (start: number) => {
+  const play = (cue: ContextCue) => {
     heldUntil.current = 0;
     setHeld(false);
-    if (pos !== null) seekTo(start);
+    if (pos !== null) actions.seek(cue);
     else {
-      pending.current = start;
+      pending.current = cue.start;
       onStart?.();
     }
   };
@@ -100,28 +106,44 @@ export function TranscriptList({
         {cues.map((cue, i) => {
           const current = i === at;
           return (
-            // biome-ignore lint/suspicious/noArrayIndexKey: 같은 시각에 시작하는 줄이 있을 수 있어 차례를 함께 쓴다
-            <li key={`${cue.start}-${i}`} data-cue={i}>
+            <li
+              // biome-ignore lint/suspicious/noArrayIndexKey: 같은 시각에 시작하는 줄이 있을 수 있어 차례를 함께 쓴다
+              key={`${cue.start}-${i}`}
+              data-cue={i}
+              className={cn("rounded-xl", current && "bg-accent-soft")}
+            >
               <button
                 type="button"
-                lang={cue.lang}
-                onClick={() => play(cue.start)}
+                onClick={() => play(cue)}
                 aria-current={current ? "true" : undefined}
                 className={cn(
-                  "block w-full rounded-xl px-3 py-2 text-left leading-relaxed transition-colors hover:bg-bg-raised",
-                  cue.lang === "ja" && "font-ja-serif text-xl",
+                  "block w-full rounded-xl px-3 py-2 text-left transition-colors",
+                  !current && "hover:bg-bg-raised",
                   current
-                    ? cn(
-                        "bg-accent-soft",
-                        cue.lang === "ja" ? "text-accent" : "text-ink",
-                      )
+                    ? "text-ink"
                     : i < at
                       ? "text-ink-faint"
                       : "text-ink-soft",
                 )}
               >
-                {cue.text}
+                <CueHeadline cue={cue} size="list" detail={current} />
               </button>
+              {current ? (
+                <div className="px-3 pb-3">
+                  <CueExtras cue={cue} />
+                  <div className="mt-3 flex items-center gap-3">
+                    <LoopButton
+                      active={actions.isLooping(cue)}
+                      onClick={() => actions.toggle(cue)}
+                    />
+                    {loopPause && actions.looping ? (
+                      <span className="animate-pulse text-sm text-accent">
+                        따라 말해 보세요
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
             </li>
           );
         })}

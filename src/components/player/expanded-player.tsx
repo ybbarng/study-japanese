@@ -48,7 +48,8 @@ export function ExpandedPlayer({
         <span className="w-8" />
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col justify-center overflow-y-auto px-7 lg:justify-start lg:overflow-hidden lg:px-5">
+      {/* 글이 길어 넘치면 가운데가 아니라 위부터 놓는다(safe center). 아니면 제목이 위로 잘린다 */}
+      <div className="flex min-h-0 flex-1 flex-col justify-center-safe overflow-y-auto px-7 lg:justify-start lg:overflow-hidden lg:px-5">
         <p className="text-sm text-ink-soft">{p.track.subtitle}</p>
         <h2 className="mt-1 text-3xl font-bold lg:text-2xl">{p.track.title}</h2>
         {transcript && !p.gap ? (

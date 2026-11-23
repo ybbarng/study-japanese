@@ -89,7 +89,10 @@ export function LessonPlayer({
                 : "bg-bg-raised text-ink-soft",
             )}
           >
-            {t.item.replace(/^L\d+-0?/, "")}
+            {/* 강의는 차례 숫자만, 예문은 "문법 예문"처럼 */}
+            {t.kind === "lecture"
+              ? t.item.replace(/^L\d+-0?/, "")
+              : t.title.replace(/^\d+과 /, "")}
           </button>
         ))}
       </div>

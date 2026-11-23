@@ -22,6 +22,15 @@ export const LONG_LECTURE_CUES = [
   { start: 30, end: 38, text: "もういちどテスト。", lang: "ja" },
 ] as const;
 
+/**
+ * 3강 소책자에만 둔 가짜 회화 문장. 자막 둘째 줄과 문장부호만 달라, 서버가 그 줄에 이 문장 카드를 붙인다.
+ * 넷째 줄은 짝이 없어 받아 적은 자막만 보인다.
+ */
+export const LONG_LECTURE_BOOKLET = {
+  ja: "テストのぶんです",
+  ko: "시험 문장입니다.",
+} as const;
+
 const ILMUTA_LESSONS = [0, 1, 2, 3];
 const ILMUNTA_LESSONS = [1, 2];
 
@@ -57,6 +66,9 @@ function ilmutaLesson(no: number) {
               sentences: [
                 { ja: "やあ、テスト。", ko: "안녕, 시험.", speaker: "A" },
                 { ja: "うん、テスト。", ko: "응, 시험.", speaker: "B" },
+                ...(no === LONG_LECTURE.no
+                  ? [{ ...LONG_LECTURE_BOOKLET, speaker: "A" }]
+                  : []),
               ],
             }),
             example(`${n}-2`, "words", {

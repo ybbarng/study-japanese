@@ -5,11 +5,14 @@ import { cn } from "@/lib/cn";
 import {
   type ContextCue,
   cueIndexAt,
+  cueText,
   type Transcript,
   transcriptCues,
 } from "@/lib/context/cues";
-import { usePositionOf } from "@/lib/player/clock";
-import { usePlayer } from "@/lib/player/store";
+import { usePlaybackClock, usePositionOf } from "@/lib/player/clock";
+import { CueExtras, CueHeadline } from "./cue-card";
+import { LoopButton } from "./loop-button";
+import { useCueActions } from "./use-cue-actions";
 
 interface Props {
   transcript: Transcript | null;
@@ -21,8 +24,8 @@ interface Props {
 }
 
 /**
- * 강의 재생 중 지금 위치의 맥락(지금은 자막). 자막 파일이 없으면 아무것도 그리지 않는다.
- * 소책자 문장·해석·낱말 카드·그림 큐가 생기면 CueView에 kind별 모양을 더한다.
+ * 강의 재생 중 지금 위치의 맥락: 지금 하는 말을 크게(소책자 문장과 맞췄으면 정확한 글·읽는 법·뜻·낱말),
+ * 앞뒤 말은 흐리게. 자막 파일이 없으면 아무것도 그리지 않는다.
  */
 export function LectureContext({
   transcript,
@@ -35,6 +38,8 @@ export function LectureContext({
     [transcript],
   );
   const pos = usePositionOf(book, item);
+  const loopPause = usePlaybackClock((s) => s.loopPause);
+  const actions = useCueActions(book, item);
   if (cues.length === 0) return null;
 
   if (pos === null)
@@ -45,21 +50,48 @@ export function LectureContext({
     );
 
   const at = cueIndexAt(cues, pos);
-  const prev = at > 0 ? cues[at - 1] : null;
+  // 말 없는 틈에도 바로 앞뒤 말은 보이게 한다
+  const before = at >= 0 ? at : cues.findLastIndex((c) => c.start <= pos);
+  const prev = before >= 0 ? cues[at >= 0 ? at - 1 : before] : null;
+  const next = cues[before + 1] ?? null;
+  const current = at >= 0 ? cues[at] : null;
   return (
     <section
       aria-live="polite"
+      aria-label="지금 하는 말"
       className={cn(
         "rounded-2xl",
         size === "card" ? "min-h-40 bg-bg-sunken p-5" : "min-h-48",
       )}
     >
-      {prev ? <CueView cue={prev} dim /> : null}
-      {at >= 0 ? (
-        <CueView cue={cues[at]} size={size} />
+      {prev ? <Dim cue={prev} onSeek={actions.seek} /> : null}
+      {current ? (
+        <div data-current-cue>
+          <button
+            type="button"
+            onClick={() => actions.seek(current)}
+            title="이 말부터 다시 듣기"
+            className="block w-full text-left active:opacity-60"
+          >
+            <CueHeadline cue={current} size={size} detail />
+          </button>
+          <CueExtras cue={current} />
+          <div className="mt-3 flex items-center gap-3">
+            <LoopButton
+              active={actions.isLooping(current)}
+              onClick={() => actions.toggle(current)}
+            />
+            {loopPause && actions.looping ? (
+              <span className="animate-pulse text-accent">
+                따라 말해 보세요
+              </span>
+            ) : null}
+          </div>
+        </div>
       ) : (
-        <p className="text-ink-faint">…</p>
+        <p className="py-2 text-ink-faint">…</p>
       )}
+      {next ? <Dim cue={next} onSeek={actions.seek} /> : null}
       <p className="mt-3 text-xs text-ink-faint">
         못 알아들었으면 자막을 눌러 그 말부터 다시 들으세요.
       </p>
@@ -67,39 +99,22 @@ export function LectureContext({
   );
 }
 
-function CueView({
+function Dim({
   cue,
-  dim,
-  size = "card",
+  onSeek,
 }: {
   cue: ContextCue;
-  dim?: boolean;
-  size?: "card" | "stage";
+  onSeek: (cue: ContextCue) => void;
 }) {
-  // kind가 늘면 여기서 갈라 그린다(문장 카드·낱말 카드·그림)
-  const ja = cue.lang === "ja";
-  const seekTo = usePlayer((s) => s.seekTo);
   return (
     <button
       type="button"
       lang={cue.lang}
-      onClick={() => seekTo(cue.start)}
+      onClick={() => onSeek(cue)}
       title="이 말부터 다시 듣기"
-      className={cn(
-        "block w-full text-left leading-relaxed active:opacity-60",
-        dim
-          ? "mb-3 text-sm text-ink-faint"
-          : ja
-            ? cn(
-                "font-ja-serif text-accent",
-                size === "stage" ? "text-4xl" : "text-3xl",
-              )
-            : size === "stage"
-              ? "text-2xl"
-              : "text-xl",
-      )}
+      className="my-2 block w-full truncate text-left text-sm text-ink-faint active:opacity-60"
     >
-      {cue.text}
+      {cueText(cue)}
     </button>
   );
 }
