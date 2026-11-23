@@ -109,6 +109,11 @@ function Words({ words }: { words: CueWord[] }) {
           key={w.ja}
           className="rounded-xl bg-bg-raised px-3 py-1.5 text-sm leading-tight"
         >
+          {w.emoji ? (
+            <span aria-hidden="true" className="mr-1.5 text-base">
+              {w.emoji}
+            </span>
+          ) : null}
           <span lang="ja" className="font-ja-serif text-base text-ink">
             {w.ja}
           </span>
