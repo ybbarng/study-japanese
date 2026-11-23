@@ -47,7 +47,7 @@ rsync -av content/textbook/ byb.kr:data/study-ja/content/textbook/
    ```bash
    rsync -av ~/Music/lemon.mp3 byb.kr:data/study-ja/media/songs/lemon.mp3
    ```
-2. 사이트에서 로그인 → 노래 → 노래 넣기. 제목·가수·주소 이름(`lemon`)·오디오 파일 이름(`lemon.mp3`, 비우면 주소 이름.mp3)을 쓰고 가사를 줄마다 붙여 넣어 저장한다. 저장할 때 서버가 형태소 분석기(kuromoji)로 줄마다 읽는 법·낱말을 만들어 둔다.
+2. 사이트에서 로그인 → 노래 → 노래 넣기. 제목·가수·주소 이름(`lemon`)·오디오 파일 이름(`lemon.mp3`, 비우면 주소 이름.mp3)을 쓰고 가사를 줄마다 붙여 넣어 저장한다. 저장할 때 관리자 브라우저가 형태소 분석기(kuromoji)로 줄마다 읽는 법·낱말을 만들어 가사와 함께 보내고, 서버는 모양만 확인해 저장한다. 분석기는 메모리를 수백 MB 써서 컨테이너 상한(256MiB) 안에서 돌릴 수 없기 때문이다. 처음 저장할 때 브라우저가 사전(`/kuromoji-dict/*.dat.gz`, 약 18MB)을 받고, 서비스 워커가 캐시해 다음부터는 다시 받지 않는다. 사전은 `pnpm build`가 `node_modules/kuromoji/dict`에서 `public/kuromoji-dict/`로 복사한다(git에는 넣지 않는다).
 3. 가사 화면 → 박자 맞추기에서 노래를 틀고 줄이 시작될 때마다 Space(폰은 큰 단추)를 눌러 저장한다.
 4. 가사를 방문자에게 보이지 않으려면 고치기에서 "가사 공개"를 끈다. 같은 이름의 파일을 바꿔 넣으면 브라우저가 옛 파일을 30일까지 들고 있을 수 있으니 새 이름으로 넣는다.
 
