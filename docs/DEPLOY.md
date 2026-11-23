@@ -9,7 +9,7 @@
 
 | 서버 | 컨테이너 | 권한 | 내용 |
 |---|---|---|---|
-| `~/data/study-ja/media/` | `/app/media` | 읽기 전용 | 교재 오디오. `ilmuta/`(일무따 원본 폴더 통째), `ilmunta/`(일문따), `kana/`(가나 글자별 소리) |
+| `~/data/study-ja/media/` | `/app/media` | 읽기 전용 | 교재 오디오. `ilmuta/`(일무따 원본 폴더 통째), `ilmunta/`(일문따), `kana/`(가나 글자별 소리), `songs/`(노래 파일, 관리자만 받는다) |
 | `~/data/study-ja/content/` | `/app/content` | 읽기 전용 | 교재에서 뽑은 글 JSON(`textbook/ilmuta.json` 등) |
 | `~/data/study-ja/data/` | `/app/data` | 읽고 쓰기 | 학습 기록 `study.db`. 배포 전 백업 |
 
@@ -40,6 +40,16 @@ rsync -av --progress ~/personal/study/japanese/BN003602_total/ byb.kr:data/study
 rsync -av media/kana/ byb.kr:data/study-ja/media/kana/
 rsync -av content/textbook/ byb.kr:data/study-ja/content/textbook/
 ```
+
+## 노래 넣기 (관리자)
+
+1. 노래 파일(mp3·m4a)을 영문 이름으로 서버에 둔다. `songs/`는 출처 목록에 없는 폴더라 로그인한 사람만 받는다.
+   ```bash
+   rsync -av ~/Music/lemon.mp3 byb.kr:data/study-ja/media/songs/lemon.mp3
+   ```
+2. 사이트에서 로그인 → 노래 → 노래 넣기. 제목·가수·주소 이름(`lemon`)·오디오 파일 이름(`lemon.mp3`, 비우면 주소 이름.mp3)을 쓰고 가사를 줄마다 붙여 넣어 저장한다. 저장할 때 서버가 형태소 분석기(kuromoji)로 줄마다 읽는 법·낱말을 만들어 둔다.
+3. 가사 화면 → 박자 맞추기에서 노래를 틀고 줄이 시작될 때마다 Space(폰은 큰 단추)를 눌러 저장한다.
+4. 가사를 방문자에게 보이지 않으려면 고치기에서 "가사 공개"를 끈다. 같은 이름의 파일을 바꿔 넣으면 브라우저가 옛 파일을 30일까지 들고 있을 수 있으니 새 이름으로 넣는다.
 
 ## 기록 받기
 
