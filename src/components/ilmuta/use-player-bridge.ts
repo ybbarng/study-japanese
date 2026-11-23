@@ -79,25 +79,4 @@ export function useListenIndex(initial: ListenIndex): ListenIndex {
   return index;
 }
 
-/**
- * 사이트 재생기의 지금 재생 위치(초). 재생기가 위치를 상태로 내주지 않아서
- * GlobalPlayer가 body 바로 아래에 두는 <audio>를 직접 듣는다.
- * 재생기가 위치를 내주게 되면(보고서의 재생기 변경 제안) 이 훅만 바꾼다.
- */
-export function usePlaybackTime(active: boolean): number {
-  const [time, setTime] = useState(0);
-  useEffect(() => {
-    if (!active) return;
-    const audio = document.querySelector<HTMLAudioElement>("body > audio");
-    if (!audio) return;
-    const update = () => setTime(audio.currentTime);
-    update();
-    audio.addEventListener("timeupdate", update);
-    audio.addEventListener("seeked", update);
-    return () => {
-      audio.removeEventListener("timeupdate", update);
-      audio.removeEventListener("seeked", update);
-    };
-  }, [active]);
-  return time;
-}
+// 재생 위치는 src/lib/player/clock.ts(usePositionOf)에서 읽는다.

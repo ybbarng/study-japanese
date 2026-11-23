@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { loadIlmuta, loadIlmutaTranscript } from "./load";
+import { loadIlmuta, loadIlmutaTranscript, loadTranscript } from "./load";
 
 function contentDir(): string {
   return mkdtempSync(path.join(tmpdir(), "sj-content-"));
@@ -88,5 +88,34 @@ describe("강의 자막 읽기", () => {
 
   it("강의 항목 모양이 아니면 파일을 찾지 않는다", () => {
     expect(loadIlmutaTranscript("../x", contentDir())).toBeNull();
+  });
+});
+
+describe("책에 상관없이 자막 읽기", () => {
+  it("일문따 강의 자막도 같은 모양으로 읽는다", () => {
+    const dir = contentDir();
+    mkdirSync(path.join(dir, "transcripts", "ilmunta"), { recursive: true });
+    writeFileSync(
+      path.join(dir, "transcripts", "ilmunta", "L01-01.json"),
+      JSON.stringify({
+        book: "ilmunta",
+        item: "L01-01",
+        kind: "lecture",
+        durationSec: 2,
+        segments: [{ start: 0, end: 1.5, text: "見る", lang: "ja" }],
+      }),
+    );
+    expect(loadTranscript("ilmunta", "L01-01", dir)?.segments[0].text).toBe(
+      "見る",
+    );
+  });
+
+  it.each([
+    ["kana", "a"],
+    ["ilmuta", "../L01"],
+    ["ilmuta", "L01/../../x"],
+    ["ilmuta", ""],
+  ])("허용하지 않는 책·항목 %s/%s는 파일을 찾지 않는다", (book, item) => {
+    expect(loadTranscript(book, item, contentDir())).toBeNull();
   });
 });

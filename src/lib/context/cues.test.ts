@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cueIndexAt, type Transcript, transcriptCues } from "./context-cues";
+import { cueIndexAt, type Transcript, transcriptCues } from "./cues";
 
 const transcript: Transcript = {
   book: "ilmuta",

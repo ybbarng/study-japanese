@@ -99,7 +99,7 @@ export function LessonFlow({ data, steps, initialStep }: Props) {
               onClick={() => go(s)}
               aria-current={s === step ? "step" : undefined}
               className={cn(
-                "shrink-0 rounded-full px-3 py-1.5 text-sm",
+                "shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-sm",
                 s === step ? "bg-accent text-white" : "text-ink-soft",
               )}
             >

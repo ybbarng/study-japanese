@@ -1,6 +1,8 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { setPlaybackClock } from "@/lib/player/clock";
 import {
   isCompleted,
   type ListenMeter,
@@ -20,6 +22,8 @@ export function GlobalPlayer() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const s = usePlayer();
   const track = currentTrack(s);
+  // 로그인 전에는 오디오를 받을 수 없으니 막대를 보이지 않는다
+  const onLoginPage = usePathname() === "/login";
   const [phase, setPhase] = useState<Phase>({ kind: "track" });
   const [pos, setPos] = useState(0);
   const [duration, setDuration] = useState(Number.NaN);
@@ -121,6 +125,19 @@ export function GlobalPlayer() {
     advance();
   }, [phase.kind, advance, finalize, setSrc]);
 
+  /** 자막·맥락 화면이 읽는 재생 위치. 따라 말하기 간격 중에는 트랙을 비운다 */
+  const publishClock = useCallback(
+    (pos: number) => {
+      const t = phase.kind === "track" ? track : undefined;
+      setPlaybackClock({
+        book: t?.book ?? null,
+        item: t?.item ?? null,
+        pos,
+      });
+    },
+    [phase.kind, track],
+  );
+
   const prev = useCallback(() => {
     const a = audioRef.current;
     const st = usePlayer.getState();
@@ -217,14 +234,20 @@ export function GlobalPlayer() {
           meter.current = resetPosition(meter.current);
         }}
         onEnded={onEnded}
-        onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+        onLoadedMetadata={(e) => {
+          setDuration(e.currentTarget.duration);
+          if (phase.kind === "track")
+            setPlaybackClock({ duration: e.currentTarget.duration });
+        }}
+        onSeeked={(e) => publishClock(e.currentTarget.currentTime)}
         onTimeUpdate={(e) => {
           const t = e.currentTarget.currentTime;
           setPos(t);
+          publishClock(t);
           if (phase.kind === "track") meter.current = tick(meter.current, t);
         }}
       />
-      {track ? (
+      {track && !onLoginPage ? (
         <NowPlaying
           track={track}
           index={s.index}

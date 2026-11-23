@@ -1,8 +1,8 @@
 "use client";
 
+import { LectureContext } from "@/components/context/lecture-context";
 import { examplesOf } from "@/lib/ilmuta/steps";
 import { lectureItem, lessonQueue } from "@/lib/ilmuta/tracks";
-import { LectureContext } from "./lecture-context";
 import type { StepProps } from "./lesson-types";
 import { PlayCard } from "./play-card";
 import { useNowPlaying, usePlay } from "./use-player-bridge";
@@ -34,7 +34,7 @@ export function StepLecture({ data, listens }: StepProps) {
         onPress={() => play(lessonQueue(lesson), 0)}
       />
 
-      <LectureContext transcript={transcript} active={active} />
+      <LectureContext transcript={transcript} book="ilmuta" item={item} />
 
       {patterns.length > 0 ? (
         <section>

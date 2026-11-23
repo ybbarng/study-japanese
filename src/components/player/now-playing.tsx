@@ -1,5 +1,7 @@
 "use client";
 
+import { LectureContext } from "@/components/context/lecture-context";
+import { useTranscript } from "@/components/context/use-transcript";
 import { cn } from "@/lib/cn";
 import type { Track } from "@/lib/player/queue";
 import { usePlayer } from "@/lib/player/store";
@@ -105,6 +107,8 @@ function Expanded(p: Props & { progress: number; onClose: () => void }) {
     queue,
     jump,
   } = usePlayer();
+  // 강의처럼 자막이 있는 트랙은 지금 하는 말을 따라 보여 준다
+  const transcript = useTranscript(p.track.book, p.track.item);
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-bg pt-[max(env(safe-area-inset-top),1rem)] pb-[max(env(safe-area-inset-bottom),1rem)]">
@@ -126,7 +130,17 @@ function Expanded(p: Props & { progress: number; onClose: () => void }) {
       <div className="flex flex-1 flex-col justify-center overflow-y-auto px-7">
         <p className="text-sm text-ink-soft">{p.track.subtitle}</p>
         <h2 className="mt-1 text-3xl font-bold">{p.track.title}</h2>
-        {p.track.lines?.length ? (
+        {transcript && !p.gap ? (
+          <div className="mt-8">
+            <LectureContext
+              transcript={transcript}
+              book={p.track.book}
+              item={p.track.item}
+              size="stage"
+            />
+          </div>
+        ) : null}
+        {!transcript && p.track.lines?.length ? (
           <div className="mt-8 space-y-5">
             {p.track.lines.map((l) => (
               <div key={l.ja}>

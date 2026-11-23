@@ -1,7 +1,7 @@
 import { readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import type { z } from "zod";
-import { type Transcript, transcriptSchema } from "@/lib/ilmuta/context-cues";
+import { type Transcript, transcriptSchema } from "@/lib/context/cues";
 import { type Ilmuta, ilmutaSchema } from "./schema";
 
 // 교재 JSON은 이미지에 넣지 않고 실행할 때 CONTENT_DIR(기본 <cwd>/content)에서 읽는다.
@@ -33,18 +33,32 @@ export function loadIlmuta(dir: string = contentDir()): Ilmuta | null {
   return readJson(path.join(dir, "textbook", "ilmuta.json"), ilmutaSchema);
 }
 
-/** 강의 자막(`transcripts/ilmuta/L01.json`). 없거나 깨졌으면 조용히 null */
-export function loadIlmutaTranscript(
+const TRANSCRIPT_BOOKS = new Set(["ilmuta", "ilmunta"]);
+/** 오디오 항목 이름(L01, 01-4-1, L01-01 …). 경로 조각으로 쓰므로 이 모양만 받는다 */
+const ITEM = /^[A-Za-z0-9][A-Za-z0-9-]{0,15}$/;
+
+/** 오디오 자막(`transcripts/<book>/<item>.json`). 없거나 깨졌거나 이름이 틀리면 조용히 null */
+export function loadTranscript(
+  book: string,
   item: string,
   dir: string = contentDir(),
 ): Transcript | null {
-  if (!/^L\d{2}$/.test(item)) return null;
+  if (!TRANSCRIPT_BOOKS.has(book) || !ITEM.test(item)) return null;
   try {
     return readJson(
-      path.join(dir, "transcripts", "ilmuta", `${item}.json`),
+      path.join(dir, "transcripts", book, `${item}.json`),
       transcriptSchema,
     );
   } catch {
     return null;
   }
+}
+
+/** 일무따 강의 자막(`transcripts/ilmuta/L01.json`) */
+export function loadIlmutaTranscript(
+  item: string,
+  dir: string = contentDir(),
+): Transcript | null {
+  if (!/^L\d{2}$/.test(item)) return null;
+  return loadTranscript("ilmuta", item, dir);
 }
