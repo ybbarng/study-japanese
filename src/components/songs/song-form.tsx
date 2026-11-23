@@ -125,7 +125,8 @@ export function SongForm({ song }: Props) {
             onChange={(e) => setKo(e.target.value)}
             rows={18}
             placeholder={`가사 줄마다 해석을 한 줄씩 붙여 넣으세요. 해석이 없는 줄은 ${NO_KO} 로 적습니다.`}
-            className={`${field} text-base leading-[1.95] lg:min-h-[60dvh]`}
+            // 가사 칸과 같은 글자 크기·줄 간격이라 PC에서 나란히 놓으면 줄이 맞는다
+            className={`${field} text-lg leading-relaxed lg:min-h-[60dvh]`}
           />
           {koMismatch ? (
             <p className="text-sm text-warn">
