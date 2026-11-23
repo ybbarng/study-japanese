@@ -1,6 +1,8 @@
 import { SKILLS } from "@/lib/ilmunta/curriculum";
 import { makeQuestion, type Question } from "@/lib/ilmunta/question";
 import { seededRng } from "@/lib/ilmunta/random";
+import { rubyPlain } from "@/lib/ilmunta/ruby-text";
+import { makeSentenceQuestion } from "@/lib/ilmunta/sentence";
 
 // 드릴은 문제를 무작위로 낸다. 화면에 보인 문제 글로 답을 찾으려고, 드릴과 같은 문제 만들기 함수로
 // 나올 수 있는 문제를 미리 모두 만들어 둔다. 기술마다 씨앗 1000개면 모든 문제(약 5천 개)가 다 나온다.
@@ -46,6 +48,38 @@ export function answerFor(card: CardText): string {
   if (readings.size !== 1)
     throw new Error(
       `문제 글로 답을 하나로 정하지 못함(${readings.size}개): ${JSON.stringify(card)}`,
+    );
+  return [...readings][0];
+}
+
+let allSentences: Question[] | null = null;
+
+function allSentenceQuestions(): Question[] {
+  if (allSentences) return allSentences;
+  const byId = new Map<string, Question>();
+  for (const skill of SKILLS)
+    for (let seed = 1; seed <= SEEDS_PER_SKILL; seed++) {
+      const q = makeSentenceQuestion(skill, seededRng(seed));
+      if (!q) break;
+      byId.set(q.id, q);
+    }
+  allSentences = [...byId.values()];
+  return allSentences;
+}
+
+/** 문장 빈칸 문제에 보인 글: 빈칸 앞 + 기본형 + → + 빈칸 뒤(읽는 법 루비는 뺀다) */
+export function sentenceAnswerFor(shown: string): string {
+  const matches = allSentenceQuestions().filter((q) => {
+    const s = q.sentence;
+    if (!s) return false;
+    return (
+      `${rubyPlain(s.before)}${q.given.kanji}→${rubyPlain(s.after)}` === shown
+    );
+  });
+  const readings = new Set(matches.map((q) => q.answer.reading));
+  if (readings.size !== 1)
+    throw new Error(
+      `문장으로 답을 하나로 정하지 못함(${readings.size}개): ${shown}`,
     );
   return [...readings][0];
 }
