@@ -49,13 +49,21 @@ if (!res.ok) {
 const data = (await res.json()) as {
   states: { key: string }[];
   listenEvents: { book: string; listenedSec: number; completed: boolean }[];
+  songs?: { lines: { start?: number }[] }[];
 };
+
+// 노래 가사·줄 메모는 공개 저장소에 넣지 않는다(상업 음원, docs/standing-rules.md). 줄 수만 남긴다
+const songs = (data.songs ?? []).map(({ lines, ...rest }) => ({
+  ...rest,
+  lineCount: lines.length,
+  timedCount: lines.filter((l) => l.start !== undefined).length,
+}));
 
 const outDir = path.join(root, "study", "progress");
 mkdirSync(outDir, { recursive: true });
 writeFileSync(
   path.join(outDir, "export.json"),
-  `${JSON.stringify(data, null, 2)}\n`,
+  `${JSON.stringify({ ...data, songs }, null, 2)}\n`,
 );
 
 const byBook = new Map<

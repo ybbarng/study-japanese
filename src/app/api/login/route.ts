@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { readAuthConfig } from "@/lib/auth/config";
+import { ADMIN_HINT_COOKIE } from "@/lib/auth/hint";
+import { loginLockout } from "@/lib/auth/lockout";
 import { safeNextPath } from "@/lib/auth/safe-next";
 import {
   createSessionToken,
@@ -27,23 +29,36 @@ export async function POST(request: Request) {
   const password = String(form.get("password") ?? "");
   const next = safeNextPath(String(form.get("next") ?? "/"));
 
+  // 실패가 몰려 잠겨 있으면 맞는 암호여도 받지 않는다(잠긴 동안 대입이 통하지 않게).
+  // 이미 로그인된 기기는 쿠키로 들어오므로 영향이 없다.
+  const now = Date.now();
+  const until = loginLockout.lockedUntil(now);
+  if (until !== null) {
+    return seeOther(
+      `/login?locked=${Math.ceil((until - now) / 60_000)}&next=${encodeURIComponent(next)}`,
+    );
+  }
+
   if (!timingSafeEqual(password, config.password)) {
-    // 사용자 한 명인 사이트라 IP 제한 대신 실패마다 늦춰 대입 속도만 떨어뜨린다. 주된 방어는 긴 암호다.
+    loginLockout.fail(now);
+    // 실패마다 늦춰 대입 속도도 떨어뜨린다. 주된 방어는 긴 암호와 전체 잠금이다.
     await new Promise((r) => setTimeout(r, FAILURE_DELAY_MS));
     return seeOther(`/login?error=1&next=${encodeURIComponent(next)}`);
   }
 
   const response = seeOther(next);
+  const cookieOptions = {
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: Math.floor(SESSION_TTL_MS / 1000),
+  };
   response.cookies.set(
     SESSION_COOKIE,
     await createSessionToken(config.secret, Date.now()),
-    {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: Math.floor(SESSION_TTL_MS / 1000),
-    },
+    { ...cookieOptions, httpOnly: true },
   );
+  // 화면용 표시(비밀 아님): 기록을 서버로 보낼지·설정 단추를 보일지에만 쓴다
+  response.cookies.set(ADMIN_HINT_COOKIE, "1", cookieOptions);
   return response;
 }

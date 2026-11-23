@@ -13,10 +13,16 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:e2e": "pnpm build && playwright test",
     "progress:pull": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/progress-pull.ts",
     "textbook:build": "tsx scripts/textbook/build.ts",
     "transcribe": "tsx scripts/transcribe/run.ts",
     "transcribe:verify": "tsx scripts/transcribe/verify.ts",
+    "ilmunta:word-lessons": "tsx scripts/ilmunta/word-lessons.ts",
+    "songs:pull": "tsx scripts/songs/pull.ts",
+    "songs:check": "tsx scripts/songs/check.ts",
+    "kana:audio": "node scripts/kana/cut.mjs",
+    "kana:audio:verify": "node scripts/kana/verify.mjs --rows",
     "prepare": "command -v git >/dev/null 2>&1 || exit 0 && lefthook install"
   },
   "dependencies": {
@@ -30,6 +36,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.8",
+    "@playwright/test": "1.65.1",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^8.0.0",
     "@testing-library/react": "^16.3.3",

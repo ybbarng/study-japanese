@@ -1,6 +1,9 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { isAdminClient } from "@/lib/auth/client";
+import { setPlaybackClock } from "@/lib/player/clock";
 import {
   isCompleted,
   type ListenMeter,
@@ -13,6 +16,8 @@ import { silenceWav } from "@/lib/player/silence";
 import { currentTrack, usePlayer } from "@/lib/player/store";
 import { enqueue, flushQueue } from "@/lib/sync/listen-queue";
 import { NowPlaying } from "./now-playing";
+import { ShortcutHelp } from "./shortcut-help";
+import { usePlayerShortcuts } from "./use-player-shortcuts";
 
 type Phase = { kind: "track" } | { kind: "gap"; total: number };
 
@@ -20,6 +25,8 @@ export function GlobalPlayer() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const s = usePlayer();
   const track = currentTrack(s);
+  // 로그인 전에는 오디오를 받을 수 없으니 막대를 보이지 않는다
+  const onLoginPage = usePathname() === "/login";
   const [phase, setPhase] = useState<Phase>({ kind: "track" });
   const [pos, setPos] = useState(0);
   const [duration, setDuration] = useState(Number.NaN);
@@ -40,7 +47,8 @@ export function GlobalPlayer() {
     const a = audioRef.current;
     const listened = meter.current.listenedSec;
     meter.current = newMeter();
-    if (!t || listened < 1) return;
+    // 들은 기록은 관리자(암호로 로그인한 사람)의 학습 기록이다. 방문자 재생은 남기지 않는다
+    if (!t || listened < 1 || !isAdminClient()) return;
     enqueue({
       clientId: crypto.randomUUID(),
       book: t.book,
@@ -84,6 +92,16 @@ export function GlobalPlayer() {
       audioRef.current.playbackRate = s.rate;
   }, [s.rate, phase.kind]);
 
+  // 자막 줄을 눌렀을 때: 지금 트랙의 그 위치로(따라 말하기 간격 중이면 무시)
+  const seekRequest = s.seekRequest;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: 요청이 새로 올 때만 따른다(간격 상태가 바뀌었다고 다시 옮기지 않게)
+  useEffect(() => {
+    const a = audioRef.current;
+    if (!a || !seekRequest || phase.kind !== "track") return;
+    a.currentTime = seekRequest.sec;
+    if (a.paused) a.play().catch(() => usePlayer.getState().setPlaying(false));
+  }, [seekRequest]);
+
   const advance = useCallback(() => {
     const st = usePlayer.getState();
     const n = nextIndex(st.index, st.queue.length, st.repeat);
@@ -120,6 +138,19 @@ export function GlobalPlayer() {
     }
     advance();
   }, [phase.kind, advance, finalize, setSrc]);
+
+  /** 자막·맥락 화면이 읽는 재생 위치. 따라 말하기 간격 중에는 트랙을 비운다 */
+  const publishClock = useCallback(
+    (pos: number) => {
+      const t = phase.kind === "track" ? track : undefined;
+      setPlaybackClock({
+        book: t?.book ?? null,
+        item: t?.item ?? null,
+        pos,
+      });
+    },
+    [phase.kind, track],
+  );
 
   const prev = useCallback(() => {
     const a = audioRef.current;
@@ -178,6 +209,9 @@ export function GlobalPlayer() {
       if (document.visibilityState === "hidden") {
         if (audioRef.current?.paused) finalize();
         void flushQueue();
+      } else {
+        // 화면이 꺼진 채 다시 연결되면 online 이벤트를 놓칠 수 있어, 돌아올 때도 보낸다
+        void flushQueue();
       }
     };
     const onOnline = () => void flushQueue();
@@ -192,8 +226,22 @@ export function GlobalPlayer() {
     };
   }, [finalize]);
 
+  // PC 키보드 단축키(재생 로직은 위 손잡이를 그대로 부른다)
+  usePlayerShortcuts({
+    hasTrack: !!track && !onLoginPage,
+    // 화면의 paused는 다시 그린 뒤에야 바뀌어, 키를 빨리 두 번 누르면 놓친다. 원하는 상태를 바로 뒤집는다
+    onToggle: () => {
+      const st = usePlayer.getState();
+      st.setPlaying(!st.wantPlaying);
+    },
+    onSeekBy: seekBy,
+    onPrev: prev,
+    onNext: advance,
+  });
+
   return (
     <>
+      <ShortcutHelp />
       {/* biome-ignore lint/a11y/useMediaCaption: 예문 글은 재생 화면에 따로 보인다 */}
       <audio
         ref={audioRef}
@@ -217,14 +265,20 @@ export function GlobalPlayer() {
           meter.current = resetPosition(meter.current);
         }}
         onEnded={onEnded}
-        onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+        onLoadedMetadata={(e) => {
+          setDuration(e.currentTarget.duration);
+          if (phase.kind === "track")
+            setPlaybackClock({ duration: e.currentTarget.duration });
+        }}
+        onSeeked={(e) => publishClock(e.currentTarget.currentTime)}
         onTimeUpdate={(e) => {
           const t = e.currentTarget.currentTime;
           setPos(t);
+          publishClock(t);
           if (phase.kind === "track") meter.current = tick(meter.current, t);
         }}
       />
-      {track ? (
+      {track && !onLoginPage ? (
         <NowPlaying
           track={track}
           index={s.index}

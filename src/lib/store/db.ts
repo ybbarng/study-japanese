@@ -21,6 +21,33 @@ const MIGRATIONS = [
     completed INTEGER NOT NULL
   )`,
   "CREATE INDEX IF NOT EXISTS listen_events_book_item ON listen_events(book, item)",
+  // 강마다 쓴 문장: sentences는 [{ text, correction?, note? }] JSON
+  `CREATE TABLE IF NOT EXISTS writings (
+    book TEXT NOT NULL,
+    lesson INTEGER NOT NULL,
+    sentences TEXT NOT NULL,
+    updated_at INTEGER NOT NULL,
+    PRIMARY KEY (book, lesson)
+  )`,
+  // 교재 오디오 전송량(한국 날짜·로그인 세션별). 세션은 쿠키 값이 아니라 그 해시
+  `CREATE TABLE IF NOT EXISTS media_usage (
+    day TEXT NOT NULL,
+    session TEXT NOT NULL,
+    bytes INTEGER NOT NULL,
+    PRIMARY KEY (day, session)
+  )`,
+  // 노래 학습(src/lib/store/songs.ts). lines는 [{ ja, start?, end?, note? }] JSON.
+  // 예전 줄에 남은 tokens는 읽을 때 버린다(분석은 content/songs/<slug>.json)
+  `CREATE TABLE IF NOT EXISTS songs (
+    slug TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    artist TEXT NOT NULL,
+    audio_file TEXT NOT NULL,
+    lines TEXT NOT NULL,
+    lyrics_public INTEGER NOT NULL DEFAULT 1,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  )`,
 ];
 
 export function openDb(file: string): DatabaseSync {

@@ -21,9 +21,11 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
-  const book = new URL(request.url).searchParams.get("book");
-  if (book !== "ilmuta" && book !== "ilmunta" && book !== "kana") {
+  const book = listenEventSchema.shape.book.safeParse(
+    new URL(request.url).searchParams.get("book"),
+  );
+  if (!book.success) {
     return NextResponse.json({ error: "book이 필요함" }, { status: 400 });
   }
-  return NextResponse.json({ items: summarizeListening(getDb(), book) });
+  return NextResponse.json({ items: summarizeListening(getDb(), book.data) });
 }

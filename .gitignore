@@ -12,6 +12,10 @@
 
 # testing
 /coverage
+# Playwright 결과물
+/test-results/
+/playwright-report/
+/blob-report/
 
 # next.js
 /.next/
@@ -36,12 +40,15 @@ yarn-error.log*
 # 산 교재 자료: 오디오·원본은 git에 넣지 않는다 (docs/standing-rules.md "저작권")
 /media/
 /textbook-src/
-# 교재에서 뽑은 글: 저장소 공개 여부를 정하기 전까지 git 밖에 둔다
+# 교재에서 뽑은 글·자막: 공개 저장소라 git 밖에 둔다(docs/standing-rules.md "저작권")
 /content/textbook/
 /content/transcripts/
+# 노래 가사·세션 분석(상업 음원의 가사, docs/song-analysis.md)
+/content/songs/
 
-# 서브에이전트 작업 트리
+# 서브에이전트 작업 트리·화면 확인 스크린샷
 /.claude/worktrees/
+/.claude/screenshots/
 
 # 서버에서 받은 학습 기록 DB
 /data/*.db

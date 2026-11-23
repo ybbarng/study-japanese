@@ -1,20 +1,22 @@
-import Link from "next/link";
+import { TodayHome } from "@/components/home/today-home";
+import { nowParamAllowed, resolveNow } from "@/lib/today/now";
+import { loadHomeData } from "@/lib/today/server-data";
 
-export default function Home() {
+interface Props {
+  searchParams: Promise<{ now?: string | string[] }>;
+}
+
+/** 첫 화면 "오늘". 개발 서버·E2E에서는 `?now=2027-01-01T08:00+09:00`으로 날짜를 넣어 본다 */
+export default async function Home({ searchParams }: Props) {
+  const nowMs = resolveNow(
+    (await searchParams).now,
+    Date.now(),
+    nowParamAllowed(process.env),
+  );
+  const data = await loadHomeData(nowMs);
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col px-6 pt-[max(env(safe-area-inset-top),3rem)]">
-      <p lang="ja" className="font-ja-serif text-5xl font-bold tracking-widest">
-        にほんご
-      </p>
-      <p className="mt-2 text-ink-soft">2027년 1월 1일에 시작합니다.</p>
-      <nav className="mt-12 flex flex-col gap-3">
-        <Link href="/lab/player" className="rounded-2xl bg-bg-raised p-5">
-          <span className="block text-lg font-medium">재생 시험</span>
-          <span className="text-sm text-ink-soft">
-            잠금 화면 조작·화면 끈 채 재생 확인
-          </span>
-        </Link>
-      </nav>
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-5 pt-[max(env(safe-area-inset-top),2rem)] pb-28 lg:max-w-6xl lg:px-10 lg:pt-10">
+      <TodayHome data={data} />
     </main>
   );
 }

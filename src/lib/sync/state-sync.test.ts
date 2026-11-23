@@ -40,7 +40,18 @@ describe("syncState", () => {
     const offline = (() =>
       Promise.reject(new TypeError("Failed to fetch"))) as typeof fetch;
     const local = { value: { learned: ["a"] }, updatedAt: T };
-    expect(await syncState("kana", local, offline)).toEqual(local);
+    expect(await syncState("kana", local, offline, true)).toEqual(local);
+  });
+
+  it("방문자는 서버에 묻지도 보내지도 않고 자기 브라우저 기록을 쓴다", async () => {
+    let called = 0;
+    const spy = (async () => {
+      called += 1;
+      return Response.json(null);
+    }) as typeof fetch;
+    const local = { value: { learned: ["a"] }, updatedAt: T };
+    expect(await syncState("kana", local, spy, false)).toEqual(local);
+    expect(called).toBe(0);
   });
 
   it("서버가 더 새것이면 서버 문서를 돌려준다", async () => {
@@ -54,6 +65,7 @@ describe("syncState", () => {
       "kana",
       { value: { learned: ["a"] }, updatedAt: T },
       fakeFetch,
+      true,
     );
     expect(result).toMatchObject({
       value: { learned: ["a", "i"] },
