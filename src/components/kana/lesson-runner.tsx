@@ -2,12 +2,32 @@
 
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
-import { cardChar, getSound, hasAudio, parseCardId } from "@/lib/kana/data";
+import { KeyHelp } from "@/components/keyboard/key-help";
+import {
+  type CardId,
+  cardChar,
+  getSound,
+  hasAudio,
+  parseCardId,
+} from "@/lib/kana/data";
+import {
+  chartViewFor,
+  INTRO_KEY_HELP,
+  lessonConfusables,
+  showCompare,
+} from "@/lib/kana/lesson-side";
 import { LESSON_BY_ID, LESSONS, lessonCards } from "@/lib/kana/lessons";
 import { makeQuiz, shuffle } from "@/lib/kana/quiz";
 import { useKanaStore } from "@/lib/kana/store";
 import { IntroStep } from "./intro-step";
 import s from "./kana.module.css";
+import {
+  type Answered,
+  AnsweredPanel,
+  CharChart,
+  ComparePanel,
+  LessonProgressPanel,
+} from "./lesson-side";
 import { type QuizResult, QuizRunner } from "./quiz-runner";
 import { TypeStep } from "./type-step";
 import { cn, Glyph, PrimaryButton, Screen, SecondaryButton } from "./ui";
@@ -22,6 +42,18 @@ const STEPS = [
   { key: "type", label: "입력" },
 ] as const;
 type StepKey = (typeof STEPS)[number]["key"] | "done";
+
+/** PC 곁칸 "키보드로 하기": 단계마다 받는 키 */
+function keyHelpFor(step: StepKey): { key: string; label: string }[] {
+  if (step === "intro") return INTRO_KEY_HELP;
+  if (step === "quiz")
+    return [
+      { key: "1~4", label: "보기 고르기" },
+      { key: "Enter", label: "틀린 뒤 다음 문제" },
+    ];
+  if (step === "type") return [{ key: "Enter", label: "입력한 답 맞춰 보기" }];
+  return [{ key: "Tab", label: "단추 사이 옮기기 · Enter로 누르기" }];
+}
 
 /** 기본 글자는 모두 쓰고, 탁음·요음 등은 고르게 다섯 개만 쓴다(바탕 글자를 이미 썼으므로). */
 function pickWriting<T>(items: T[], isBasic: boolean): T[] {
@@ -68,10 +100,61 @@ export function LessonRunner({ lessonId }: { lessonId: string }) {
     setStep(k);
   };
 
-  const nextLesson = LESSONS[LESSONS.findIndex((l) => l.id === lesson.id) + 1];
+  const lessonIndex = LESSONS.findIndex((l) => l.id === lesson.id);
+  const nextLesson = LESSONS[lessonIndex + 1];
+
+  // PC 곁칸: 지금 글자, 퀴즈에서 푼 글자, 앞 레슨까지 배운 글자(비교할 짝 고르기)
+  const [introCard, setIntroCard] = useState<CardId | null>(null);
+  const [answered, setAnswered] = useState<Answered[]>([]);
+  const storeCards = useKanaStore((st) => st.cards);
+  const learned = useMemo(
+    () => new Set(Object.keys(storeCards) as CardId[]),
+    [storeCards],
+  );
+  const pairs = useMemo(
+    () => lessonConfusables(cards, learned),
+    [cards, learned],
+  );
+  const doneLessons = useKanaStore((st) => Object.keys(st.lessons).length);
+  const current =
+    step === "intro"
+      ? introCard
+      : step === "write"
+        ? (writing[writeIndex] ?? null)
+        : null;
+  const written = useMemo(
+    () => new Set(writing.slice(0, writeIndex)),
+    [writing, writeIndex],
+  );
+  const scriptName = lesson.script === "hira" ? "히라가나" : "가타카나";
+
+  const aside = (
+    <>
+      <LessonProgressPanel
+        title={`${scriptName} · ${lesson.title}`}
+        position={lessonIndex + 1}
+        total={LESSONS.length}
+        done={doneLessons}
+      />
+      {step === "quiz" && (
+        <AnsweredPanel answered={answered} total={quiz.length} />
+      )}
+      <CharChart
+        title={`이 레슨 ${scriptName} ${cards.length}자`}
+        cards={cards}
+        current={current}
+        view={chartViewFor(step)}
+        written={written}
+      />
+      {showCompare(step) && <ComparePanel pairs={pairs} current={current} />}
+      <KeyHelp items={keyHelpFor(step)} />
+    </>
+  );
 
   return (
     <Screen
+      aside={aside}
+      asideLabel="레슨 진도와 글자표"
       progress={progress}
       footer={
         step !== "done" && (
@@ -104,6 +187,7 @@ export function LessonRunner({ lessonId }: { lessonId: string }) {
           lesson={lesson}
           cards={cards}
           onProgress={onProgress}
+          onCard={setIntroCard}
           onDone={() => {
             introduce(cards);
             goto("quiz");
@@ -114,7 +198,10 @@ export function LessonRunner({ lessonId }: { lessonId: string }) {
       {step === "quiz" && (
         <QuizRunner
           questions={quiz}
-          onAnswer={(id, ok) => answer(id, ok)}
+          onAnswer={(id, ok) => {
+            answer(id, ok);
+            setAnswered((a) => [...a, { id, ok }]);
+          }}
           onProgress={onProgress}
           onDone={(r) => {
             setQuizResult(r);

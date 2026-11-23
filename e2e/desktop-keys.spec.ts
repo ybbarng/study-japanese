@@ -98,6 +98,38 @@ test("PC 가나 첫 읽기를 Enter·숫자 키·Backspace로 읽고, 다 읽으
   await expect(page).toHaveURL("/ilmuta/1");
 });
 
+test("PC 가나 레슨 소개를 Enter·Backspace로 넘기면 곁칸 글자표가 지금 글자를 따라가고, 알아보기에서는 읽는 법을 가린 채 푼 문제를 쌓는다", async ({
+  page,
+}) => {
+  await login(page, "/kana/lesson/h1");
+  const aside = page.getByRole("complementary", { name: "레슨 진도와 글자표" });
+  await expect(aside).toContainText("이 레슨 히라가나 10자");
+  const current = aside.locator("li[aria-current=true]");
+  // 첫 장은 설명이라 강조된 글자가 없다
+  await expect(current).toHaveCount(0);
+
+  await page.keyboard.press("Enter");
+  await expect(current).toContainText("あ");
+  await page.keyboard.press("Enter");
+  await expect(current).toContainText("い");
+  await page.keyboard.press("Backspace");
+  await expect(current).toContainText("あ");
+  // 읽는 법이 보이는 단계에서는 칸에 한글 소리가 붙는다
+  await expect(current).toContainText("아");
+
+  // 남은 글자 장을 넘겨 알아보기로
+  const quizKeys = aside.getByText("보기 고르기");
+  for (let k = 0; k < 12 && !(await quizKeys.isVisible()); k++)
+    await page.keyboard.press("Enter");
+  await expect(quizKeys).toBeVisible();
+  // 퀴즈 중에는 곁칸이 답(읽는 법)을 알려 주지 않는다
+  await expect(aside.getByText("아", { exact: true })).toHaveCount(0);
+  await expect(aside).toContainText("푼 문제 0 / ");
+
+  await page.keyboard.press("1");
+  await expect(aside).toContainText("푼 문제 1 / ");
+});
+
 test("PC 일문따 범위 시험을 키보드만으로 푼다: Enter로 시작, 쓰기는 Enter, 고르기는 숫자 키, 끝나면 Enter로 틀린 문제 다시 풀기", async ({
   page,
 }) => {

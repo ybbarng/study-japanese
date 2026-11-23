@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { InlineKey } from "@/components/keyboard/key-help";
+import { toKeyInput } from "@/components/keyboard/key-input";
 import {
   type CardId,
   cardChar,
@@ -10,8 +12,10 @@ import {
   parseCardId,
 } from "@/lib/kana/data";
 import { hintFor } from "@/lib/kana/hints";
+import { introKeyAction } from "@/lib/kana/lesson-side";
 import type { Lesson } from "@/lib/kana/lessons";
 import { kanaToRomaji } from "@/lib/kana/text";
+import { playSound, playWord } from "./audio";
 import s from "./kana.module.css";
 import { cn, Glyph, PrimaryButton, SecondaryButton, SoundButton } from "./ui";
 
@@ -25,11 +29,14 @@ export function IntroStep({
   cards,
   onDone,
   onProgress,
+  onCard,
 }: {
   lesson: Lesson;
   cards: CardId[];
   onDone: () => void;
   onProgress: (f: number) => void;
+  /** 지금 보이는 글자(설명 장이면 null). PC 곁칸이 그 글자를 강조한다 */
+  onCard?: (id: CardId | null) => void;
 }) {
   const pages: Page[] = [
     ...(lesson.notes ?? []).map((n) => ({ kind: "note" as const, ...n })),
@@ -37,14 +44,33 @@ export function IntroStep({
   ];
   const [i, setI] = useState(0);
   const page = pages[i];
+  const pageCard = page.kind === "card" ? page.id : null;
 
   useEffect(() => onProgress(i / pages.length), [i, pages.length, onProgress]);
+  useEffect(() => onCard?.(pageCard), [pageCard, onCard]);
 
   const go = (d: number) => {
     const n = i + d;
     if (n >= pages.length) onDone();
     else if (n >= 0) setI(n);
   };
+
+  // PC 키보드: Enter 다음, Backspace 앞, 1 소리 다시 듣기
+  const onKeyRef = useRef<(e: KeyboardEvent) => void>(() => {});
+  onKeyRef.current = (e) => {
+    const a = introKeyAction(toKeyInput(e));
+    if (!a) return;
+    e.preventDefault();
+    if (a === "next") go(1);
+    else if (a === "prev") go(-1);
+    else if (pageCard) void playSound(parseCardId(pageCard).soundId);
+    else if (page.kind === "note" && page.example) void playWord(page.example);
+  };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => onKeyRef.current(e);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -63,12 +89,17 @@ export function IntroStep({
       </div>
       <div className="flex gap-3 pt-4">
         {i > 0 && (
-          <SecondaryButton className="w-24 shrink-0" onClick={() => go(-1)}>
+          <SecondaryButton
+            className="w-24 shrink-0 lg:w-40"
+            onClick={() => go(-1)}
+          >
             이전
+            <InlineKey k="⌫" />
           </SecondaryButton>
         )}
         <PrimaryButton onClick={() => go(1)}>
           {i + 1 >= pages.length ? "연습하러 가기" : "다음"}
+          <InlineKey k="Enter" onAccent />
         </PrimaryButton>
       </div>
       <p className="pt-2 text-center text-xs text-ink-faint">

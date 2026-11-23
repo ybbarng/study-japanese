@@ -4,6 +4,7 @@ import { clsx } from "clsx";
 import Link from "next/link";
 import { type ReactNode, useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
+import { StickyPanel } from "@/components/shell/sticky-panel";
 import { usePlayer } from "@/lib/player/store";
 import { canPlay, playSound, playWord } from "./audio";
 
@@ -84,7 +85,10 @@ export function Screen({
             aria-label={asideLabel}
             className="hidden pt-3 pr-5 pb-24 lg:block"
           >
-            <div className="sticky top-6 flex flex-col gap-4">{aside}</div>
+            {/* 곁칸이 화면(재생 막대가 뜨면 막대 위)보다 길면 곁칸 안에서만 내린다 */}
+            <StickyPanel className="overflow-y-auto overscroll-contain">
+              {aside}
+            </StickyPanel>
           </aside>
         </div>
       ) : (
