@@ -27,6 +27,12 @@ export default function Home() {
           </span>
         </Link>
       </nav>
+      <Link
+        href="/ime"
+        className="mt-6 self-start px-1 text-sm text-ink-soft underline underline-offset-4"
+      >
+        일본어 입력기 켜는 법
+      </Link>
     </main>
   );
 }

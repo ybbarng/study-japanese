@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { Word } from "@/lib/kana/lessons";
 import {
@@ -171,6 +172,12 @@ export function TypeStep({
         >
           {keypad ? "폰 자판으로 치기" : "입력기가 없어요 · 화면 로마자 버튼"}
         </button>
+        <Link
+          href="/ime"
+          className="text-center text-xs text-ink-faint underline"
+        >
+          일본어 입력기 켜는 법
+        </Link>
         <div className="flex gap-3">
           <SecondaryButton className="w-28 shrink-0" onClick={advance}>
             넘기기

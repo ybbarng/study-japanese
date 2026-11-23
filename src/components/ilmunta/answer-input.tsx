@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 import type { Form } from "@/lib/ilmunta/conjugate";
@@ -70,6 +71,12 @@ export function TypeAnswer({
       <p lang="ja" className="h-6 px-1 font-ja text-lg text-ink-soft">
         {romaji ? romajiToKana(text.trim(), "hira") : ""}
       </p>
+      <Link
+        href="/ime"
+        className="self-end px-1 text-xs text-ink-faint underline"
+      >
+        일본어 입력기 켜는 법
+      </Link>
     </form>
   );
 }
