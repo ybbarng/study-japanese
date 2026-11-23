@@ -59,7 +59,7 @@ export function TypeAnswer({
           enterKeyHint="done"
           placeholder="ひらがな · 漢字 · romaji"
           aria-label="답"
-          className="min-w-0 flex-1 rounded-2xl border border-line bg-bg-sunken px-4 py-3 font-ja text-2xl outline-none focus:border-accent"
+          className="min-w-0 flex-1 rounded-2xl border border-line bg-bg-sunken px-4 py-3 font-ja text-2xl outline-none placeholder:text-lg focus:border-accent"
         />
         <button
           type="submit"
