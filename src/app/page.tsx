@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { IlmutaEntry } from "@/components/ilmuta/ilmuta-entry";
 
 export default function Home() {
   return (
@@ -16,6 +17,7 @@ export default function Home() {
             히라가나·가타카나: 소리·알아보기·쓰기·낱말 읽기
           </span>
         </Link>
+        <IlmutaEntry />
         <Link href="/lab/player" className="rounded-2xl bg-bg-raised p-5">
           <span className="block text-lg font-medium">재생 시험</span>
           <span className="text-sm text-ink-soft">
