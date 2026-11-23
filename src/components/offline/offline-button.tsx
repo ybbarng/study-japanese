@@ -36,7 +36,7 @@ export function OfflineButton({
       {view.kind === "none" ? (
         <Row
           title="이 강 받아 두기"
-          note={`통신이 끊겨도 듣게 강의·예문 ${pack.audioUrls.length}개를 폰에 받아 둡니다`}
+          note={`통신이 끊겨도 듣게 이 강 오디오 ${pack.audioUrls.length}개를 폰에 받아 둡니다`}
           action={
             <Action onClick={() => queueDownload(pack)} primary>
               받기
