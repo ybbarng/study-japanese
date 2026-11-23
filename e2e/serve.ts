@@ -1,27 +1,25 @@
 import { spawn } from "node:child_process";
-import { mkdtempSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { mkdirSync, rmSync } from "node:fs";
 import path from "node:path";
 import { writeFakeTextbook } from "./fixtures/textbook";
 
-// E2E용 서버: 임시 폴더에 가짜 교재·무음 mp3·빈 DB 자리를 만들고, 빌드해 둔 앱을 띄운다.
-// playwright.config.ts의 webServer가 부른다. 꺼질 때 임시 폴더를 지운다.
+// E2E용 서버: 가짜 교재·무음 mp3·빈 DB 자리를 만들고, 빌드해 둔 앱을 띄운다.
+// playwright.config.ts의 webServer가 부른다.
+// 폴더는 git 밖(test-results/)에 두고 띄울 때마다 비운다. Playwright가 서버를 강제로 끄면
+// 꺼질 때 지우는 처리가 돌지 않아서다.
 // 로그인 값은 playwright.config.ts가 시험 값으로 넘긴다(.env.local을 읽지 않는다).
 
 const port = process.env.E2E_PORT ?? "3471";
-const root = mkdtempSync(path.join(tmpdir(), "sj-e2e-"));
+const repo = path.join(import.meta.dirname, "..");
+const root = path.join(repo, "test-results", "e2e-server");
+rmSync(root, { recursive: true, force: true });
+mkdirSync(root, { recursive: true });
 const contentDir = path.join(root, "content");
 const mediaDir = path.join(root, "media");
 const dataDir = path.join(root, "data");
 writeFakeTextbook(contentDir, mediaDir);
 
-const nextBin = path.join(
-  import.meta.dirname,
-  "..",
-  "node_modules",
-  ".bin",
-  "next",
-);
+const nextBin = path.join(repo, "node_modules", ".bin", "next");
 const child = spawn(nextBin, ["start", "--port", port], {
   stdio: "inherit",
   env: {
