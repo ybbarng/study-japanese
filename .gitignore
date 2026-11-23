@@ -44,8 +44,9 @@ yarn-error.log*
 /content/textbook/
 /content/transcripts/
 
-# 서브에이전트 작업 트리
+# 서브에이전트 작업 트리·화면 확인 스크린샷
 /.claude/worktrees/
+/.claude/screenshots/
 
 # 서버에서 받은 학습 기록 DB
 /data/*.db
