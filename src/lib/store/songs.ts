@@ -1,9 +1,10 @@
 import type { DatabaseSync } from "node:sqlite";
-import type {
-  Song,
-  SongInput,
-  SongLine,
-  SongSummary,
+import {
+  type Song,
+  type SongInput,
+  type SongLine,
+  type SongSummary,
+  toLineBody,
 } from "@/lib/songs/schema";
 import { lineKey } from "@/lib/songs/study-state";
 import { timedCount } from "@/lib/songs/timing";
@@ -31,7 +32,8 @@ function fromRow(r: Row): Song {
     title: r.title,
     artist: r.artist,
     audioFile: r.audio_file,
-    lines: JSON.parse(r.lines) as SongLine[],
+    // 예전에 저장된 낱말 조각(tokens)은 버린다. 분석은 content/songs/<slug>.json이 맡는다
+    lines: (JSON.parse(r.lines) as SongLine[]).map(toLineBody),
     lyricsPublic: Number(r.lyrics_public) === 1,
     createdAt: Number(r.created_at),
     updatedAt: Number(r.updated_at),

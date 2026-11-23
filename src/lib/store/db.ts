@@ -36,7 +36,8 @@ const MIGRATIONS = [
     bytes INTEGER NOT NULL,
     PRIMARY KEY (day, session)
   )`,
-  // 노래 학습(src/lib/store/songs.ts). lines는 [{ ja, start?, end?, note?, tokens? }] JSON
+  // 노래 학습(src/lib/store/songs.ts). lines는 [{ ja, start?, end?, note? }] JSON.
+  // 예전 줄에 남은 tokens는 읽을 때 버린다(분석은 content/songs/<slug>.json)
   `CREATE TABLE IF NOT EXISTS songs (
     slug TEXT PRIMARY KEY,
     title TEXT NOT NULL,

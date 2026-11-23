@@ -4,8 +4,9 @@ import {
   posLabel,
   type SongWord,
   wordReading,
+  wordRuby,
 } from "@/lib/songs/words";
-import { Ruby, wordRuby } from "./line-words";
+import { Ruby } from "./line-words";
 
 interface Props {
   word: SongWord | null;
@@ -14,15 +15,15 @@ interface Props {
 }
 
 /**
- * 고른 낱말 설명: 읽는 법·기본형·품사, 일무따에서 배웠는지, 뜻은 네이버 사전으로.
- * 뜻을 사이트가 지어 적지 않는다(가사 번역이 되지 않게, 사전이 더 정확하다).
+ * 고른 낱말 설명: 이 노래에서의 뜻(세션 분석), 읽는 법·기본형·품사, 일무따에서 배웠는지,
+ * 더 자세한 뜻은 네이버 사전으로.
  */
 export function WordDetail({ word, learnedNo }: Props) {
   if (!word)
     return (
       <p className="text-sm leading-relaxed text-ink-faint">
-        가사의 낱말을 누르면 여기에 읽는 법·기본형·품사가 나오고, 뜻은 사전에서
-        바로 찾아볼 수 있습니다.
+        가사의 낱말을 누르면 여기에 이 노래에서의 뜻과 읽는 법·기본형·품사가
+        나오고, 사전에서 바로 찾아볼 수 있습니다.
       </p>
     );
   const reading = wordReading(word);
@@ -31,6 +32,7 @@ export function WordDetail({ word, learnedNo }: Props) {
       <p lang="ja" className="font-ja-serif text-4xl leading-[1.8] text-accent">
         <Ruby segments={wordRuby(word)} showReading />
       </p>
+      {word.gloss ? <p className="text-lg font-medium">{word.gloss}</p> : null}
       <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
         {reading !== word.surface ? (
           <>

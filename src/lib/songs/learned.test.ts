@@ -33,19 +33,20 @@ describe("buildLearnedIndex", () => {
 });
 
 describe("learnedForSong", () => {
-  it("노래에 나오는 낱말만 기본형·겉모양으로 골라 둔다", () => {
-    const lines = [
+  it("노래 분석에 나오는 낱말만 기본형·겉모양으로 골라 둔다", () => {
+    // 지어낸 줄 "雨が降っていた"의 화면 조각. 夢은 분석이 없는 글이라 보지 않는다
+    const byLine = [
       {
-        ja: "雨が降っていた",
         tokens: [
           { surface: "雨", pos: "名詞" },
-          { surface: "が", pos: "助詞" },
-          { surface: "降っ", base: "降る", pos: "動詞" },
-          { surface: "た", pos: "助動詞" },
+          { surface: "が", plain: true as const },
+          { surface: "降っていた", base: "降る", pos: "動詞" },
+          { surface: "夢", plain: true as const },
         ],
       },
+      null,
     ];
-    expect(learnedForSong(lines, buildLearnedIndex(lessons))).toEqual({
+    expect(learnedForSong(byLine, buildLearnedIndex(lessons))).toEqual({
       雨: 1,
       降る: 3,
     });

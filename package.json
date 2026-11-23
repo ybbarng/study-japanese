@@ -4,9 +4,8 @@
   "private": true,
   "packageManager": "pnpm@12.4.2",
   "scripts": {
-    "dev": "pnpm dict:copy && next dev",
-    "build": "pnpm dict:copy && next build",
-    "dict:copy": "node scripts/copy-kuromoji-dict.mjs",
+    "dev": "next dev",
+    "build": "next build",
     "start": "next start",
     "lint": "biome check",
     "lint:fix": "biome check --write",
@@ -23,7 +22,6 @@
   },
   "dependencies": {
     "clsx": "^2.1.1",
-    "kuromoji": "0.1.2",
     "next": "16.4.6",
     "react": "19.3.1",
     "react-dom": "19.3.1",
@@ -37,7 +35,6 @@
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^8.0.0",
     "@testing-library/react": "^16.3.3",
-    "@types/kuromoji": "0.1.3",
     "@types/node": "^24.19.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",

@@ -1,6 +1,5 @@
 import type { IlmutaLesson } from "@/lib/textbook/schema";
-import type { SongLine } from "./schema";
-import { groupTokens } from "./words";
+import type { ShownAnalysis } from "./analysis";
 
 // 노래 속 낱말 중 일무따에서 이미 배운 것: "일무따 n강에서 배움"을 붙인다.
 // 일무따 각 강의 단어 코너·회화 단어를 사전으로 삼아, 낱말 → 처음 나온 강.
@@ -35,17 +34,18 @@ export function buildLearnedIndex(
 }
 
 /**
- * 노래에 나오는 낱말만 골라 둔다(화면에 일무따 사전 전체를 보내지 않게).
+ * 노래 분석에 나오는 낱말만 골라 둔다(화면에 일무따 사전 전체를 보내지 않게).
  * 기본형(降る)과 겉모양(降っていた) 둘 다 본다.
  */
 export function learnedForSong(
-  lines: readonly SongLine[],
+  byLine: readonly (Pick<ShownAnalysis, "tokens"> | null)[],
   index: LearnedIndex,
 ): LearnedIndex {
   const out: LearnedIndex = {};
-  for (const line of lines) {
-    for (const word of groupTokens(line.tokens ?? [])) {
-      for (const key of [word.base, word.surface]) {
+  for (const line of byLine) {
+    for (const word of line?.tokens ?? []) {
+      if (word.plain) continue;
+      for (const key of [word.base ?? word.surface, word.surface]) {
         const no = index[key];
         if (no !== undefined) out[key] = no;
       }

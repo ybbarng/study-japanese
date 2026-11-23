@@ -2,15 +2,20 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/cn";
+import type { GrammarNote } from "@/lib/songs/analysis";
 import type { SongLine } from "@/lib/songs/schema";
 import { formatLineTime } from "@/lib/songs/timing";
 import type { SongWord } from "@/lib/songs/words";
+import { GrammarNotes } from "./grammar-notes";
 import { LineWords } from "./line-words";
 
 interface Props {
   line: SongLine;
   index: number;
+  /** 분석의 낱말(분석이 없거나 이 줄 글이 바뀌었으면 빈 배열, 글만 보인다) */
   words: SongWord[];
+  /** 분석의 문법 메모 */
+  grammar: readonly GrammarNote[];
   current: boolean;
   /** 반복 구간 안의 줄 */
   inLoop: boolean;
@@ -33,6 +38,7 @@ export function LyricLine({
   line,
   index,
   words,
+  grammar,
   current,
   inLoop,
   showReading,
@@ -117,6 +123,8 @@ export function LyricLine({
             <span lang="ja">{line.ja}</span>
           )}
         </div>
+
+        {covered ? null : <GrammarNotes notes={grammar} index={index} />}
 
         {editing ? (
           <div className="mt-2 flex flex-col gap-2">
