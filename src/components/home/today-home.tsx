@@ -1,6 +1,7 @@
 "use client";
 
 import { KanaSync } from "@/components/kana/kana-sync";
+import { SplitColumns } from "@/components/shell/page-frame";
 import { LESSONS } from "@/lib/kana/lessons";
 import { todayPlan } from "@/lib/kana/plan";
 import { actionHref } from "@/lib/today/actions";
@@ -93,52 +94,68 @@ export function TodayHome({ data }: { data: HomeData }) {
         </p>
       ) : null}
 
-      <section aria-label="오늘 할 것" className="flex flex-col gap-3">
-        {today.main.length === 0 ? (
-          <div className="rounded-3xl bg-bg-raised p-6">
-            <p className="text-lg font-bold">오늘 정해 둔 것은 다 했어요</p>
-            <p className="mt-1 text-sm text-ink-soft">
-              좋아하는 강을 골라 다시 들어 보세요.
-            </p>
-          </div>
-        ) : (
-          today.main.map((a, i) => (
-            <MainCard
-              key={actionHref(a)}
-              action={a}
-              text={actionText(a, data)}
-              primary={i === 0}
-              lesson={a.kind === "ilmuta-listen" ? lessonOf(a.no) : undefined}
+      <SplitColumns
+        main={
+          <>
+            <section
+              aria-label="오늘 할 것"
+              className="flex flex-col gap-3 lg:gap-4"
+            >
+              {today.main.length === 0 ? (
+                <div className="rounded-3xl bg-bg-raised p-6">
+                  <p className="text-lg font-bold">
+                    오늘 정해 둔 것은 다 했어요
+                  </p>
+                  <p className="mt-1 text-sm text-ink-soft">
+                    좋아하는 강을 골라 다시 들어 보세요.
+                  </p>
+                </div>
+              ) : (
+                today.main.map((a, i) => (
+                  <MainCard
+                    key={actionHref(a)}
+                    action={a}
+                    text={actionText(a, data)}
+                    primary={i === 0}
+                    lesson={
+                      a.kind === "ilmuta-listen" ? lessonOf(a.no) : undefined
+                    }
+                  />
+                ))
+              )}
+            </section>
+
+            <RestList
+              items={today.rest.map((a) => ({
+                action: a,
+                text: actionText(a, data),
+              }))}
             />
-          ))
-        )}
-      </section>
-
-      <RestList
-        items={today.rest.map((a) => ({
-          action: a,
-          text: actionText(a, data),
-        }))}
-      />
-
-      <ProgressPanel
-        kana={kanaProgress(kana.cards)}
-        ilmuta={
-          data.ilmuta
-            ? countInRange(new Set(data.ilmuta.lectureDone), 1, 60)
-            : null
+          </>
         }
-        ilmunta={
-          data.ilmunta && focusBook(nowMs) === "ilmunta"
-            ? data.ilmunta.done.length
-            : null
-        }
-        quota={today.quota}
-        month={date.month}
-      />
+        side={
+          <>
+            <ProgressPanel
+              kana={kanaProgress(kana.cards)}
+              ilmuta={
+                data.ilmuta
+                  ? countInRange(new Set(data.ilmuta.lectureDone), 1, 60)
+                  : null
+              }
+              ilmunta={
+                data.ilmunta && focusBook(nowMs) === "ilmunta"
+                  ? data.ilmunta.done.length
+                  : null
+              }
+              quota={today.quota}
+              month={date.month}
+            />
 
-      <BookLinks title="책" />
-      <Tools />
+            <BookLinks title="책" />
+            <Tools />
+          </>
+        }
+      />
     </>
   );
 }

@@ -13,7 +13,7 @@ export function LessonRow({ row, current }: { row: Row; current: boolean }) {
       href={`/ilmuta/${row.no}`}
       id={`lesson-${row.no}`}
       className={cn(
-        "flex items-center gap-4 rounded-2xl px-4 py-3 active:bg-bg-raised",
+        "flex items-center gap-4 rounded-2xl px-4 py-3 active:bg-bg-raised lg:h-full lg:bg-bg-raised/40 lg:hover:bg-bg-raised",
         current && "bg-bg-raised ring-1 ring-accent",
       )}
     >

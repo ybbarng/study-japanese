@@ -16,7 +16,7 @@ export function PageShell({
   children: ReactNode;
 }) {
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-5 pt-[max(env(safe-area-inset-top),1.25rem)] pb-32">
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-5 pt-[max(env(safe-area-inset-top),1.25rem)] pb-32 lg:max-w-6xl lg:px-10 lg:pt-10">
       <header className="flex items-center justify-between gap-3">
         <Link href={back} className="text-sm text-ink-faint">
           ← {backLabel}

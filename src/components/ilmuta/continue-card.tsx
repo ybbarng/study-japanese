@@ -27,7 +27,7 @@ export function ContinueCard({ pick, rows }: Props) {
   return (
     <Link
       href={href}
-      className="block rounded-3xl bg-accent p-6 text-white active:opacity-90"
+      className="block rounded-3xl bg-accent p-6 text-white active:opacity-90 lg:p-8 lg:hover:brightness-110"
     >
       <span className="text-sm opacity-90">
         {pick.kind === "write"

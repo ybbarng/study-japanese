@@ -25,44 +25,49 @@ export default async function IlmuntaPage() {
         </p>
       </div>
 
-      {next ? (
+      {/* PC에서는 이어 듣기와 드릴 입구를 나란히 */}
+      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:gap-4">
+        {next ? (
+          <Link
+            href={`/ilmunta/${next.no}`}
+            className="rounded-2xl bg-accent p-5 text-white active:opacity-90 lg:p-7 lg:hover:brightness-110"
+          >
+            <span className="text-sm opacity-80">
+              이어서 · {monthOfLesson(next.no)?.month}월 범위
+            </span>
+            <span className="mt-1 flex items-baseline gap-3">
+              <span className="text-2xl font-bold lg:text-3xl">
+                {next.no}과
+              </span>
+              <span className="truncate text-lg lg:text-xl">{next.title}</span>
+            </span>
+            <span className="text-sm opacity-80">
+              {pagesLabel(next) ? `책 ${pagesLabel(next)}` : ""}
+              {nextListen
+                ? ` · 강의 ${nextListen.heard}/${nextListen.total}`
+                : ""}
+            </span>
+          </Link>
+        ) : (
+          <p className="rounded-2xl bg-bg-raised p-5">
+            56과 강의를 모두 들었습니다.
+          </p>
+        )}
+
         <Link
-          href={`/ilmunta/${next.no}`}
-          className="rounded-2xl bg-accent p-5 text-white active:opacity-90"
+          href="/ilmunta/drill"
+          className="rounded-2xl bg-bg-raised p-5 active:bg-bg-sunken lg:p-7 lg:hover:ring-1 lg:hover:ring-accent/50"
         >
-          <span className="text-sm opacity-80">
-            이어서 · {monthOfLesson(next.no)?.month}월 범위
+          <span lang="ja" className="block font-ja-serif text-xl">
+            飲む → 飲んで
           </span>
-          <span className="mt-1 flex items-baseline gap-3">
-            <span className="text-2xl font-bold">{next.no}과</span>
-            <span className="truncate text-lg">{next.title}</span>
-          </span>
-          <span className="text-sm opacity-80">
-            {pagesLabel(next) ? `책 ${pagesLabel(next)}` : ""}
-            {nextListen
-              ? ` · 강의 ${nextListen.heard}/${nextListen.total}`
-              : ""}
+          <span className="mt-1 block font-medium">활용 드릴</span>
+          <span className="text-sm text-ink-soft">
+            1~25과 동사 활용과 명사·형용사, 뒤쪽 문형까지. 약한 활용을 더 자주
+            묻는다.
           </span>
         </Link>
-      ) : (
-        <p className="rounded-2xl bg-bg-raised p-5">
-          56과 강의를 모두 들었습니다.
-        </p>
-      )}
-
-      <Link
-        href="/ilmunta/drill"
-        className="rounded-2xl bg-bg-raised p-5 active:bg-bg-sunken"
-      >
-        <span lang="ja" className="block font-ja-serif text-xl">
-          飲む → 飲んで
-        </span>
-        <span className="mt-1 block font-medium">활용 드릴</span>
-        <span className="text-sm text-ink-soft">
-          1~25과 동사 활용과 명사·형용사, 뒤쪽 문형까지. 약한 활용을 더 자주
-          묻는다.
-        </span>
-      </Link>
+      </div>
 
       {book.preparation ? (
         <p className="text-sm text-ink-faint">

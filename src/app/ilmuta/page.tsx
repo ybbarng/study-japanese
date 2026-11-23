@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ContinueCard } from "@/components/ilmuta/continue-card";
 import { LessonRow } from "@/components/ilmuta/lesson-row";
 import { NoTextbook } from "@/components/ilmuta/no-textbook";
+import { PageFrame } from "@/components/shell/page-frame";
 import { BOOK_NAME, lessonLabel } from "@/lib/ilmuta/labels";
 import { loadMapData } from "@/lib/ilmuta/server-data";
 
@@ -15,9 +16,9 @@ export default async function IlmutaMapPage() {
   const lecturesDone = data.rows.filter((r) => r.progress.lectureDone).length;
 
   return (
-    <main className="mx-auto max-w-md px-4 pt-[max(env(safe-area-inset-top),1.5rem)] pb-8">
-      <header className="px-2">
-        <Link href="/" className="text-sm text-ink-faint">
+    <PageFrame className="px-4 pb-8 lg:px-10">
+      <header className="px-2 lg:px-0">
+        <Link href="/" className="text-sm text-ink-faint lg:hidden">
           ← にほんご
         </Link>
         <h1 className="mt-3 text-2xl font-bold">{BOOK_NAME}</h1>
@@ -51,13 +52,14 @@ export default async function IlmutaMapPage() {
         </p>
       ) : null}
 
-      <ol className="mt-6 space-y-1">
+      {/* PC에서는 60강을 여러 칸으로 펼쳐 한눈에(책 차례보다 진도가 바로 보이게) */}
+      <ol className="mt-6 space-y-1 lg:grid lg:grid-cols-2 lg:gap-2 lg:space-y-0 2xl:grid-cols-3">
         {data.rows.map((row) => (
           <li key={row.no}>
             <LessonRow row={row} current={row.no === current} />
           </li>
         ))}
       </ol>
-    </main>
+    </PageFrame>
   );
 }

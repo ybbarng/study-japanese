@@ -15,7 +15,7 @@ export default async function Home({ searchParams }: Props) {
   );
   const data = await loadHomeData(nowMs);
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-5 pt-[max(env(safe-area-inset-top),2rem)] pb-28">
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-5 pt-[max(env(safe-area-inset-top),2rem)] pb-28 lg:max-w-6xl lg:px-10 lg:pt-10">
       <TodayHome data={data} />
     </main>
   );

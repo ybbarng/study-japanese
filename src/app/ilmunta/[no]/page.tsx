@@ -46,28 +46,40 @@ export default async function IlmuntaLessonPage({
         <p className="text-sm text-accent">일문따 {lesson.no}과</p>
         <h1 className="mt-1 text-2xl font-bold">{lesson.title}</h1>
       </div>
-      <OfflineButton pack={ilmuntaPack(lesson)} />
-      <BookCue lesson={lesson} />
-      <LessonPlayer lesson={lesson} transcripts={transcripts} heard={heard} />
-      <LessonDrillLink no={lesson.no} />
-      <PdfLinks />
-      {source ? (
-        <SourceCredit source={source} closed={load.data.sourceClosed} />
-      ) : null}
-      <nav className="flex justify-between text-sm">
-        {prevNo ? (
-          <Link href={`/ilmunta/${prevNo}`} className="text-ink-soft">
-            ← {prevNo}과
-          </Link>
-        ) : (
-          <span />
-        )}
-        {nextNo ? (
-          <Link href={`/ilmunta/${nextNo}`} className="text-ink-soft">
-            {nextNo}과 →
-          </Link>
-        ) : null}
-      </nav>
+      <LessonPlayer
+        lesson={lesson}
+        transcripts={transcripts}
+        heard={heard}
+        before={
+          <>
+            <OfflineButton pack={ilmuntaPack(lesson)} />
+            <BookCue lesson={lesson} />
+          </>
+        }
+        after={
+          <>
+            <LessonDrillLink no={lesson.no} />
+            <PdfLinks />
+            {source ? (
+              <SourceCredit source={source} closed={load.data.sourceClosed} />
+            ) : null}
+            <nav className="flex justify-between text-sm">
+              {prevNo ? (
+                <Link href={`/ilmunta/${prevNo}`} className="text-ink-soft">
+                  ← {prevNo}과
+                </Link>
+              ) : (
+                <span />
+              )}
+              {nextNo ? (
+                <Link href={`/ilmunta/${nextNo}`} className="text-ink-soft">
+                  {nextNo}과 →
+                </Link>
+              ) : null}
+            </nav>
+          </>
+        }
+      />
     </PageShell>
   );
 }

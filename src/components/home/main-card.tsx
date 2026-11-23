@@ -32,9 +32,22 @@ export function MainCard({ action, text, primary, lesson }: Props) {
       <span className={cn("text-sm", primary ? "opacity-90" : "text-accent")}>
         {text.eyebrow}
       </span>
-      <span className="mt-1 block text-2xl font-bold">{text.title}</span>
+      <span
+        className={cn(
+          "mt-1 block text-2xl font-bold",
+          primary && "lg:text-4xl",
+        )}
+      >
+        {text.title}
+      </span>
       {text.ja ? (
-        <span lang="ja" className="mt-1 block truncate font-ja-serif text-2xl">
+        <span
+          lang="ja"
+          className={cn(
+            "mt-1 block truncate font-ja-serif text-2xl",
+            primary && "lg:mt-3 lg:text-5xl lg:leading-tight",
+          )}
+        >
           {text.ja}
         </span>
       ) : null}
@@ -54,7 +67,7 @@ export function MainCard({ action, text, primary, lesson }: Props) {
   if (action.kind === "ilmuta-listen" && lesson) {
     const playing = now.item === lectureItem(lesson.no) && now.playing;
     return (
-      <div className={cn("rounded-3xl p-6", tone)}>
+      <div className={cn("rounded-3xl p-6", primary && "lg:p-10", tone)}>
         {head}
         <div className="mt-5 flex gap-2">
           <button
@@ -85,7 +98,8 @@ export function MainCard({ action, text, primary, lesson }: Props) {
     <Link
       href={actionHref(action)}
       className={cn(
-        "relative block rounded-3xl p-6 pr-20 active:scale-[0.99]",
+        "relative block rounded-3xl p-6 pr-20 active:scale-[0.99] lg:hover:brightness-110",
+        primary && "lg:p-10 lg:pr-28",
         tone,
       )}
     >

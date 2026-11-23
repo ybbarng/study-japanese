@@ -30,7 +30,7 @@ export function LessonMap({
         const last = lessons.at(-1)?.pages?.to;
         return (
           <section key={m.month} aria-labelledby={`month-${m.month}`}>
-            <div className="sticky top-0 z-10 -mx-5 bg-bg/95 px-5 py-2 backdrop-blur">
+            <div className="sticky top-0 z-10 -mx-5 bg-bg/95 px-5 py-2 backdrop-blur lg:-mx-10 lg:px-10">
               <div className="flex items-baseline justify-between">
                 <h2 id={`month-${m.month}`} className="text-lg font-bold">
                   {m.month}월{" "}
@@ -54,7 +54,7 @@ export function LessonMap({
                 강의 {heard}/{total} 들음
               </p>
             </div>
-            <ol className="mt-2 flex flex-col">
+            <ol className="mt-2 flex flex-col lg:grid lg:grid-cols-2 lg:gap-x-8 2xl:grid-cols-3">
               {lessons.map((l) => (
                 <LessonRow key={l.no} lesson={l} listen={listenOf.get(l.no)} />
               ))}
@@ -80,7 +80,7 @@ function LessonRow({
     <li>
       <Link
         href={`/ilmunta/${lesson.no}`}
-        className="flex items-center gap-4 border-b border-line py-3 active:bg-bg-raised"
+        className="flex items-center gap-4 border-b border-line py-3 active:bg-bg-raised lg:rounded-lg lg:px-2 lg:hover:bg-bg-raised"
       >
         <span
           className={

@@ -65,6 +65,25 @@ export function TwoColumn({
   );
 }
 
+/**
+ * 폰에서는 한 줄로 이어 쌓고(main 다음 side), PC(lg)에서는 왼쪽 main·오른쪽 side 두 칸.
+ * 곁칸 내용이 폰에서도 필요한 화면(첫 화면의 진도, 드릴의 약한 활용)에 쓴다.
+ */
+export function SplitColumns({
+  main,
+  side,
+}: {
+  main: ReactNode;
+  side: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-10 xl:grid-cols-[minmax(0,1fr)_24rem]">
+      <div className="flex min-w-0 flex-col gap-6">{main}</div>
+      <div className="flex flex-col gap-6 lg:sticky lg:top-10">{side}</div>
+    </div>
+  );
+}
+
 /** 화면을 내려도 따라오는 곁칸. 아래 재생 막대 자리만큼 높이를 줄인다 */
 export function StickyPanel({
   children,
