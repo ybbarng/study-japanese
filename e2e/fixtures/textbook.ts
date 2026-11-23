@@ -31,6 +31,26 @@ export const LONG_LECTURE_BOOKLET = {
   ko: "시험 문장입니다.",
 } as const;
 
+/**
+ * 일문따 2과: 문법 예문(02-1) 자막이 "일본어 → 뜻 → 같은 일본어"를 되풀이하고, 첫 강의(L02-01) 자막의
+ * 일본어 줄이 그 문장이라 서버가 받아 적은 글 출처 카드를 붙인다. 강의는 자리를 옮겨 볼 수 있게 길게 둔다.
+ */
+export const ILMUNTA_PAIR_LESSON = { no: 2, seconds: 20 } as const;
+export const ILMUNTA_PAIR = {
+  ja: "テストのれいぶんです。",
+  ko: "시험 예문입니다.",
+} as const;
+export const ILMUNTA_LECTURE_CUES = [
+  { start: 0, end: 4, text: "시험 문법 강의 첫 줄입니다.", lang: "ko" },
+  { start: 6, end: 12, text: "テストのれいぶんです", lang: "ja" },
+  { start: 14, end: 18, text: "시험 문법 강의 셋째 줄입니다.", lang: "ko" },
+] as const;
+const ILMUNTA_EXAMPLE_CUES = [
+  { start: 0, end: 0.8, text: ILMUNTA_PAIR.ja, lang: "ja" },
+  { start: 1, end: 1.8, text: ILMUNTA_PAIR.ko, lang: "ko" },
+  { start: 2, end: 2.8, text: ILMUNTA_PAIR.ja, lang: "ja" },
+] as const;
+
 const ILMUTA_LESSONS = [0, 1, 2, 3];
 const ILMUNTA_LESSONS = [1, 2];
 
@@ -92,7 +112,13 @@ function ilmuntaLesson(no: number) {
     no,
     title: `시험 문법 ${no}`,
     lectures: [
-      { file: `강의 mp3/L${n}-01.MP3`, durationSec: AUDIO_SECONDS },
+      {
+        file: `강의 mp3/L${n}-01.MP3`,
+        durationSec:
+          no === ILMUNTA_PAIR_LESSON.no
+            ? ILMUNTA_PAIR_LESSON.seconds
+            : AUDIO_SECONDS,
+      },
       { file: `강의 mp3/L${n}-02.MP3`, durationSec: AUDIO_SECONDS },
     ],
     examples: [
@@ -142,8 +168,23 @@ export function writeFakeTextbook(contentDir: string, mediaDir: string) {
     }),
   );
 
+  const pn = nn(ILMUNTA_PAIR_LESSON.no);
+  const pairLecture = `L${pn}-01`;
+  mkdirSync(path.join(contentDir, "transcripts", "ilmunta"), {
+    recursive: true,
+  });
+  for (const [item, kind, durationSec, segments] of [
+    [pairLecture, "lecture", ILMUNTA_PAIR_LESSON.seconds, ILMUNTA_LECTURE_CUES],
+    [`${pn}-1`, "example", AUDIO_SECONDS, ILMUNTA_EXAMPLE_CUES],
+  ] as const)
+    writeFileSync(
+      path.join(contentDir, "transcripts", "ilmunta", `${item}.json`),
+      JSON.stringify({ book: "ilmunta", item, kind, durationSec, segments }),
+    );
+
   const mp3 = silentMp3(AUDIO_SECONDS);
   const longMp3 = silentMp3(LONG_LECTURE.seconds);
+  const pairMp3 = silentMp3(ILMUNTA_PAIR_LESSON.seconds);
   const files = [
     ...ilmuta.lessons.flatMap((l) => [
       ["ilmuta", l.lecture.file],
@@ -159,7 +200,11 @@ export function writeFakeTextbook(contentDir: string, mediaDir: string) {
     mkdirSync(path.dirname(target), { recursive: true });
     writeFileSync(
       target,
-      file.endsWith(`${longItem}.mp3`) && book === "ilmuta" ? longMp3 : mp3,
+      file.endsWith(`${longItem}.mp3`) && book === "ilmuta"
+        ? longMp3
+        : file.endsWith(`${pairLecture}.MP3`) && book === "ilmunta"
+          ? pairMp3
+          : mp3,
     );
   }
 }
