@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { SplitColumns } from "@/components/shell/page-frame";
 import { cn } from "@/lib/cn";
 import { isCorrectAnswer, toKanaIfRomaji } from "@/lib/ilmunta/check";
 import {
@@ -161,138 +162,200 @@ function DrillSession({ onlyLesson }: { onlyLesson?: number }) {
     : 0;
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between gap-2 text-sm">
-        {onlyLesson ? (
-          <span className="rounded-full bg-bg-raised px-3 py-1.5">
-            {onlyLesson}과만 ·{" "}
-            <Link href="/ilmunta/drill" className="text-accent">
-              범위 넓히기
-            </Link>
-          </span>
-        ) : (
-          <label className="flex min-w-0 items-center gap-2">
-            <span className="whitespace-nowrap text-ink-soft">범위</span>
-            <select
-              value={prefs.maxLesson}
-              onChange={(e) => setPrefs({ maxLesson: Number(e.target.value) })}
-              className="min-w-0 rounded-full bg-bg-raised px-3 py-1.5"
-            >
-              {DRILL_LESSONS.map((n) => (
-                <option key={n} value={n}>
-                  1~{n}과 ({lessonHint(n)})
-                </option>
+    <SplitColumns
+      main={
+        <DrillMain>
+          <div className="flex items-center justify-between gap-2 text-sm">
+            {onlyLesson ? (
+              <span className="rounded-full bg-bg-raised px-3 py-1.5">
+                {onlyLesson}과만 ·{" "}
+                <Link href="/ilmunta/drill" className="text-accent">
+                  범위 넓히기
+                </Link>
+              </span>
+            ) : (
+              <label className="flex min-w-0 items-center gap-2">
+                <span className="whitespace-nowrap text-ink-soft">범위</span>
+                <select
+                  value={prefs.maxLesson}
+                  onChange={(e) =>
+                    setPrefs({ maxLesson: Number(e.target.value) })
+                  }
+                  className="min-w-0 rounded-full bg-bg-raised px-3 py-1.5"
+                >
+                  {DRILL_LESSONS.map((n) => (
+                    <option key={n} value={n}>
+                      1~{n}과 ({lessonHint(n)})
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            <fieldset className="flex shrink-0 overflow-hidden rounded-full bg-bg-raised whitespace-nowrap">
+              <legend className="sr-only">답하는 방식</legend>
+              {(["type", "choose"] as const).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setPrefs({ answerMode: m })}
+                  className={cn(
+                    "px-3 py-1.5",
+                    prefs.answerMode === m
+                      ? "bg-accent text-white"
+                      : "text-ink-soft",
+                  )}
+                >
+                  {m === "type" ? "쓰기" : "고르기"}
+                </button>
               ))}
-            </select>
-          </label>
-        )}
-        <fieldset className="flex shrink-0 overflow-hidden rounded-full bg-bg-raised whitespace-nowrap">
-          <legend className="sr-only">답하는 방식</legend>
-          {(["type", "choose"] as const).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setPrefs({ answerMode: m })}
-              className={cn(
-                "px-3 py-1.5",
-                prefs.answerMode === m
-                  ? "bg-accent text-white"
-                  : "text-ink-soft",
-              )}
-            >
-              {m === "type" ? "쓰기" : "고르기"}
-            </button>
-          ))}
-        </fieldset>
-      </div>
+            </fieldset>
+          </div>
 
-      <div className="flex items-center justify-between rounded-2xl bg-bg-raised px-4 py-3">
-        <span>
-          <span className="text-2xl font-bold">{streak}</span>
-          <span className="ml-1 text-sm text-ink-soft">연속</span>
-          <span className="ml-2 text-xs text-ink-faint">
-            최고 {bests.streak}
-          </span>
-        </span>
-        {mode === "sprint" && sprint ? (
-          <span className="text-right">
-            <span
-              className={cn("text-2xl font-bold", left <= 10 && "text-accent")}
-            >
-              {left}초
+          <div className="flex items-center justify-between rounded-2xl bg-bg-raised px-4 py-3">
+            <span>
+              <span className="text-2xl font-bold">{streak}</span>
+              <span className="ml-1 text-sm text-ink-soft">연속</span>
+              <span className="ml-2 text-xs text-ink-faint">
+                최고 {bests.streak}
+              </span>
             </span>
-            <span className="ml-2 text-sm text-ink-soft">{sprint.score}개</span>
-          </span>
-        ) : (
-          <button
-            type="button"
-            onClick={startSprint}
-            className="rounded-full bg-accent px-4 py-1.5 text-sm font-bold text-white"
-          >
-            60초 도전 · 최고 {bests.sprint}
-          </button>
-        )}
-      </div>
+            {mode === "sprint" && sprint ? (
+              <span className="text-right">
+                <span
+                  className={cn(
+                    "text-2xl font-bold",
+                    left <= 10 && "text-accent",
+                  )}
+                >
+                  {left}초
+                </span>
+                <span className="ml-2 text-sm text-ink-soft">
+                  {sprint.score}개
+                </span>
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={startSprint}
+                className="rounded-full bg-accent px-4 py-1.5 text-sm font-bold text-white"
+              >
+                60초 도전 · 최고 {bests.sprint}
+              </button>
+            )}
+          </div>
 
-      {sprintResult ? (
-        <p className="rounded-2xl bg-good/10 p-4 text-center">
-          60초 동안 <b>{sprintResult.score}개</b> 맞힘
-          {sprintResult.isNew ? " · 새 최고 기록!" : ""}
-        </p>
-      ) : null}
+          {sprintResult ? (
+            <p className="rounded-2xl bg-good/10 p-4 text-center">
+              60초 동안 <b>{sprintResult.score}개</b> 맞힘
+              {sprintResult.isNew ? " · 새 최고 기록!" : ""}
+            </p>
+          ) : null}
 
-      <QuestionCard q={q} />
+          <QuestionCard q={q} />
 
-      {answered ? (
-        <AnswerFeedback
-          q={q}
-          correct={answered.correct}
-          given={answered.picked ? undefined : toKanaIfRomaji(answered.given)}
-        />
-      ) : null}
+          {answered ? (
+            <AnswerFeedback
+              q={q}
+              correct={answered.correct}
+              given={
+                answered.picked ? undefined : toKanaIfRomaji(answered.given)
+              }
+            />
+          ) : null}
 
-      {prefs.answerMode === "choose" ? (
+          {prefs.answerMode === "choose" ? (
+            <>
+              <ChooseAnswer
+                choices={q.choices}
+                disabled={!!answered}
+                picked={answered?.picked}
+                correct={answered ? q.answer : null}
+                onPick={(c) => submit(c.kanji, c)}
+                numbered
+              />
+              {answered && !answered.correct ? (
+                <NextButton onClick={advance} />
+              ) : null}
+            </>
+          ) : (
+            // 입력칸은 문제가 바뀌어도 그대로 둔다(휴대폰 자판이 닫히지 않게)
+            <TypeAnswer
+              onSubmit={(t) => submit(t)}
+              locked={!!answered}
+              onNext={answered && !answered.correct ? advance : undefined}
+            />
+          )}
+        </DrillMain>
+      }
+      side={
         <>
-          <ChooseAnswer
-            choices={q.choices}
-            disabled={!!answered}
-            picked={answered?.picked}
-            correct={answered ? q.answer : null}
-            onPick={(c) => submit(c.kanji, c)}
-          />
-          {answered && !answered.correct ? (
-            <NextButton onClick={advance} />
+          <KeyboardHint mode={prefs.answerMode} />
+          {weak.length > 0 ? (
+            <section className="mt-4 lg:mt-0 lg:rounded-2xl lg:bg-bg-raised lg:p-5">
+              <h2 className="text-sm text-ink-soft">자주 틀리는 활용</h2>
+              <ul className="mt-2 flex flex-wrap gap-2">
+                {weak.map((w) => (
+                  <li
+                    key={w.skill.key}
+                    lang="ja"
+                    className="rounded-full bg-bg-raised px-3 py-1 text-sm"
+                  >
+                    {skillLabel(w.skill)}{" "}
+                    <span className="text-accent">
+                      {Math.round(w.rate * 100)}%
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2 text-xs text-ink-faint">
+                틀린 활용은 10분 뒤, 맞힌 활용은 하루·이틀·나흘… 뒤에 다시
+                나옵니다.
+              </p>
+            </section>
           ) : null}
         </>
-      ) : (
-        // 입력칸은 문제가 바뀌어도 그대로 둔다(휴대폰 자판이 닫히지 않게)
-        <TypeAnswer
-          onSubmit={(t) => submit(t)}
-          locked={!!answered}
-          onNext={answered && !answered.correct ? advance : undefined}
-        />
-      )}
+      }
+    />
+  );
+}
 
-      {weak.length > 0 ? (
-        <section className="mt-4">
-          <h2 className="text-sm text-ink-soft">자주 틀리는 활용</h2>
-          <ul className="mt-2 flex flex-wrap gap-2">
-            {weak.map((w) => (
-              <li
-                key={w.skill.key}
-                lang="ja"
-                className="rounded-full bg-bg-raised px-3 py-1 text-sm"
-              >
-                {skillLabel(w.skill)}{" "}
-                <span className="text-accent">{Math.round(w.rate * 100)}%</span>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-2 text-xs text-ink-faint">
-            틀린 활용은 10분 뒤, 맞힌 활용은 하루·이틀·나흘… 뒤에 다시 나옵니다.
-          </p>
-        </section>
-      ) : null}
+/** 문제 쪽 몸통. PC에서는 문제 카드를 크게 받치는 판 위에 둔다 */
+function DrillMain({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-5 lg:rounded-3xl lg:bg-bg-sunken lg:p-8">
+      {children}
     </div>
+  );
+}
+
+/** PC 곁칸: 키보드로 푸는 법(폰에서는 감춘다) */
+function KeyboardHint({ mode }: { mode: "type" | "choose" }) {
+  const keys =
+    mode === "type"
+      ? [
+          ["Enter", "확인 · 틀렸으면 다음 문제"],
+          ["Tab", "확인 단추로 옮겨 가기"],
+          ["romaji", "입력기 없이 로마자로 쳐도 가나로 바꿔 채점"],
+        ]
+      : [
+          ["1~4", "보기 고르기"],
+          ["Enter", "틀렸으면 다음 문제"],
+        ];
+  return (
+    <section className="hidden rounded-2xl border border-line p-5 lg:block">
+      <h2 className="text-sm text-ink-soft">키보드로 풀기</h2>
+      <dl className="mt-3 space-y-2 text-sm">
+        {keys.map(([k, label]) => (
+          <div key={k} className="flex items-center gap-3">
+            <dt>
+              <kbd className="rounded-md border border-line bg-bg-sunken px-2 py-0.5 font-mono text-xs">
+                {k}
+              </kbd>
+            </dt>
+            <dd className="text-ink-soft">{label}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
   );
 }

@@ -6,7 +6,7 @@ export function QuestionCard({ q }: { q: Question }) {
   return (
     <div className="flex flex-col items-center gap-2 py-4 text-center">
       <span className="text-xs text-ink-faint">{q.givenTag}</span>
-      <RubyWord form={q.given} className="text-5xl leading-tight" />
+      <RubyWord form={q.given} className="text-5xl leading-tight lg:text-7xl" />
       <span className="text-sm text-ink-soft">{q.given.ko}</span>
       <span className="mt-3 text-ink-faint" aria-hidden>
         ↓

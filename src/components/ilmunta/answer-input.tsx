@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { useChoiceKeys } from "@/components/keyboard/key-input";
 import { cn } from "@/lib/cn";
 import type { Form } from "@/lib/ilmunta/conjugate";
 import { romajiToKana } from "@/lib/kana/text";
@@ -106,6 +107,7 @@ export function ChooseAnswer({
   disabled,
   picked,
   correct,
+  numbered,
 }: {
   choices: Form[];
   onPick: (choice: Form) => void;
@@ -114,10 +116,17 @@ export function ChooseAnswer({
   picked?: Form | null;
   /** 정답(답한 뒤 표시용) */
   correct?: Form | null;
+  /** 숫자 키(1~)로 고르고, PC에서 보기 앞에 번호를 보인다 */
+  numbered?: boolean;
 }) {
+  useChoiceKeys(
+    choices.length,
+    (i) => onPick(choices[i]),
+    !!numbered && !disabled,
+  );
   return (
-    <div className="grid grid-cols-1 gap-2">
-      {choices.map((c) => {
+    <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+      {choices.map((c, i) => {
         const isAnswer = correct && c.reading === correct.reading;
         const isPicked = picked && c.reading === picked.reading;
         return (
@@ -132,6 +141,11 @@ export function ChooseAnswer({
               isPicked && !isAnswer && "border-accent bg-accent-soft",
             )}
           >
+            {numbered ? (
+              <kbd className="mr-3 hidden rounded-md border border-line px-1.5 align-middle font-mono text-sm text-ink-faint lg:inline">
+                {i + 1}
+              </kbd>
+            ) : null}
             <RubyWord form={c} showRuby={false} />
           </button>
         );
