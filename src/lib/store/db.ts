@@ -21,6 +21,14 @@ const MIGRATIONS = [
     completed INTEGER NOT NULL
   )`,
   "CREATE INDEX IF NOT EXISTS listen_events_book_item ON listen_events(book, item)",
+  // 강마다 쓴 문장: sentences는 [{ text, correction?, note? }] JSON
+  `CREATE TABLE IF NOT EXISTS writings (
+    book TEXT NOT NULL,
+    lesson INTEGER NOT NULL,
+    sentences TEXT NOT NULL,
+    updated_at INTEGER NOT NULL,
+    PRIMARY KEY (book, lesson)
+  )`,
 ];
 
 export function openDb(file: string): DatabaseSync {
