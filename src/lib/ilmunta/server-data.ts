@@ -1,11 +1,8 @@
 import { connection } from "next/server";
-import { isAdminRequest } from "@/lib/auth/server";
 import type { Transcript } from "@/lib/context/cues";
-import { canSeeSource, sourceOfBook } from "@/lib/sources/registry";
-import { readSiteSettings } from "@/lib/sources/settings";
+import { loadContextTranscript, visibleBooks } from "@/lib/context/server";
 import { getDb } from "@/lib/store/db";
 import { summarizeListening } from "@/lib/store/listen";
-import { loadTranscript } from "@/lib/textbook/load";
 import type { Ilmunta, IlmuntaLesson } from "@/lib/textbook/schema";
 import { loadIlmunta } from "./load";
 import {
@@ -41,7 +38,7 @@ export interface LessonData {
   sourceClosed: boolean;
   prevNo: number | null;
   nextNo: number | null;
-  /** 강의 열쇠 → 자막(없으면 null) */
+  /** 강의·예문 열쇠 → 낱말 카드를 붙인 자막(없거나 출처를 닫았으면 null) */
   transcripts: Record<string, Transcript | null>;
   /** 끝까지 들은 강의·예문 열쇠 */
   heard: string[];
@@ -61,16 +58,14 @@ export async function loadIlmuntaLesson(no: number): Promise<LessonLoad> {
   const nos = book.lessons.map((l) => l.no).toSorted((a, b) => a - b);
   const at = nos.indexOf(no);
   // 출처를 닫았으면(설정) 방문자에게는 자막을 보이지 않는다(오디오는 /media가 막는다)
-  const visible = canSeeSource(
-    sourceOfBook("ilmunta"),
-    await isAdminRequest(),
-    readSiteSettings(getDb()),
-  );
+  const canSee = await visibleBooks();
+  const visible = canSee("ilmunta");
   const transcripts: Record<string, Transcript | null> = {};
-  for (const l of lesson.lectures) {
-    const item = lectureItem(l.file);
-    transcripts[item] = visible ? loadTranscript("ilmunta", item) : null;
-  }
+  for (const item of [
+    ...lesson.lectures.map((l) => lectureItem(l.file)),
+    ...lesson.examples.map((e) => e.id),
+  ])
+    transcripts[item] = loadContextTranscript("ilmunta", item, canSee);
   const heard = summarizeListening(getDb(), "ilmunta")
     .filter((i) => i.completedPlays > 0)
     .map((i) => i.item);

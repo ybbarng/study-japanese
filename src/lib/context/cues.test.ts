@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { cueIndexAt, type Transcript, transcriptCues } from "./cues";
+import {
+  cueIndexAt,
+  cueIndexBefore,
+  cueText,
+  type Transcript,
+  transcriptCues,
+} from "./cues";
 
 const transcript: Transcript = {
   book: "ilmuta",
@@ -23,6 +29,29 @@ describe("자막을 큐로", () => {
       [5, "둘째 줄", "ko"],
       [12, "やあ", "ja"],
     ]);
+  });
+});
+
+describe("맥락 카드 붙이기", () => {
+  const card = {
+    sentences: [{ ja: "やあ。", ko: "안녕.", ruby: [{ text: "やあ。" }] }],
+    whole: true,
+    words: [],
+  };
+
+  it("카드는 원래 segments 차례로 붙는다(빈 구간을 빼고 정렬해도 어긋나지 않는다)", () => {
+    const cues = transcriptCues({ ...transcript, cards: { "3": card } });
+    expect(cues.map((c) => c.card ?? null)).toEqual([null, null, card]);
+  });
+
+  it("구간 전체를 맞췄으면 소책자 글을, 일부만 맞췄으면 받아 적은 글을 보인다", () => {
+    const [cue] = transcriptCues({
+      ...transcript,
+      segments: [{ start: 0, end: 1, text: "やー", lang: "ja" }],
+      cards: { "0": card },
+    });
+    expect(cueText(cue)).toBe("やあ。");
+    expect(cueText({ ...cue, card: { ...card, whole: false } })).toBe("やー");
   });
 });
 
@@ -56,5 +85,10 @@ describe("지금 위치의 큐", () => {
 
   it("큐가 없으면 -1", () => {
     expect(cueIndexAt([], 1)).toBe(-1);
+  });
+
+  it("문장 반복을 걸 때는 빈틈이 길어도 방금 지난 큐를 고른다", () => {
+    expect(cueIndexBefore(cues, 11)).toBe(1);
+    expect(cueIndexBefore(cues, -1)).toBe(-1);
   });
 });

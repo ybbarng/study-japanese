@@ -1,7 +1,5 @@
 import { connection } from "next/server";
-import { isAdminRequest } from "@/lib/auth/server";
-import { canSeeSource, sourceOfBook } from "@/lib/sources/registry";
-import { readSiteSettings } from "@/lib/sources/settings";
+import { loadContextTranscript, visibleBooks } from "@/lib/context/server";
 import { getDb } from "@/lib/store/db";
 import { summarizeListening } from "@/lib/store/listen";
 import {
@@ -11,7 +9,7 @@ import {
   SENTENCES_PER_LESSON,
   type WritingDoc,
 } from "@/lib/store/writings";
-import { loadIlmuta, loadIlmutaTranscript } from "@/lib/textbook/load";
+import { loadIlmuta } from "@/lib/textbook/load";
 import type { Ilmuta, IlmutaLesson } from "@/lib/textbook/schema";
 import type { Transcript } from "./context-cues";
 import { type ContinuePick, pendingWriting, pickContinue } from "./continue";
@@ -105,11 +103,8 @@ export async function loadLessonData(no: number): Promise<LessonLoad> {
   const at = nos.indexOf(no);
   const db = getDb();
   // 출처를 닫았으면(설정) 방문자에게는 소책자 글·자막을 빼고 보인다
-  const visible = canSeeSource(
-    sourceOfBook("ilmuta"),
-    await isAdminRequest(),
-    readSiteSettings(db),
-  );
+  const canSee = await visibleBooks();
+  const visible = canSee("ilmuta");
   return {
     kind: "ok",
     data: {
@@ -120,7 +115,7 @@ export async function loadLessonData(no: number): Promise<LessonLoad> {
       glossary: visible
         ? buildGlossary(book.lessons, no)
         : buildGlossary([], no),
-      transcript: visible ? loadIlmutaTranscript(lectureItem(no)) : null,
+      transcript: loadContextTranscript("ilmuta", lectureItem(no), canSee),
       listens: indexListens(summarizeListening(db, "ilmuta")),
       writing: getWriting(db, "ilmuta", no),
     },
