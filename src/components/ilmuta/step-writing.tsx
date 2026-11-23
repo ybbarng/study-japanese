@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useIsAdmin } from "@/lib/auth/client";
 import { cn } from "@/lib/cn";
 import { examplesOf } from "@/lib/ilmuta/steps";
 import {
@@ -39,6 +40,7 @@ function writeDraft(no: number, texts: string[] | null) {
 /** 문장 3개 쓰기: 그 강 문형을 보며 스스로 만든다. 세션이 읽고 고쳐 준다 */
 export function StepWriting({ data }: StepProps) {
   const { lesson, glossary } = data;
+  const isAdmin = useIsAdmin();
   const [doc, setDoc] = useState<WritingDoc | null>(data.writing);
   const [texts, setTexts] = useState(
     () => initialTexts(data.writing, null).texts,
@@ -168,9 +170,19 @@ export function StepWriting({ data }: StepProps) {
         })}
       </ol>
 
+      {!isAdmin ? (
+        <p className="rounded-2xl border border-line p-4 text-center text-sm text-ink-soft">
+          쓴 문장은 이 브라우저에만 남습니다. 서버에 저장하고 고쳐 받기는{" "}
+          <a href="/login" className="text-accent underline">
+            로그인
+          </a>
+          한 사람만 할 수 있습니다.
+        </p>
+      ) : null}
       <button
         type="button"
         onClick={onSave}
+        hidden={!isAdmin}
         disabled={save === "saving" || save === "saved"}
         className={cn(
           "w-full rounded-2xl py-4 text-lg font-medium",

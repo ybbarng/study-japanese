@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
 import { LessonFlow } from "@/components/ilmuta/lesson-flow";
 import { NoTextbook } from "@/components/ilmuta/no-textbook";
+import { SourceCredit } from "@/components/sources/source-credit";
 import { lessonLabel } from "@/lib/ilmuta/labels";
 import { loadLessonData } from "@/lib/ilmuta/server-data";
 import { lessonSteps, parseStep } from "@/lib/ilmuta/steps";
+import { sourceById } from "@/lib/sources/registry";
 
 interface Props {
   params: Promise<{ no: string }>;
@@ -30,12 +32,20 @@ export default async function IlmutaLessonPage({
   if (loaded.kind === "notFound") notFound();
   const steps = lessonSteps(loaded.data.lesson);
   const initialStep = parseStep((await searchParams).step, steps);
+  const source = sourceById("gilbut-ilmuta");
   return (
-    <LessonFlow
-      key={no}
-      data={loaded.data}
-      steps={steps}
-      initialStep={initialStep}
-    />
+    <>
+      <LessonFlow
+        key={no}
+        data={loaded.data}
+        steps={steps}
+        initialStep={initialStep}
+      />
+      {source ? (
+        <div className="mx-auto max-w-md px-5 pb-6">
+          <SourceCredit source={source} closed={loaded.data.sourceClosed} />
+        </div>
+      ) : null}
+    </>
   );
 }

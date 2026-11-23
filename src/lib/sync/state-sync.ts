@@ -1,3 +1,5 @@
+import { isAdminClient } from "@/lib/auth/client";
+
 // 상태 문서(가나 진도 등)를 서버와 맞춘다. 늦게 고친 쪽이 이긴다.
 
 export interface Versioned<T> {
@@ -19,12 +21,17 @@ export function decideSync(
   return "same";
 }
 
-/** 서버와 맞춘 뒤 써야 할 문서를 돌려준다. 오프라인이면 local을 그대로. */
+/**
+ * 서버와 맞춘 뒤 써야 할 문서를 돌려준다. 오프라인이면 local을 그대로.
+ * 서버 기록은 관리자(암호로 로그인한 사람)의 것이라, 방문자는 맞추지 않고 자기 브라우저 기록만 쓴다.
+ */
 export async function syncState<T>(
   key: string,
   local: Versioned<T> | null,
   fetchImpl: typeof fetch = fetch,
+  isAdmin: boolean = isAdminClient(),
 ): Promise<Versioned<T> | null> {
+  if (!isAdmin) return local;
   try {
     const res = await fetchImpl(`/api/state/${key}`);
     if (!res.ok) return local;

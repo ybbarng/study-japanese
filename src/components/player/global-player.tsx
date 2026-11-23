@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { isAdminClient } from "@/lib/auth/client";
 import { setPlaybackClock } from "@/lib/player/clock";
 import {
   isCompleted,
@@ -44,7 +45,8 @@ export function GlobalPlayer() {
     const a = audioRef.current;
     const listened = meter.current.listenedSec;
     meter.current = newMeter();
-    if (!t || listened < 1) return;
+    // 들은 기록은 관리자(암호로 로그인한 사람)의 학습 기록이다. 방문자 재생은 남기지 않는다
+    if (!t || listened < 1 || !isAdminClient()) return;
     enqueue({
       clientId: crypto.randomUUID(),
       book: t.book,

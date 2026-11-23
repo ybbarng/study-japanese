@@ -15,7 +15,7 @@ export default async function LoginPage({
       >
         ようこそ
       </p>
-      <p className="mt-3 text-ink-soft">일본어 학습 공간</p>
+      <p className="mt-3 text-ink-soft">학습 기록을 저장하려면 로그인하세요</p>
       <form
         method="post"
         action="/api/login"

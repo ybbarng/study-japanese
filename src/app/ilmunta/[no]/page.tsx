@@ -9,8 +9,10 @@ import {
 } from "@/components/ilmunta/lesson-side";
 import { NoIlmunta, PageShell } from "@/components/ilmunta/page-shell";
 import { OfflineButton } from "@/components/offline/offline-button";
+import { SourceCredit } from "@/components/sources/source-credit";
 import { loadIlmuntaLesson } from "@/lib/ilmunta/server-data";
 import { ilmuntaPack } from "@/lib/offline/pack";
+import { sourceById } from "@/lib/sources/registry";
 
 function parseNo(raw: string): number | null {
   return /^\d{1,2}$/.test(raw) ? Number(raw) : null;
@@ -36,6 +38,7 @@ export default async function IlmuntaLessonPage({
   if (load.kind === "missing") return <NoIlmunta />;
   if (load.kind === "notFound") notFound();
   const { lesson, prevNo, nextNo, transcripts, heard } = load.data;
+  const source = sourceById("gilbut-ilmunta");
 
   return (
     <PageShell back="/ilmunta" backLabel="일문따 56과">
@@ -48,6 +51,9 @@ export default async function IlmuntaLessonPage({
       <LessonPlayer lesson={lesson} transcripts={transcripts} heard={heard} />
       <LessonDrillLink no={lesson.no} />
       <PdfLinks />
+      {source ? (
+        <SourceCredit source={source} closed={load.data.sourceClosed} />
+      ) : null}
       <nav className="flex justify-between text-sm">
         {prevNo ? (
           <Link href={`/ilmunta/${prevNo}`} className="text-ink-soft">

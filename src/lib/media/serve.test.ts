@@ -2,6 +2,7 @@ import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import type { SiteSettings } from "@/lib/sources/registry";
 import { openDb } from "@/lib/store/db";
 import type { MediaLimits } from "./quota";
 import { serveMedia } from "./serve";
@@ -13,28 +14,70 @@ const LIMITS: MediaLimits = { perSessionBytes: 2500, globalBytes: 4000 };
 
 function setup() {
   const mediaDir = mkdtempSync(path.join(tmpdir(), "sj-media-"));
-  mkdirSync(path.join(mediaDir, "ilmuta"));
-  writeFileSync(
-    path.join(mediaDir, "ilmuta", "01-1.mp3"),
-    Buffer.alloc(FILE_BYTES, 1),
-  );
+  for (const dir of ["ilmuta", "unlisted"]) {
+    mkdirSync(path.join(mediaDir, dir));
+    writeFileSync(
+      path.join(mediaDir, dir, "01-1.mp3"),
+      Buffer.alloc(FILE_BYTES, 1),
+    );
+  }
   const db = openDb(":memory:");
-  const get = (session: string, opts: { range?: string; now?: number } = {}) =>
+  const get = (
+    session: string,
+    opts: {
+      range?: string;
+      now?: number;
+      admin?: boolean;
+      dir?: string;
+      settings?: SiteSettings;
+    } = {},
+  ) =>
     serveMedia(
-      new Request("http://localhost/media/ilmuta/01-1.mp3", {
+      new Request(`http://localhost/media/${opts.dir ?? "ilmuta"}/01-1.mp3`, {
         headers: opts.range ? { range: opts.range } : {},
       }),
-      ["ilmuta", "01-1.mp3"],
+      [opts.dir ?? "ilmuta", "01-1.mp3"],
       {
         mediaDir,
         db,
         sessionToken: session,
+        isAdmin: opts.admin ?? true,
+        settings: opts.settings ?? { closedSources: [] },
         now: opts.now ?? NOW,
         limits: LIMITS,
       },
     );
   return { get };
 }
+
+describe("출처별 공개", () => {
+  it("공개된 출처의 자료는 로그인하지 않은 방문자도 받는다", async () => {
+    const { get } = setup();
+    expect((await get("visitor", { admin: false })).status).toBe(200);
+  });
+
+  it("닫은 출처의 자료는 방문자에게 403, 관리자는 그대로 받는다", async () => {
+    const { get } = setup();
+    const settings = { closedSources: ["gilbut-ilmuta"] };
+    expect((await get("visitor", { admin: false, settings })).status).toBe(403);
+    expect((await get("me", { admin: true, settings })).status).toBe(200);
+  });
+
+  it("출처 목록에 없는 폴더의 자료는 방문자에게 내주지 않는다", async () => {
+    const { get } = setup();
+    expect(
+      (await get("visitor", { admin: false, dir: "unlisted" })).status,
+    ).toBe(403);
+  });
+
+  it("방문자는 쿠키가 달라도 모두 한 몫의 상한을 나눠 쓴다", async () => {
+    const { get } = setup();
+    expect((await get("visitor-a", { admin: false })).status).toBe(200);
+    expect((await get("visitor-b", { admin: false })).status).toBe(200);
+    expect((await get("visitor-c", { admin: false })).status).toBe(429); // 방문자 합 3000 > 2500
+    expect((await get("me", { admin: true })).status).toBe(200); // 관리자 몫은 따로
+  });
+});
 
 describe("교재 오디오 내주기", () => {
   it("오래 들고 있도록 private·immutable 캐시 헤더와 Range를 준다", async () => {
