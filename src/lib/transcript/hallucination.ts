@@ -81,12 +81,25 @@ export function isCreditLine(text: string): boolean {
 }
 
 /**
- * 자막을 내줄 때 뺄 줄: 말소리 글자가 하나도 없는 줄, 제작진 표기 줄, 정해진 환각 문구.
- * 한 글자 대답(「え」「はい」 등)처럼 글자가 하나라도 있는 짧은 줄은 남긴다.
+ * 영문 한 글자만 있는 줄(「E」「A.」). 교재 오디오는 일본어·한국어뿐이라 글자 종류부터 틀렸다.
+ * 짧은 감탄사(え 등)를 영문으로 받아 적은 것으로 보이지만 무엇인지 알 수 없어 고치지 않고 뺀다.
+ */
+const LONE_LATIN = /^[\s\p{P}]*[A-Za-zＡ-Ｚａ-ｚ][\s\p{P}]*$/u;
+
+export function isLoneLatin(text: string): boolean {
+  return LONE_LATIN.test(text);
+}
+
+/**
+ * 자막을 내줄 때 뺄 줄: 말소리 글자가 하나도 없는 줄, 영문 한 글자 줄, 제작진 표기 줄, 정해진 환각 문구.
+ * 한 글자 대답(「え」「はい」 등)처럼 가나·한글·숫자가 하나라도 있는 짧은 줄은 남긴다.
  */
 export function isNoiseLine(text: string): boolean {
   return (
-    !hasSpeechChar(text) || isCreditLine(text) || isKnownHallucination(text)
+    !hasSpeechChar(text) ||
+    isLoneLatin(text) ||
+    isCreditLine(text) ||
+    isKnownHallucination(text)
   );
 }
 

@@ -71,6 +71,18 @@ describe("자막을 내줄 때 거를 잡음 줄", () => {
     expect(isNoiseLine("Lyrics by Someone")).toBe(true);
   });
 
+  it("영문 한 글자만 있는 줄을 거른다", () => {
+    expect(isNoiseLine("E")).toBe(true);
+    expect(isNoiseLine("E.")).toBe(true);
+    expect(isNoiseLine(" G。")).toBe(true);
+  });
+
+  it("영문이 두 글자 넘거나 다른 글자와 함께 있으면 남긴다", () => {
+    expect(isNoiseLine("OK")).toBe(false);
+    expect(isNoiseLine("Tシャツ")).toBe(false);
+    expect(isNoiseLine("A형")).toBe(false);
+  });
+
   it("글자가 하나라도 있는 짧은 대답은 남긴다", () => {
     expect(isNoiseLine("え")).toBe(false);
     expect(isNoiseLine("はい。")).toBe(false);
