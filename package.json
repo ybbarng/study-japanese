@@ -2,6 +2,7 @@
   "name": "study-japanese",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@12.4.2",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -12,31 +13,34 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:run": "vitest run",
+    "progress:pull": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/progress-pull.ts",
+    "textbook:build": "tsx scripts/textbook/build.ts",
     "kana:audio": "node scripts/kana/cut.mjs",
     "kana:audio:verify": "node scripts/kana/verify.mjs --rows",
     "prepare": "command -v git >/dev/null 2>&1 || exit 0 && lefthook install"
   },
   "dependencies": {
     "clsx": "^2.1.1",
-    "next": "16.1.6",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
+    "next": "16.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "tailwind-merge": "^3.7.1",
     "zod": "^4.6.7",
     "zustand": "^5.1.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.2.0",
+    "@biomejs/biome": "2.6.8",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^8.0.0",
     "@testing-library/react": "^16.3.3",
-    "@types/node": "^20",
+    "@types/node": "^24.19.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "jsdom": "^31.0.1",
     "lefthook": "^2.2.2",
     "tailwindcss": "^4",
-    "typescript": "^5",
-    "vitest": "4.0.18"
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "5.1.1"
   }
 }

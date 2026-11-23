@@ -161,10 +161,7 @@ export function Glyph({
   return (
     <span
       lang="ja"
-      className={cn(
-        "font-[family-name:var(--font-jp-serif)] font-bold leading-none",
-        className,
-      )}
+      className={cn("font-ja-serif font-bold leading-none", className)}
     >
       {children}
     </span>

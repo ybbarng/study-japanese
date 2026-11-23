@@ -1,0 +1,13 @@
+# 이미지에 넣지 않는 것 — 비밀값·교재 자료·DB·로컬 산출물
+.env*
+media/
+content/textbook/
+textbook-src/
+data/
+study/
+node_modules/
+.next/
+coverage/
+.git/
+.claude/
+*.tsbuildinfo

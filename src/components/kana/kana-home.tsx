@@ -61,7 +61,7 @@ export function KanaHome() {
       <div>
         <p
           lang="ja"
-          className="font-[family-name:var(--font-jp-serif)] text-4xl font-bold tracking-widest"
+          className="font-ja-serif text-4xl font-bold tracking-widest"
         >
           かな
         </p>

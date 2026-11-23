@@ -1,3 +1,5 @@
+import type { Track } from "@/lib/player/queue";
+import { GlobalPlayerLab } from "./global-player-lab";
 import { PlayerLab } from "./player-lab";
 
 export const metadata = { title: "재생 시험 — にほんご" };
@@ -16,6 +18,20 @@ const TRACKS = [
   })),
 ];
 
+const GLOBAL_TRACKS: Track[] = [1, 2, 3, 4, 5, 6].map((n) => ({
+  book: "ilmuta",
+  item: `01-${n}`,
+  kind: "example",
+  src: `/media/ilmuta/2.%20예문%20mp3/01-${n}.mp3`,
+  title: `1강 예문 ${n}`,
+  subtitle: "일본어 무작정 따라하기",
+}));
+
 export default function PlayerLabPage() {
-  return <PlayerLab tracks={TRACKS} />;
+  return (
+    <>
+      <GlobalPlayerLab tracks={GLOBAL_TRACKS} />
+      <PlayerLab tracks={TRACKS} />
+    </>
+  );
 }
