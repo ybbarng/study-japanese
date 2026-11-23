@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { CueLoop } from "./cue-loop";
 import type { RepeatMode, Track } from "./queue";
 
 // 사이트 전체에 재생기는 하나다(GlobalPlayer). 화면은 이 상태만 바꾸고, <audio>는 GlobalPlayer가 쥔다.
@@ -19,7 +20,10 @@ interface PlayerState {
   expanded: boolean;
   /** 이 위치(초)로 옮겨 달라는 요청. token이 바뀔 때마다 GlobalPlayer가 따른다 */
   seekRequest: { sec: number; token: number } | null;
+  /** 한 문장 반복 중인 자막 구간(저장하지 않는다) */
+  cueLoop: CueLoop | null;
 
+  setCueLoop: (loop: CueLoop | null) => void;
   playQueue: (tracks: Track[], start?: number) => void;
   /** 지금 트랙의 그 위치부터 재생(자막 줄을 눌러 다시 듣기) */
   seekTo: (sec: number) => void;
@@ -45,7 +49,9 @@ export const usePlayer = create<PlayerState>()(
       shadowGap: false,
       expanded: false,
       seekRequest: null,
+      cueLoop: null,
 
+      setCueLoop: (cueLoop) => set({ cueLoop }),
       seekTo: (sec) =>
         set((s) => ({
           seekRequest: { sec, token: (s.seekRequest?.token ?? 0) + 1 },

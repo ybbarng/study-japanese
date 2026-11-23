@@ -14,6 +14,7 @@ interface Handlers {
   onSeekBy: (delta: number) => void;
   onPrev: () => void;
   onNext: () => void;
+  onLoop: () => void;
 }
 
 /**
@@ -57,6 +58,9 @@ export function usePlayerShortcuts(handlers: Handlers) {
           break;
         case "next":
           h.onNext();
+          break;
+        case "loop":
+          h.onLoop();
           break;
         case "rate": {
           const st = usePlayer.getState();

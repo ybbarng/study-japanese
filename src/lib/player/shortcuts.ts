@@ -6,7 +6,9 @@ export type ShortcutAction =
   | { kind: "prev" }
   | { kind: "next" }
   | { kind: "rate"; dir: -1 | 1 }
-  | { kind: "help" };
+  | { kind: "help" }
+  /** 지금 듣는 자막 문장 하나를 되풀이(다시 누르면 풀기) */
+  | { kind: "loop" };
 
 /** 키 이벤트에서 판정에 쓰는 것만 */
 export interface KeyInput {
@@ -86,6 +88,11 @@ export function shortcutFor(e: KeyInput): ShortcutAction | null {
       return { kind: "rate", dir: 1 };
     case "?":
       return { kind: "help" };
+    // 한글 입력 상태면 L 자리에서 ㅣ가 온다
+    case "l":
+    case "L":
+    case "ㅣ":
+      return { kind: "loop" };
     default:
       return null;
   }
@@ -97,5 +104,6 @@ export const SHORTCUT_HELP: { keys: string[]; label: string }[] = [
   { keys: ["←", "→"], label: `${SEEK_SEC}초 뒤로 / 앞으로` },
   { keys: ["Shift", "←", "→"], label: "이전 / 다음 트랙" },
   { keys: ["[", "]"], label: "느리게 / 빠르게" },
+  { keys: ["L"], label: "지금 문장 반복 / 풀기" },
   { keys: ["?"], label: "이 도움말" },
 ];

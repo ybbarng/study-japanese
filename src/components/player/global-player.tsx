@@ -2,8 +2,11 @@
 
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { fetchTranscript } from "@/components/context/use-transcript";
 import { isAdminClient } from "@/lib/auth/client";
+import { cueIndexBefore, transcriptCues } from "@/lib/context/cues";
 import { setPlaybackClock } from "@/lib/player/clock";
+import { cueLoopStep } from "@/lib/player/cue-loop";
 import {
   isCompleted,
   type ListenMeter,
@@ -61,11 +64,20 @@ export function GlobalPlayer() {
     void flushQueue();
   }, []);
 
+  // 한 문장 반복: 문장 끝에서 쉬는 동안의 타이머
+  const loopTimer = useRef<number | null>(null);
+  const endLoopPause = useCallback(() => {
+    if (loopTimer.current !== null) window.clearTimeout(loopTimer.current);
+    loopTimer.current = null;
+    setPlaybackClock({ loopPause: null });
+  }, []);
+
   // 트랙 불러오기 (loadToken이 바뀔 때마다)
   // biome-ignore lint/correctness/useExhaustiveDependencies: loadToken·index가 바뀔 때만 새로 불러온다
   useEffect(() => {
     const a = audioRef.current;
     if (!a || !track) return;
+    endLoopPause();
     finalize();
     setPhase({ kind: "track" });
     setSrc(a, track.src);
@@ -152,6 +164,76 @@ export function GlobalPlayer() {
     [phase.kind, track],
   );
 
+  /** 재생 위치가 바뀔 때마다: 문장 반복 중이면 끝에서 (쉬었다가) 처음으로 */
+  const followLoop = useCallback(
+    (a: HTMLAudioElement, pos: number) => {
+      if (phase.kind !== "track" || !track || loopTimer.current !== null)
+        return;
+      const st = usePlayer.getState();
+      const step = cueLoopStep(
+        st.cueLoop,
+        { book: track.book, item: track.item, pos },
+        st.shadowGap,
+      );
+      if (step.kind === "clear") st.setCueLoop(null);
+      if (step.kind !== "back" || !st.cueLoop) return;
+      const start = st.cueLoop.start;
+      if (step.pauseSec === 0) {
+        a.currentTime = start;
+        return;
+      }
+      // 따라 말할 틈: 잠깐 멈췄다가 문장 처음부터. 이 멈춤은 사용자가 멈춘 것이 아니다
+      switching.current = true;
+      a.pause();
+      setPlaybackClock({ loopPause: step.pauseSec });
+      loopTimer.current = window.setTimeout(() => {
+        loopTimer.current = null;
+        setPlaybackClock({ loopPause: null });
+        a.currentTime = start;
+        if (usePlayer.getState().wantPlaying)
+          a.play().catch(() => usePlayer.getState().setPlaying(false));
+        else switching.current = false;
+      }, step.pauseSec * 1000);
+    },
+    [phase.kind, track],
+  );
+
+  // 쉬는 중에 반복을 풀거나 다른 문장으로 옮기면: 쉬기를 그만두고 바로 이어 듣는다
+  const cueLoop = s.cueLoop;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: 반복 구간이 바뀔 때만 따른다
+  useEffect(() => {
+    if (loopTimer.current === null) return;
+    endLoopPause();
+    const a = audioRef.current;
+    if (cueLoop && a) a.currentTime = cueLoop.start;
+    if (a && usePlayer.getState().wantPlaying)
+      a.play().catch(() => usePlayer.getState().setPlaying(false));
+  }, [cueLoop]);
+
+  /** L 키: 지금(또는 방금) 듣는 자막 문장을 되풀이하거나 푼다 */
+  const toggleLoopHere = useCallback(async () => {
+    const st = usePlayer.getState();
+    const t = currentTrack(st);
+    const a = audioRef.current;
+    if (!t || !a || phase.kind !== "track") return;
+    if (st.cueLoop) {
+      endLoopPause();
+      st.setCueLoop(null);
+      return;
+    }
+    const transcript = await fetchTranscript(t.book, t.item);
+    if (!transcript) return;
+    const cues = transcriptCues(transcript);
+    const i = cueIndexBefore(cues, a.currentTime);
+    if (i < 0) return;
+    st.setCueLoop({
+      book: t.book,
+      item: t.item,
+      start: cues[i].start,
+      end: cues[i].end,
+    });
+  }, [phase.kind, endLoopPause]);
+
   const prev = useCallback(() => {
     const a = audioRef.current;
     const st = usePlayer.getState();
@@ -237,6 +319,7 @@ export function GlobalPlayer() {
     onSeekBy: seekBy,
     onPrev: prev,
     onNext: advance,
+    onLoop: () => void toggleLoopHere(),
   });
 
   return (
@@ -276,6 +359,7 @@ export function GlobalPlayer() {
           setPos(t);
           publishClock(t);
           if (phase.kind === "track") meter.current = tick(meter.current, t);
+          followLoop(e.currentTarget, t);
         }}
       />
       {track && !onLoginPage ? (

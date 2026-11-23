@@ -47,6 +47,11 @@ describe("shortcutFor: 키와 할 일", () => {
     });
   });
 
+  it("L은 지금 문장 반복이다(한글 입력 상태의 ㅣ도)", () => {
+    expect(shortcutFor(press("l"))).toEqual({ kind: "loop" });
+    expect(shortcutFor(press("ㅣ"))).toEqual({ kind: "loop" });
+  });
+
   it("단축키가 아닌 키는 아무 일도 하지 않는다", () => {
     expect(shortcutFor(press("a"))).toBeNull();
     expect(shortcutFor(press("1"))).toBeNull();

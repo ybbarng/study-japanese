@@ -12,6 +12,8 @@ export interface PlaybackClock {
   item: string | null;
   pos: number;
   duration: number;
+  /** 한 문장 반복에서 문장 끝에 쉬는 중이면 그 시간(초) */
+  loopPause: number | null;
 }
 
 export const usePlaybackClock = create<PlaybackClock>()(() => ({
@@ -19,6 +21,7 @@ export const usePlaybackClock = create<PlaybackClock>()(() => ({
   item: null,
   pos: 0,
   duration: Number.NaN,
+  loopPause: null,
 }));
 
 export function setPlaybackClock(next: Partial<PlaybackClock>) {
