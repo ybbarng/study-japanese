@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:e2e": "next build && playwright test",
     "progress:pull": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/progress-pull.ts",
     "textbook:build": "tsx scripts/textbook/build.ts",
     "kana:audio": "node scripts/kana/cut.mjs",
@@ -30,6 +31,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.8",
+    "@playwright/test": "1.65.1",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^8.0.0",
     "@testing-library/react": "^16.3.3",

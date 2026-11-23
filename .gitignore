@@ -12,6 +12,10 @@
 
 # testing
 /coverage
+# Playwright 결과물
+/test-results/
+/playwright-report/
+/blob-report/
 
 # next.js
 /.next/
