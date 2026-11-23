@@ -124,12 +124,15 @@ export function KeyHelp({
   );
 }
 
-/** 단추 안에 붙이는 키 표시(PC에서만 보인다) */
-export function InlineKey({ k }: { k: string }) {
+/** 단추 안에 붙이는 키 표시(PC에서만 보인다). `onAccent`는 강조색 단추 위 */
+export function InlineKey({ k, onAccent }: { k: string; onAccent?: boolean }) {
   return (
     <kbd
       aria-hidden
-      className="ml-2 hidden rounded border border-line px-1.5 font-mono text-xs text-ink-faint lg:inline"
+      className={cn(
+        "ml-2 hidden rounded border border-line px-1.5 align-middle font-mono text-xs font-normal text-ink-faint lg:inline",
+        onAccent && "border-white/50 text-white/85",
+      )}
     >
       {k}
     </kbd>

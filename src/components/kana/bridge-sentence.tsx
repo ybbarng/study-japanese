@@ -31,7 +31,7 @@ export function BridgeSentence({
         const key = `${k}-${p.text}`;
         if (p.kind === "punct" || p.kind === "unknown")
           return (
-            <span key={key} className="pb-7 text-4xl text-ink-soft">
+            <span key={key} className="pb-7 text-4xl text-ink-soft lg:text-5xl">
               {p.text}
             </span>
           );
@@ -44,7 +44,7 @@ export function BridgeSentence({
               aria-label={`${p.text} 읽는 법 ${p.reading} 듣기`}
               className="flex flex-col items-center rounded-xl px-1 active:bg-bg-raised"
             >
-              <ruby className="text-5xl">
+              <ruby className="text-5xl lg:text-7xl">
                 {p.text}
                 <rt className="text-base text-accent">{p.reading}</rt>
               </ruby>
@@ -68,7 +68,7 @@ export function BridgeSentence({
               !playable && "cursor-default",
             )}
           >
-            <span className="text-5xl">{p.text}</span>
+            <span className="text-5xl lg:text-7xl">{p.text}</span>
             <span className="h-7 pt-1 font-sans text-sm text-ink-soft">
               {showSounds ? pieceSound(p) : ""}
             </span>

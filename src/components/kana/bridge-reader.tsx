@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { useNowPlaying, usePlay } from "@/components/ilmuta/use-player-bridge";
+import { toKeyInput } from "@/components/keyboard/key-input";
 import type { Bridge } from "@/lib/bridge/bridges";
+import { BRIDGE_KEY_HELP, bridgeKeyAction } from "@/lib/bridge/keys";
 import type { BridgeSentence as Sentence } from "@/lib/bridge/pick";
 import { lessonLabel } from "@/lib/ilmuta/labels";
 import { ilmutaMediaUrl } from "@/lib/ilmuta/media";
@@ -11,7 +14,15 @@ import { useKanaStore } from "@/lib/kana/store";
 import type { Track } from "@/lib/player/queue";
 import { BridgeSentence } from "./bridge-sentence";
 import s from "./kana.module.css";
-import { cn, PrimaryButton, Screen, SecondaryButton } from "./ui";
+import {
+  cn,
+  InlineKey,
+  KeyHelp,
+  PrimaryButton,
+  Screen,
+  SecondaryButton,
+  SidePanel,
+} from "./ui";
 
 function exampleTrack(x: Sentence): Track {
   return {
@@ -30,6 +41,8 @@ function lessonsLabel(sentences: Sentence[]): string {
   return `${nos.join("·")}강`;
 }
 
+const plainText = (x: Sentence) => x.pieces.map((p) => p.text).join("");
+
 /** 다리 레슨: 배운 글자로 일무따 예문을 한 줄씩 읽고, 다 읽으면 그 강으로 */
 export function BridgeReader({
   bridge,
@@ -44,6 +57,7 @@ export function BridgeReader({
   const completeLesson = useKanaStore((st) => st.completeLesson);
   const play = usePlay();
   const now = useNowPlaying();
+  const router = useRouter();
   const done = i >= sentences.length;
   const firstLesson = sentences[0]?.lessonNo ?? bridge.lessonNos[0];
 
@@ -54,13 +68,96 @@ export function BridgeReader({
     if (next >= sentences.length) completeLesson(bridge.id);
   };
 
+  // PC 키보드: Enter 다음, Backspace 앞, 1·2·3 한글 소리·듣기·뜻
+  const onKeyRef = useRef<(e: KeyboardEvent) => void>(() => {});
+  onKeyRef.current = (e) => {
+    const a = bridgeKeyAction(toKeyInput(e));
+    if (!a) return;
+    if (done) {
+      if (a !== "next") return;
+      e.preventDefault();
+      router.push(`/ilmuta/${firstLesson}`);
+      return;
+    }
+    if (i === -1) {
+      if (a !== "next") return;
+      e.preventDefault();
+      // 고를 문장이 없으면 0이 곧 끝(넘어가기)이다
+      go(0);
+      return;
+    }
+    e.preventDefault();
+    if (a === "next") go(i + 1);
+    else if (a === "prev") {
+      if (i > 0) go(i - 1);
+    } else if (a === "sounds") setSounds((v) => !v);
+    else if (a === "meaning") setMeaning((v) => !v);
+    else play([exampleTrack(sentences[i])]);
+  };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => onKeyRef.current(e);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  /** PC 곁칸: 읽을 문장 목록(누르면 그 문장으로). 다 읽은 뒤에는 뜻도 함께 */
+  const sentenceList = (
+    <SidePanel title={`읽을 문장 ${sentences.length}개`}>
+      <ol className="flex max-h-[50dvh] flex-col gap-1 overflow-y-auto">
+        {sentences.map((x, k) => (
+          <li key={`${x.exampleId}-${plainText(x)}`}>
+            <button
+              type="button"
+              onClick={() => go(k)}
+              aria-current={k === i ? "step" : undefined}
+              className={cn(
+                "flex w-full items-baseline gap-3 rounded-xl px-3 py-2 text-left hover:bg-bg-raised",
+                k === i && "bg-accent-soft",
+              )}
+            >
+              <span
+                className={cn(
+                  "w-5 shrink-0 text-xs",
+                  k < i || done ? "text-good" : "text-ink-faint",
+                )}
+              >
+                {k < i || done ? "✓" : k + 1}
+              </span>
+              <span className="min-w-0">
+                <span lang="ja" className="block truncate font-ja text-lg">
+                  {plainText(x)}
+                </span>
+                <span className="block text-xs text-ink-faint">
+                  {lessonLabel(x.lessonNo)}
+                  {done ? ` · ${x.ko}` : ""}
+                </span>
+              </span>
+            </button>
+          </li>
+        ))}
+      </ol>
+    </SidePanel>
+  );
+
   if (i === -1)
     return (
       <Screen
         title={bridge.title}
+        aside={
+          <KeyHelp
+            items={[
+              { key: "Enter", label: "읽기 시작" },
+              ...BRIDGE_KEY_HELP.filter((k) => k.key !== "Enter"),
+            ]}
+          />
+        }
+        asideLabel="키보드로 하기"
         footer={
           sentences.length > 0 ? (
-            <PrimaryButton onClick={() => go(0)}>읽기 시작</PrimaryButton>
+            <PrimaryButton onClick={() => go(0)}>
+              읽기 시작
+              <InlineKey k="Enter" onAccent />
+            </PrimaryButton>
           ) : (
             <PrimaryButton onClick={() => go(sentences.length)}>
               넘어가기
@@ -102,9 +199,16 @@ export function BridgeReader({
 
   if (done)
     return (
-      <Screen title={bridge.title}>
+      <Screen
+        title={bridge.title}
+        aside={sentences.length > 0 ? sentenceList : null}
+        asideLabel="읽은 문장"
+      >
         <div
-          className={cn("flex flex-1 flex-col justify-center gap-4", s.enter)}
+          className={cn(
+            "flex flex-1 flex-col justify-center gap-4 lg:max-w-xl",
+            s.enter,
+          )}
         >
           <p lang="ja" className="font-ja-serif text-6xl font-bold">
             読
@@ -124,7 +228,10 @@ export function BridgeReader({
             href={`/ilmuta/${firstLesson}`}
             className="grid h-14 place-items-center rounded-2xl bg-accent text-lg font-bold text-white"
           >
-            {lessonLabel(firstLesson)}으로 →
+            <span>
+              {lessonLabel(firstLesson)}으로 →
+              <InlineKey k="Enter" onAccent />
+            </span>
           </Link>
           <Link
             href="/kana"
@@ -141,15 +248,28 @@ export function BridgeReader({
   return (
     <Screen
       progress={i / sentences.length}
+      aside={
+        <>
+          {sentenceList}
+          <KeyHelp items={BRIDGE_KEY_HELP} />
+        </>
+      }
+      asideLabel="읽을 문장과 키보드"
       footer={
         <div className="flex gap-3">
           {i > 0 ? (
-            <SecondaryButton className="w-20" onClick={() => go(i - 1)}>
+            <SecondaryButton
+              className="w-20 lg:w-32"
+              aria-label="앞 문장"
+              onClick={() => go(i - 1)}
+            >
               ←
+              <InlineKey k="⌫" />
             </SecondaryButton>
           ) : null}
           <PrimaryButton onClick={() => go(i + 1)}>
             {i + 1 >= sentences.length ? "다 읽었어요" : "다음 문장"}
+            <InlineKey k="Enter" onAccent />
           </PrimaryButton>
         </div>
       }
@@ -160,7 +280,7 @@ export function BridgeReader({
       <div
         key={i}
         className={cn(
-          "flex flex-1 flex-col items-center justify-center gap-6",
+          "flex flex-1 flex-col items-center justify-center gap-6 lg:gap-8",
           s.enter,
         )}
       >
@@ -172,6 +292,7 @@ export function BridgeReader({
             className="rounded-full bg-bg-raised px-4 py-2"
           >
             {sounds ? "한글 소리 가리기" : "한글 소리 보기"}
+            <InlineKey k="1" />
           </button>
           <button
             type="button"
@@ -179,15 +300,17 @@ export function BridgeReader({
             className="rounded-full bg-bg-raised px-4 py-2"
           >
             {playingThis ? "❚❚ 멈추기" : "▶ 문장 듣기"}
+            <InlineKey k="2" />
           </button>
         </div>
         <button
           type="button"
           onClick={() => setMeaning((v) => !v)}
           aria-expanded={meaning}
-          className="min-h-16 w-full rounded-2xl border border-dashed border-line px-4 py-3 text-lg"
+          className="min-h-16 w-full rounded-2xl border border-dashed border-line px-4 py-3 text-lg lg:max-w-2xl"
         >
           {meaning ? x.ko : "뜻 보기"}
+          {meaning ? null : <InlineKey k="3" />}
         </button>
       </div>
       <p className="pt-2 text-center text-xs text-ink-faint">
