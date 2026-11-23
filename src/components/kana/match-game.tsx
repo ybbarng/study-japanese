@@ -279,7 +279,7 @@ export function MatchGame() {
                   )}
                 >
                   <ChoiceKey label={MATCH_KEYS[i]} />
-                  <Glyph className="text-5xl lg:text-6xl">{t.char}</Glyph>
+                  <Glyph className="text-5xl xl:text-6xl">{t.char}</Glyph>
                 </button>
               );
             })}

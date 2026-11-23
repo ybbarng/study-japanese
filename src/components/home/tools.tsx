@@ -16,7 +16,8 @@ export function Tools() {
   return (
     <section aria-label="도구">
       <h2 className="pb-2 text-sm text-ink-faint">도구</h2>
-      <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      {/* 폰 띠(max-w-md)와 PC 곁칸 모두 좁아서 네 칸이면 이름이 세 줄로 꺾인다. 언제나 두 칸 */}
+      <ul className="grid grid-cols-2 gap-2">
         {TOOLS.map((t) => (
           <li key={t.href}>
             <Link

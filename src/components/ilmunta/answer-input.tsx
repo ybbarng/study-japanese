@@ -125,7 +125,8 @@ export function ChooseAnswer({
     !!numbered && !disabled,
   );
   return (
-    <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+    // 좁은 PC(lg)에서는 문제 칸이 좁아 두 칸이면 긴 활용형이 꺾인다. 넓은 PC(xl)부터 두 칸
+    <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
       {choices.map((c, i) => {
         const isAnswer = correct && c.reading === correct.reading;
         const isPicked = picked && c.reading === picked.reading;

@@ -45,7 +45,8 @@ export function StepLecture({ data, listens }: StepProps) {
       {patterns.length > 0 ? (
         <section>
           <h2 className="text-sm text-ink-faint">이 강에서 익힐 문형</h2>
-          <ol className="mt-2 space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
+          {/* 좁은 PC(lg)에서는 가운데 칸이 좁아 두 칸이면 문형이 꺾인다. 넓은 PC(xl)부터 두 칸 */}
+          <ol className="mt-2 space-y-3 xl:grid xl:grid-cols-2 xl:gap-3 xl:space-y-0">
             {patterns.map((p) => (
               <li
                 key={p.no}
