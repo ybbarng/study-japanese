@@ -80,7 +80,7 @@ export function WritingReference({
                   lang="ja"
                   className={
                     big
-                      ? "block font-ja-serif text-2xl"
+                      ? "block font-ja-serif text-xl"
                       : "font-ja-serif text-xl"
                   }
                 >

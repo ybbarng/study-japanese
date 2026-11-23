@@ -29,12 +29,17 @@ export function MainCard({ action, text, primary, lesson }: Props) {
   const tone = primary ? "bg-accent text-white" : "bg-bg-raised";
   const head = (
     <>
-      <span className={cn("text-sm", primary ? "opacity-90" : "text-accent")}>
+      <span
+        className={cn(
+          "text-sm lg:text-base",
+          primary ? "opacity-90" : "text-accent",
+        )}
+      >
         {text.eyebrow}
       </span>
       <span
         className={cn(
-          "mt-1 block text-2xl font-bold",
+          "mt-1 block text-2xl font-bold lg:text-3xl",
           primary && "lg:text-4xl",
         )}
       >
@@ -54,7 +59,7 @@ export function MainCard({ action, text, primary, lesson }: Props) {
       {text.sub ? (
         <span
           className={cn(
-            "mt-1 block text-sm",
+            "mt-1 block text-sm lg:text-base",
             primary ? "opacity-90" : "text-ink-soft",
           )}
         >

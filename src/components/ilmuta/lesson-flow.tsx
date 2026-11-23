@@ -68,7 +68,7 @@ export function LessonFlow({ data, steps, initialStep }: Props) {
   };
 
   return (
-    <main className="mx-auto max-w-md px-5 pt-[max(env(safe-area-inset-top),1.25rem)] lg:grid lg:max-w-[96rem] lg:grid-cols-[minmax(0,1fr)_24rem] lg:grid-rows-[auto_auto_auto_1fr] lg:gap-x-10 lg:px-10 lg:pt-8 xl:grid-cols-[9rem_minmax(0,1fr)_24rem] 2xl:grid-cols-[10rem_minmax(0,1fr)_28rem] xl:grid-rows-[auto_auto_1fr]">
+    <main className="mx-auto max-w-md px-5 pt-[max(env(safe-area-inset-top),1.25rem)] lg:grid lg:max-w-[96rem] lg:grid-cols-[minmax(0,1fr)_24rem] lg:grid-rows-[auto_auto_auto_1fr] lg:gap-x-10 lg:px-10 lg:pt-8 xl:grid-cols-[8.5rem_minmax(0,1fr)_22rem] 2xl:grid-cols-[9rem_minmax(0,1fr)_24rem] xl:grid-rows-[auto_auto_1fr]">
       <header className="lg:col-start-1 lg:row-start-1 xl:col-start-2">
         <Link href="/ilmuta" className="text-sm text-ink-faint lg:hidden">
           ← 60강 지도

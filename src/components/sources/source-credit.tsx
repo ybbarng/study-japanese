@@ -13,7 +13,7 @@ export function SourceCredit({ source, closed, className }: Props) {
   return (
     <aside
       className={cn(
-        "rounded-2xl border border-line px-4 py-3 text-xs leading-relaxed text-ink-faint",
+        "rounded-2xl border border-line px-4 py-3 text-xs leading-relaxed text-ink-faint lg:px-5 lg:text-sm",
         className,
       )}
     >

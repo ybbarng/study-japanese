@@ -131,10 +131,8 @@ export function TodayHome({ data }: { data: HomeData }) {
                 text: actionText(a, data),
               }))}
             />
-          </>
-        }
-        side={
-          <>
+
+            {/* 진도·이번 달 목표는 오늘 할 것 바로 아래(PC 왼쪽 큰 칸이 비지 않게, 폰 순서는 그대로) */}
             <ProgressPanel
               kana={kanaProgress(kana.cards)}
               ilmuta={
@@ -150,7 +148,10 @@ export function TodayHome({ data }: { data: HomeData }) {
               quota={today.quota}
               month={date.month}
             />
-
+          </>
+        }
+        side={
+          <>
             <BookLinks title="책" />
             <Tools />
           </>

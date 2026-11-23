@@ -40,6 +40,19 @@
     color-scheme: dark;
   }
 
+  /* 넓은 PC 화면은 앉아서 한 뼘 떨어져 본다. 글자와 rem으로 잡은 넓이를 함께 한 단계 키운다
+     (Tailwind 화면 너비 구분은 브라우저 기본 글자 크기로 재므로 영향받지 않는다) */
+  @media (min-width: 80rem) {
+    html {
+      font-size: 106.25%;
+    }
+  }
+  @media (min-width: 96rem) {
+    html {
+      font-size: 112.5%;
+    }
+  }
+
   body {
     background: var(--bg);
     color: var(--ink);

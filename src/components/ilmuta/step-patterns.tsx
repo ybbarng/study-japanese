@@ -43,7 +43,9 @@ export function StepPatterns({ data, listens }: StepProps) {
                   >
                     {g.head.ja}
                   </p>
-                  <p className="text-sm text-ink-soft">{g.head.ko}</p>
+                  <p className="text-sm text-ink-soft lg:text-base">
+                    {g.head.ko}
+                  </p>
                 </header>
               ) : null}
               <ul className="mt-3 space-y-4">
