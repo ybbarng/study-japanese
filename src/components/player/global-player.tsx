@@ -15,6 +15,8 @@ import { silenceWav } from "@/lib/player/silence";
 import { currentTrack, usePlayer } from "@/lib/player/store";
 import { enqueue, flushQueue } from "@/lib/sync/listen-queue";
 import { NowPlaying } from "./now-playing";
+import { ShortcutHelp } from "./shortcut-help";
+import { usePlayerShortcuts } from "./use-player-shortcuts";
 
 type Phase = { kind: "track" } | { kind: "gap"; total: number };
 
@@ -222,8 +224,18 @@ export function GlobalPlayer() {
     };
   }, [finalize]);
 
+  // PC 키보드 단축키(재생 로직은 위 손잡이를 그대로 부른다)
+  usePlayerShortcuts({
+    hasTrack: !!track && !onLoginPage,
+    onToggle: () => s.setPlaying(paused),
+    onSeekBy: seekBy,
+    onPrev: prev,
+    onNext: advance,
+  });
+
   return (
     <>
+      <ShortcutHelp />
       {/* biome-ignore lint/a11y/useMediaCaption: 예문 글은 재생 화면에 따로 보인다 */}
       <audio
         ref={audioRef}
