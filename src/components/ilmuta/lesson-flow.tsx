@@ -36,10 +36,9 @@ const BOTTOM_PAD = "pb-[max(env(safe-area-inset-bottom),0.75rem)]";
 const BOTTOM_PAD_WITH_BAR =
   "pb-[calc(max(env(safe-area-inset-bottom),0.75rem)+5.25rem)]";
 // 끝까지 내렸을 때 마지막 글이 단추 영역에 가리지 않게 비우는 높이
-// (단추 영역 = 위 여백 0.75rem + 단추 3.5rem + 아래 여백)
+// (단추 영역 = 위 여백 0.75rem + 단추 3.5rem + 아래 여백).
+// 재생 막대 몫(6rem)은 NowPlaying이 페이지 끝에 따로 비운다
 const SPACER = "h-[calc(max(env(safe-area-inset-bottom),0.75rem)+4.25rem)]";
-const SPACER_WITH_BAR =
-  "h-[calc(max(env(safe-area-inset-bottom),0.75rem)+9.5rem)]";
 
 interface Props {
   data: LessonData;
@@ -198,10 +197,7 @@ export function LessonFlow({ data, steps, initialStep, footer }: Props) {
       </main>
       {footer}
       {/* 아래 단추(와 재생 막대)만큼 자리 비우기(폰) */}
-      <div
-        aria-hidden
-        className={cn("lg:hidden", barVisible ? SPACER_WITH_BAR : SPACER)}
-      />
+      <div aria-hidden className={cn("lg:hidden", SPACER)} />
     </>
   );
 }
