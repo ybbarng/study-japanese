@@ -8,7 +8,9 @@ import {
   PdfLinks,
 } from "@/components/ilmunta/lesson-side";
 import { NoIlmunta, PageShell } from "@/components/ilmunta/page-shell";
+import { OfflineButton } from "@/components/offline/offline-button";
 import { loadIlmuntaLesson } from "@/lib/ilmunta/server-data";
+import { ilmuntaPack } from "@/lib/offline/pack";
 
 function parseNo(raw: string): number | null {
   return /^\d{1,2}$/.test(raw) ? Number(raw) : null;
@@ -41,6 +43,7 @@ export default async function IlmuntaLessonPage({
         <p className="text-sm text-accent">일문따 {lesson.no}과</p>
         <h1 className="mt-1 text-2xl font-bold">{lesson.title}</h1>
       </div>
+      <OfflineButton pack={ilmuntaPack(lesson)} />
       <BookCue lesson={lesson} />
       <LessonPlayer lesson={lesson} transcripts={transcripts} heard={heard} />
       <LessonDrillLink no={lesson.no} />

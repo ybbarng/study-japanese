@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { type ComponentType, useEffect, useState } from "react";
+import { OfflineButton } from "@/components/offline/offline-button";
 import { cn } from "@/lib/cn";
 import { lessonLabel, registerLabel } from "@/lib/ilmuta/labels";
 import type { LessonData } from "@/lib/ilmuta/server-data";
 import { STEP_LABEL, type StepId } from "@/lib/ilmuta/steps";
+import { ilmutaPack } from "@/lib/offline/pack";
 import type { StepProps } from "./lesson-types";
 import { StepConversation } from "./step-conversation";
 import { StepLecture } from "./step-lecture";
@@ -84,6 +86,7 @@ export function LessonFlow({ data, steps, initialStep }: Props) {
         {lesson.titleKo ? (
           <p className="mt-1 text-ink-soft">{lesson.titleKo}</p>
         ) : null}
+        <OfflineButton pack={ilmutaPack(lesson)} className="mt-4" />
       </header>
 
       {steps.length > 1 ? (
