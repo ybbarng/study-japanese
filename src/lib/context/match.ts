@@ -53,7 +53,7 @@ export function similarity(a: string, b: string): number {
 /**
  * 맞춘 것으로 볼 기준. 짧은 글은 몇 글자만 같아도 닮아 보이므로 더 엄격하게 본다.
  * 두 글자 이하는 똑같아야 하고, 여덟 글자까지는 0.78, 그보다 길면 0.7.
- * 강의는 소책자 문장의 낱말만 바꿔 말하기도 해서(試験/仕事), 너무 너그러우면 다른 문장을 띄운다.
+ * 강의는 소책자 문장의 낱말만 바꿔 말하기도 해서(山/川), 너무 너그러우면 다른 문장을 띄운다.
  */
 export function thresholdFor(length: number): number {
   if (length <= 2) return 1;
@@ -71,7 +71,7 @@ function negatives(s: string): number {
 /**
  * 글자는 닮아도 뜻이 다른 짝을 거른다.
  * ① 부정 표현(ない·なかった·ません…) 수가 다르면 긍정·부정이 뒤집힌 문장이다.
- * ② 둘 다 한자가 있는데 같은 한자가 하나도 없으면 다른 낱말을 넣은 문장이다(会議/曇り).
+ * ② 둘 다 한자가 있는데 같은 한자가 하나도 없으면 다른 낱말을 넣은 문장이다(山/川).
  */
 export function compatible(a: string, b: string): boolean {
   if (negatives(a) !== negatives(b)) return false;
