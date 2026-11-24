@@ -133,6 +133,68 @@ describe("사이가 넓거나 나뉜 되풀이", () => {
   });
 });
 
+describe("예문 번호 머리말과 두 줄 뜻", () => {
+  it("앞 일본어 줄이 번호를 읽은 소리(되풀이에는 없음)면 떼고, 시각은 문장 줄부터", () => {
+    clock = 0;
+    const [pair] = findRepeatPairs([
+      seg("ja", "サム。"),
+      seg("ja", "毎朝公園を散歩しています"),
+      seg("ko", "매일 아침 공원을 산책하고 있어요."),
+      seg("ja", "毎朝公園を散歩しています。"),
+    ]);
+    // 문장이 길면 머리말이 붙은 두 줄도 기준만큼 닮아, 떼지 않으면 머리말째 문장이 된다
+    expect(pair).toMatchObject({ ja: "毎朝公園を散歩しています", start: 2 });
+  });
+
+  it("한 문장을 두 줄로 나눠 받아 적었으면 두 줄을 이어 짝짓는다(머리말로 떼지 않는다)", () => {
+    clock = 0;
+    const [pair] = findRepeatPairs([
+      seg("ja", "雨が降ったら"),
+      seg("ja", "家で本を読みます"),
+      seg("ko", "비가 오면 집에서 책을 읽어요."),
+      seg("ja", "雨が降ったら家で本を読みます。"),
+    ]);
+    expect(pair).toMatchObject({
+      ja: "雨が降ったら家で本を読みます",
+      start: 0,
+    });
+  });
+
+  it("뜻을 두 줄로 나눠 읽었으면 이어서 뜻으로 쓴다", () => {
+    clock = 0;
+    const [pair] = findRepeatPairs([
+      seg("ja", "雨が降ったら家で本を読みます"),
+      seg("ko", "비가 오면"),
+      seg("ko", "집에서 책을 읽어요."),
+      seg("ja", "雨が降ったら家で本を読みます。"),
+    ]);
+    expect(pair?.ko).toBe("비가 오면 집에서 책을 읽어요.");
+  });
+
+  it("같은 뜻을 두 번 읽었으면 한 번만, 수 이름·인사 헛소리 줄은 뺀다", () => {
+    clock = 0;
+    const [pair] = findRepeatPairs([
+      seg("ja", "猫が好きです"),
+      seg("ko", "고양이를 좋아합니다."),
+      seg("ko", "고양이를 좋아합니다"),
+      seg("ko", "감사합니다."),
+      seg("ja", "猫が好きです。"),
+    ]);
+    expect(pair?.ko).toBe("고양이를 좋아합니다.");
+  });
+
+  it("사이 한국어가 수 이름뿐이면 뜻이 없으니 짝으로 보지 않는다", () => {
+    clock = 0;
+    expect(
+      findRepeatPairs([
+        seg("ja", "猫が好きです"),
+        seg("ko", "이십."),
+        seg("ja", "猫が好きです。"),
+      ]),
+    ).toEqual([]);
+  });
+});
+
 describe("두 받아 적기 중 더 나은 쪽", () => {
   it("한글·로마자가 섞인 쪽보다 섞이지 않은 쪽", () => {
     expect(betterTranscription("猫が好きですA", "ねこがすきです")).toBe(

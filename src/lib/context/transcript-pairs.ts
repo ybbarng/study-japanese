@@ -82,12 +82,49 @@ function jaRuns(
   return out;
 }
 
-/** 사이 한국어 줄 가운데 뜻으로 쓸 것: 가장 긴 줄(같은 뜻을 두 번 읽거나 짧은 감탄이 끼어도) */
-function meaningOf(between: Segment[]): string {
+/** 사이 한국어 줄 가운데 뜻으로 볼 가장 긴 줄(같은 뜻을 두 번 읽거나 짧은 감탄이 끼어도) */
+function longestMeaning(between: Segment[]): string {
   return between
     .map((s) => s.text.trim())
+    .filter((t) => !notMeaningLine(t))
     .reduce((best, t) => (t.length > best.length ? t : best), "");
 }
+
+/** 뜻으로 보지 않을 한국어 줄: 예문 번호를 읽은 수 이름(「이십.」)이나 한글 한 글자(「어?」) */
+function notMeaningLine(text: string): boolean {
+  const hangul = text.replace(/[^가-힣]/gu, "");
+  return hangul.length < 2 || /^[일이삼사오육칠팔구십백]+$/u.test(hangul);
+}
+
+const hangulOf = (t: string) => t.replace(/[^가-힣]/gu, "");
+
+/**
+ * 사이 한국어 줄을 이은 뜻. 긴 문장은 뜻을 두 줄로 나눠 읽는다(「~했고」 「~않아.」).
+ * 수 이름·감탄 줄은 빼고, 다른 줄과 겹치는 줄(같은 뜻을 두 번 읽음)은 긴 쪽 하나만 남긴다.
+ * 남는 줄이 없으면 빈 글(뜻이 없다: 짝을 만들지 않는다).
+ */
+export function meaningOf(between: Segment[]): string {
+  const lines = between
+    .map((s) => s.text.trim())
+    .filter((t) => t !== "" && !notMeaningLine(t));
+  const kept = lines.filter((t, k) =>
+    lines.every((u, m) => {
+      if (m === k) return true;
+      const a = hangulOf(t);
+      const b = hangulOf(u);
+      const dup = b.includes(a) || a.includes(b) || similarity(a, b) >= 0.6;
+      // 겹치면 긴 쪽(길이가 같으면 앞의 것)만 남긴다
+      return !dup || a.length > b.length || (a.length === b.length && k < m);
+    }),
+  );
+  // 받아쓰기가 끝에 지어내기 쉬운 인사 줄은 다른 뜻 줄이 있으면 뺀다(그 줄 하나뿐이면 진짜 뜻일 수 있다)
+  const meaningful =
+    kept.length > 1 ? kept.filter((t) => !STOCK_CLOSING.test(t)) : kept;
+  return meaningful.join(" ");
+}
+
+/** whisper가 소리 끝에 지어내곤 하는 한국어 인사 */
+const STOCK_CLOSING = /^(?:감사합니다|고맙습니다)[.!]?$/u;
 
 /**
  * 자막 구간 열에서 일본어 → 한국어 → 일본어 되풀이를 찾는다.
@@ -123,31 +160,52 @@ export function findRepeatPairs(
       )
         between.push(segments[j++]);
       if (between.length === 0 || meaningOf(between) === "") continue;
-      const na = undoubled(normalizeJa(a.text));
-      if ([...na].length < MIN_JA_LENGTH) continue;
+      if ([...undoubled(normalizeJa(a.text))].length < MIN_JA_LENGTH) continue;
       for (const b of jaRuns(segments, j)) {
         const nb = undoubled(normalizeJa(b.text));
-        const score = Math.max(
-          similarity(na, nb),
-          similarity(
-            undoubled(normalizeJa(toKana(a.text))),
-            undoubled(normalizeJa(toKana(b.text))),
-          ),
-        );
+        const scoreOf = (text: string) =>
+          Math.max(
+            similarity(undoubled(normalizeJa(text)), nb),
+            similarity(
+              undoubled(normalizeJa(toKana(text))),
+              undoubled(normalizeJa(toKana(b.text))),
+            ),
+          );
+        // 앞 일본어가 두 줄이면, 첫 줄을 떼어도 똑같이(또는 더) 닮는지 본다. 그러면 첫 줄은
+        // 예문 번호를 읽은 소리 같은 머리말이라 문장에 넣지 않는다(뒤 되풀이에는 없다)
+        let aText = a.text;
+        let aStart = segments[i].start;
+        let score = scoreOf(a.text);
+        if (a.end > i) {
+          const tail = segments[a.end].text;
+          const tailScore = scoreOf(tail);
+          if (
+            tailScore >= score &&
+            [...undoubled(normalizeJa(tail))].length >= MIN_JA_LENGTH
+          ) {
+            aText = tail;
+            aStart = segments[a.end].start;
+            score = tailScore;
+          }
+        }
+        const na = undoubled(normalizeJa(aText));
         if (score < minSimilarity || !compatible(na, nb)) continue;
         if (found && score <= found.pair.score) continue;
         const ja = betterTranscription(
-          undoubledText(a.text),
+          undoubledText(aText),
           undoubledText(b.text),
         );
-        const ko = meaningOf(between);
-        const keep =
-          typeof koIsMeaning === "function" ? koIsMeaning(ja, ko) : koIsMeaning;
+        // 이은 뜻이 뜻으로 볼 만하지 않으면(강의의 설명 줄이 섞임) 가장 긴 줄 하나로 다시 본다
+        const joined = meaningOf(between);
+        const accepts = (k: string) =>
+          typeof koIsMeaning === "function" ? koIsMeaning(ja, k) : koIsMeaning;
+        const ko = accepts(joined) ? joined : longestMeaning(between);
+        const keep = accepts(ko);
         found = {
           pair: {
             ja,
             ko: keep ? ko : "",
-            start: segments[i].start,
+            start: aStart,
             end: segments[b.end].end,
             score,
           },
