@@ -5,7 +5,8 @@ import { normalizeJa } from "./match";
 // Claude가 고친 자막 줄(교정 파일, content/transcripts-review/<book>/<item>.json)을 자막에 반영한다.
 // 꼴과 판정 규칙은 docs/transcript-review.md에 있다. 파일을 읽지 않는 순수 함수다.
 // ① prepareReview: 지문(시각·원래 글)이 맞는 줄만 골라, 한국어를 가나로 적은 줄은 한국어 줄로 돌리거나 숨기고,
-//    헛것은 빼고, 일본어 부분 시각이 있으면 둘로 나눈다. 일본어 줄은 올릴 후보로 남긴다.
+//    자리말 문형 설명은 한국어 줄로 보이고, 헛것은 빼고, 섞인 줄은 splitAt에서 둘로 나눈다.
+//    일본어 줄은 올릴 후보로 남긴다.
 // ② promotable: 후보 가운데 믿을 만한 줄만 정상 카드로 올린다(나머지는 흐린 받아쓰기 그대로).
 // ③ promoteSegments: 올린 줄의 글·카드를 자막에 넣는다(거르기 단계에서 빠졌으면 다시 넣는다).
 
@@ -22,8 +23,20 @@ const reviewAudioSchema = z.object({
   spellingOnly: z.boolean().nullish(),
 });
 
+/** 섞인 줄에서 일본어가 splitAt 앞(before)인지 뒤(after)인지 */
+const japaneseSideSchema = z.enum(["before", "after"]);
+
+/** 일문따 1~28과 갈래가 쓴 옛 이름(jaSide: ja-before·ja-after)을 정식 이름으로 바꿔 읽는다 */
+function withJapaneseSide(value: unknown): unknown {
+  if (typeof value !== "object" || value === null) return value;
+  const v = value as Record<string, unknown>;
+  if (v.japaneseSide != null || typeof v.jaSide !== "string") return value;
+  const side = v.jaSide.replace(/^ja-/, "");
+  return { ...v, japaneseSide: side };
+}
+
 /** 교정한 줄 하나. 모르는 필드(why·listenNote·index 등)는 허용하되 검증하지 않는다 */
-export const reviewLineSchema = z.object({
+const reviewLineObject = z.object({
   /** 지문: 원래 자막 구간의 시각과 글. 셋이 다 맞을 때만 쓴다 */
   start: z.number().nonnegative(),
   end: z.number().nonnegative(),
@@ -40,21 +53,20 @@ export const reviewLineSchema = z.object({
   audioVerified: z.boolean().nullish(),
   audio: reviewAudioSchema.nullish(),
   /**
-   * 일본어 + 한국어 뒷말이 섞인 줄: 일본어 부분이 끝나는 시각(초, 파일 처음부터). start < splitAt < end.
-   * corrected는 일본어 부분만 적는다
+   * 일본어와 한국어가 섞인 줄: 두 말이 갈리는 시각(초, 파일 처음부터). start < splitAt < end.
+   * corrected·reading·ko는 일본어 부분만 적는다
    */
   splitAt: z.number().nullish(),
-  /** splitAt 뒤 한국어 부분의 한국어 글. 없으면 그 부분은 내주지 않는다 */
-  tailKo: z.string().nullish(),
-  /**
-   * 한국어 앞말 + 일본어가 섞인 줄: 일본어 부분이 시작하는 시각(초, 파일 처음부터). start < japaneseStartAt < end.
-   * corrected는 일본어 부분만 적는다. splitAt과 함께 쓰면 일본어 부분은 japaneseStartAt~splitAt
-   */
-  japaneseStartAt: z.number().nullish(),
-  /** japaneseStartAt 앞 한국어 부분의 한국어 글. 없으면 그 부분은 내주지 않는다 */
-  headKo: z.string().nullish(),
+  /** 일본어가 splitAt 앞(before, 없으면 이것)인지 뒤(after)인지 */
+  japaneseSide: japaneseSideSchema.nullish(),
+  /** 한국어 부분의 한국어 글. 없으면 그 부분은 내주지 않는다 */
+  koreanPart: z.string().nullish(),
 });
-export type ReviewLine = z.infer<typeof reviewLineSchema>;
+export const reviewLineSchema = z.preprocess(
+  withJapaneseSide,
+  reviewLineObject,
+);
+export type ReviewLine = z.infer<typeof reviewLineObject>;
 
 export const transcriptReviewSchema = z.object({
   book: z.string(),
@@ -83,15 +95,18 @@ export interface ReviewCandidate {
 export interface PreparedReview<T extends Segment> {
   segments: T[];
   candidates: ReviewCandidate[];
-  /** 한국어 줄로 돌린 줄(숨긴 줄 포함) */
+  /** 한국어 줄로 돌린 줄(korean-noise의 숨긴 줄, 자리말 문형 설명인 other 포함) */
   korean: number;
-  /** 헛것이라 뺀 줄(kind other) */
+  /** 헛것이라 뺀 줄(고친 글이 없거나 조각인 other) */
   dropped: number;
   /** 둘로 나눈 줄 */
   split: number;
   /** 지문이 자막과 맞지 않아 쓰지 않은 줄 */
   mismatched: number;
 }
+
+/** 이보다 짧은 other 줄은 앞 줄 꼬리 조각(헛것)이다(hallucination.ts의 꼬리 조각 기준과 같다) */
+const FRAGMENT_SEC = 0.3;
 
 const sameTime = (a: number, b: number) => Math.abs(a - b) < SAME_TIME;
 const HANGUL = /[가-힣]/u;
@@ -143,35 +158,38 @@ export function prepareReview<T extends Segment>(
       continue;
     }
     if (line.kind === "other") {
-      out.dropped++;
+      // 자리말(뭐뭐·누구누구)이 섞인 문형 설명은 강사의 한국어 설명 줄로 보인다(일본어 카드는 붙이지 않는다).
+      // 고친 글이 없거나 한글이 없거나 0.3초 미만 조각이면 헛것으로 숨긴다
+      if (HANGUL.test(corrected) && seg.end - seg.start >= FRAGMENT_SEC) {
+        out.korean++;
+        next.push({ ...seg, text: corrected, lang: "ko" });
+      } else out.dropped++;
       continue;
     }
-    // 섞인 줄: 한국어가 앞이면 japaneseStartAt, 한국어 뒷말이 붙었으면 splitAt으로 일본어 부분을 가른다
-    const inside = (t: number | null | undefined): t is number =>
-      typeof t === "number" && t > seg.start && t < seg.end;
-    const jaStart = inside(line.japaneseStartAt) ? line.japaneseStartAt : null;
-    const jaEnd = inside(line.splitAt) ? line.splitAt : null;
+    // 섞인 줄: splitAt에서 둘로 나눈다. 일본어가 앞(before, 기본)이면 start~splitAt, 뒤(after)면 splitAt~end
+    const splitAt = line.splitAt;
     if (
-      (jaStart !== null || jaEnd !== null) &&
-      (jaStart ?? seg.start) < (jaEnd ?? seg.end)
+      typeof splitAt === "number" &&
+      splitAt > seg.start &&
+      splitAt < seg.end
     ) {
       out.split++;
-      const head = line.headKo?.trim() ?? "";
-      if (jaStart !== null && head)
-        next.push({ ...seg, end: jaStart, text: head, lang: "ko" });
-      const start = jaStart ?? seg.start;
-      const end = jaEnd ?? seg.end;
-      next.push({
-        ...seg,
-        start,
-        end,
-        text: corrected || seg.text,
-        lang: "ja",
-      });
-      const tail = line.tailKo?.trim() ?? "";
-      if (jaEnd !== null && tail)
-        next.push({ ...seg, start: jaEnd, text: tail, lang: "ko" });
-      out.candidates.push({ start, end, line });
+      const after = line.japaneseSide === "after";
+      const jaPart = after
+        ? { start: splitAt, end: seg.end }
+        : { start: seg.start, end: splitAt };
+      const koPart = after
+        ? { start: seg.start, end: splitAt }
+        : { start: splitAt, end: seg.end };
+      const korean = line.koreanPart?.trim() ?? "";
+      const parts: T[] = [
+        { ...seg, ...jaPart, text: corrected || seg.text, lang: "ja" },
+        ...(korean
+          ? [{ ...seg, ...koPart, text: korean, lang: "ko" as const }]
+          : []),
+      ];
+      next.push(...parts.sort((a, b) => a.start - b.start));
+      out.candidates.push({ ...jaPart, line });
       continue;
     }
     next.push(seg);

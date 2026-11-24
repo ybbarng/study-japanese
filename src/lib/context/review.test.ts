@@ -7,6 +7,7 @@ import {
   promoteSegments,
   type ReviewLine,
   type TranscriptReview,
+  transcriptReviewSchema,
 } from "./review";
 
 // 교재 글이 아니라 모양만 같은 가짜 문장을 쓴다(docs/standing-rules.md)
@@ -125,21 +126,32 @@ describe("한국어를 가나로 적은 줄(korean-noise)과 헛것(other)", () 
     expect(out.candidates).toEqual([]);
   });
 
-  it("헛것(other)은 고친 글이 있어도 내주지 않는다", () => {
-    const out = prepareReview(
-      segments,
-      review(
-        line({
-          start: 1,
-          end: 2,
-          original: "なあはむに",
-          kind: "other",
-          corrected: "누구누구の",
-        }),
-      ),
+  const other = (corrected: string, end = 2) =>
+    review(
+      line({ start: 1, end, original: "なあはむに", kind: "other", corrected }),
     );
+
+  it("자리말이 섞인 문형 설명(other)은 고친 글을 한국어 설명 줄로 보인다", () => {
+    const out = prepareReview(segments, other("누구누구の뭐뭐"));
+    expect(out.segments).toEqual([
+      ko(1, 2, "누구누구の뭐뭐"),
+      ko(3, 4, "다음 설명"),
+    ]);
+    expect(out.candidates).toEqual([]);
+  });
+
+  it("고친 글이 없는 other는 숨긴다", () => {
+    const out = prepareReview(segments, other(""));
     expect(out.segments).toEqual([ko(3, 4, "다음 설명")]);
     expect(out.dropped).toBe(1);
+  });
+
+  it("0.3초 미만 조각인 other는 고친 글이 있어도 숨긴다", () => {
+    const out = prepareReview(
+      [ja(1, 1.2, "なあはむに"), ko(3, 4, "다음 설명")],
+      other("누구누구の", 1.2),
+    );
+    expect(out.segments).toEqual([ko(3, 4, "다음 설명")]);
   });
 });
 
@@ -150,7 +162,7 @@ describe("일본어 + 한국어 뒷말이 섞인 줄(splitAt)", () => {
   it("일본어 부분 시각과 한국어 글이 있으면 둘로 나눈다", () => {
     const out = prepareReview(
       segments,
-      review(line({ ...mixed, splitAt: 11.2, tailKo: "카메라인데" })),
+      review(line({ ...mixed, splitAt: 11.2, koreanPart: "카메라인데" })),
     );
     expect(out.segments).toEqual([
       ja(10, 11.2, "山のカメラ"),
@@ -182,14 +194,21 @@ describe("일본어 + 한국어 뒷말이 섞인 줄(splitAt)", () => {
   });
 });
 
-describe("한국어 앞말 + 일본어가 섞인 줄(japaneseStartAt)", () => {
+describe("한국어 앞말 + 일본어가 섞인 줄(japaneseSide: after)", () => {
   const segments = [ja(10, 12, "かめらは山のカメラ")];
   const mixed = { original: "かめらは山のカメラ", corrected: "山のカメラ" };
 
-  it("일본어 시작 시각과 한국어 글이 있으면 한국어 줄과 일본어 줄로 나눈다", () => {
+  it("일본어가 splitAt 뒤면 한국어 줄과 일본어 줄 차례로 나눈다", () => {
     const out = prepareReview(
       segments,
-      review(line({ ...mixed, japaneseStartAt: 10.8, headKo: "카메라는" })),
+      review(
+        line({
+          ...mixed,
+          splitAt: 10.8,
+          japaneseSide: "after",
+          koreanPart: "카메라는",
+        }),
+      ),
     );
     expect(out.segments).toEqual([
       ko(10, 10.8, "카메라는"),
@@ -198,28 +217,36 @@ describe("한국어 앞말 + 일본어가 섞인 줄(japaneseStartAt)", () => {
     expect(out.candidates.map((c) => [c.start, c.end])).toEqual([[10.8, 12]]);
   });
 
-  it("한국어 글이 없으면 일본어 부분만 내준다", () => {
-    const out = prepareReview(
-      segments,
-      review(line({ ...mixed, japaneseStartAt: 10.8 })),
-    );
-    expect(out.segments).toEqual([ja(10.8, 12, "山のカメラ")]);
+  it("옛 이름 jaSide(ja-after)도 같은 뜻으로 읽는다", () => {
+    const file = transcriptReviewSchema.parse({
+      ...review(),
+      lines: [{ ...line({ ...mixed, splitAt: 10.8 }), jaSide: "ja-after" }],
+    });
+    expect(file.lines[0].japaneseSide).toBe("after");
+    expect(prepareReview(segments, file).segments).toEqual([
+      ja(10.8, 12, "山のカメラ"),
+    ]);
   });
 
-  it("splitAt과 함께 쓰면 일본어 부분은 그 사이다", () => {
-    const out = prepareReview(
-      segments,
-      review(line({ ...mixed, japaneseStartAt: 10.5, splitAt: 11.5 })),
+  it("방향이 없으면 일본어가 앞(before)으로 본다", () => {
+    const file = transcriptReviewSchema.parse(
+      review(line({ ...mixed, splitAt: 10.8 })),
     );
-    expect(out.segments).toEqual([ja(10.5, 11.5, "山のカメラ")]);
+    expect(file.lines[0].japaneseSide).toBeUndefined();
+    expect(prepareReview(segments, file).segments).toEqual([
+      ja(10, 10.8, "山のカメラ"),
+    ]);
   });
 
-  it("시작이 끝보다 늦으면 나누지 않는다", () => {
-    const out = prepareReview(
-      segments,
-      review(line({ ...mixed, japaneseStartAt: 11.5, splitAt: 10.5 })),
-    );
-    expect(out.segments).toEqual(segments);
+  it("모르는 필드(audio의 추가 점수 등)가 있어도 읽는다", () => {
+    const extra = {
+      ...line(),
+      audio: { simPlain: 1, simOriginal: 0.5, plainWhole: "…" },
+      index: 3,
+    };
+    expect(() =>
+      transcriptReviewSchema.parse({ ...review(), lines: [extra] }),
+    ).not.toThrow();
   });
 });
 

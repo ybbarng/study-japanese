@@ -30,10 +30,9 @@
         "simOriginal": 0.5,           // 원래 받아 적은 글이 corrected와 닮은 정도(0~1)
         "spellingOnly": false         // 소리는 같고 표기만 고쳤나
       },
-      "splitAt": 44.1,                // (선택) 일본어가 앞, 한국어 뒷말이 붙은 줄: 일본어 부분이 끝나는 시각
-      "tailKo": "…",                  // (선택) splitAt 뒤 한국어 부분의 한국어 글
-      "japaneseStartAt": 43.4,        // (선택) 한국어가 앞, 일본어가 뒤인 줄: 일본어 부분이 시작하는 시각
-      "headKo": "…",                  // (선택) japaneseStartAt 앞 한국어 부분의 한국어 글
+      "splitAt": 44.1,                // (선택) 일본어와 한국어가 섞인 줄: 두 말이 갈리는 시각
+      "japaneseSide": "before",       // (선택) 일본어가 splitAt 앞(before, 없으면 이것)인지 뒤(after)인지
+      "koreanPart": "…",              // (선택) 한국어 부분의 한국어 글(없으면 그 부분은 내주지 않는다)
       "why": "…", "listenNote": "…"   // 자유 글(사람이 읽는 까닭). 서버는 쓰지 않는다
     }
   ]
@@ -42,7 +41,8 @@
 
 - 모르는 필드(`index`, `file`, `audio.prompted` 등)는 넣어도 된다. 서버는 위 필드만 확인한다.
 - `index`는 믿지 않는다. 줄은 **지문(`start`·`end`·`original`)**으로 자막 구간을 찾는다. 시각은 소수 둘째 자리까지 같아야 하고, 글은 부호·빈칸을 빼고 견준다(옮겨 적다 끝의 「。」를 빠뜨린 줄이 실제로 있었다). 그래도 다르면 그 줄은 쓰지 않는다. 자막을 다시 받아 적으면 옛 교정은 저절로 무시된다.
-- 시각(`splitAt`·`japaneseStartAt`)은 모두 파일 처음부터 센 초이고, 그 줄의 `start`와 `end` 사이여야 한다. 섞인 줄의 `corrected`·`reading`·`ko`는 일본어 부분만 적는다.
+- `splitAt`은 파일 처음부터 센 초이고, 그 줄의 `start`와 `end` 사이여야 한다(밖이면 나누지 않는다). 섞인 줄의 `corrected`·`reading`·`ko`는 일본어 부분만 적는다.
+- 옛 이름 `jaSide: "ja-before" | "ja-after"`(일문따 1~28과 갈래)도 읽을 때 `japaneseSide: "before" | "after"`로 바꿔 받는다. 새로 쓰는 파일은 `japaneseSide`를 쓴다.
 - 교재 글과 같은 줄만 고친다. 이미 소책자 문장과 맞은 줄은 교정해도 소책자 글이 이긴다.
 
 ## 서버가 내주는 방식
@@ -50,12 +50,12 @@
 | 줄 | 내주는 모습 |
 |---|---|
 | `kind: korean-noise` | 일본어 줄로 내주지 않는다. `corrected`에 한글이 있으면 그 글을 한국어 줄로, 없으면 숨긴다 |
-| `kind: other` (헛것, 자리말 문형 등) | 내주지 않는다 |
+| `kind: other`, `corrected`에 한글이 있는 줄(자리말 뭐뭐·누구누구가 섞인 문형 설명) | 고친 글을 강사의 한국어 설명 줄로 보인다. 일본어 카드·읽는 법·낱말 칩은 붙이지 않는다 |
+| `kind: other`, `corrected`가 비었거나 0.3초 미만 조각 | 헛것으로 보고 내주지 않는다 |
 | 정상 카드로 올릴 줄(아래 기준) | 교재 카드와 같은 크기로 고친 글·읽는 법·뜻·낱말 칩을 보이고, "고쳐 받아 적은 글 — 교재와 다를 수 있음"을 작게 붙인다 |
 | 그 밖의 `japanese`·`name` 줄 | 원래 글 그대로 흐린 받아쓰기 |
-| `splitAt`이 있는 줄(일본어가 앞) | 일본어 부분(`start`~`splitAt`, 글은 `corrected`)과 한국어 부분(`splitAt`~`end`, 글은 `tailKo`, 없으면 내주지 않음)으로 나눈다. 일본어 부분도 아래 기준으로 올릴지 정한다. 올리지 않으면 고친 글을 흐린 받아쓰기로 보인다 |
-| `japaneseStartAt`이 있는 줄(한국어가 앞) | 한국어 부분(`start`~`japaneseStartAt`, 글은 `headKo`, 없으면 내주지 않음)과 일본어 부분(`japaneseStartAt`~`end`)으로 나눈다. 나머지는 위와 같다. 둘 다 있으면 일본어 부분은 `japaneseStartAt`~`splitAt` |
-| 시각이 없는 섞인 줄 | 원래 글 그대로 흐린 받아쓰기 |
+| `splitAt`이 있는 줄 | 일본어 부분(글은 `corrected`)과 한국어 부분(글은 `koreanPart`, 없으면 내주지 않음)으로 나눈다. `japaneseSide`가 `before`(기본)면 일본어가 `start`~`splitAt`, `after`면 `splitAt`~`end`. 일본어 부분도 아래 기준으로 올릴지 정하고, 올리지 않으면 고친 글을 흐린 받아쓰기로 보인다 |
+| `splitAt`이 없는 섞인 줄 | 원래 글 그대로 흐린 받아쓰기 |
 
 교정 파일과 상관없이, 앞 줄과 글이 같은 0.3초 미만 구간(세 글자 이상)은 꼬리 조각으로 보고 뺀다(`src/lib/transcript/hallucination.ts` `tailEchoIndexes`).
 
@@ -83,5 +83,5 @@
 
 - `original`은 자막 파일의 글을 그대로 옮긴다(부호·빈칸 포함). 시각도 자막 파일의 값 그대로 둔다.
 - 확신이 없으면 `mid`·`low`로 둔다. 흐린 받아쓰기로 남는 편이 틀린 글을 정답처럼 보이는 것보다 낫다.
-- 한국어가 섞인 줄은 일본어 부분의 경계 시각을 소리로 확인했을 때만 `splitAt`(일본어가 끝나는 시각)이나 `japaneseStartAt`(일본어가 시작하는 시각)을 적는다. 확인하지 못했으면 `why`·`listenNote`에만 적는다.
+- 한국어가 섞인 줄은 일본어 부분의 경계 시각을 소리로 확인했을 때만 `splitAt`과 `japaneseSide`를 적는다. 확인하지 못했으면 `why`·`listenNote`에만 적는다.
 - 교재 글·자막 글은 저장소(코드·테스트·문서·커밋)에 옮기지 않는다(docs/standing-rules.md).
