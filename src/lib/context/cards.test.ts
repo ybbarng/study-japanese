@@ -84,6 +84,16 @@ describe("소책자 문장 카드", () => {
     ]);
   });
 
+  it("그린 그림이 있는 낱말에는 그림 문자 대신 그림 id를 붙인다", () => {
+    const card = buildCards([ja("傘はどこ")], {
+      ...source,
+      words: [{ ja: "傘", reading: "かさ", ko: "우산" }],
+    })["0"];
+    expect(card.words).toEqual([
+      { ja: "傘", reading: "かさ", ko: "우산", picture: "umbrella" },
+    ]);
+  });
+
   it("맞춘 문장도 아는 낱말도 없으면 카드를 두지 않는다", () => {
     expect(buildCards([ja("まったくべつのはなし")], source)).toEqual({});
   });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { WordPicture } from "@/components/pictures/word-picture";
 import { cn } from "@/lib/cn";
 import { KIND_LABEL } from "@/lib/ilmuta/labels";
 import { examplesOf } from "@/lib/ilmuta/steps";
@@ -92,6 +93,10 @@ function WordCard({
       onClick={onPress}
       className="flex h-full min-h-32 w-full flex-col items-center justify-center rounded-2xl bg-bg-raised px-2 py-4 text-center active:bg-bg-sunken lg:min-h-40 lg:hover:ring-1 lg:hover:ring-accent/50"
     >
+      {/* 그림은 뜻을 알려 주므로 뜻을 가렸을 때는 숨긴다 */}
+      {showMeaning ? (
+        <WordPicture ja={word.ja} size={56} className="mb-1" />
+      ) : null}
       <RubyText
         text={word.ja}
         reading={word.reading}

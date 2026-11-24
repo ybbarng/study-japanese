@@ -16,7 +16,8 @@
       "!.claude",
       "!media",
       "!content",
-      "!**/*.md"
+      "!**/*.md",
+      "!public/pictures"
     ]
   },
   "css": {

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200">
+  <!-- 뒤 창문 -->
+  <rect x="128" y="18" width="64" height="46" rx="4" fill="#79bde8" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M160 18v46M128 41h64" fill="none" stroke="#f6f2ea" stroke-width="2.5"/>
+  <!-- 바닥 그림자 -->
+  <ellipse cx="78" cy="188" rx="42" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <ellipse cx="160" cy="188" rx="44" ry="5" fill="#6c7280" fill-opacity="0.45"/>
+  <ellipse cx="244" cy="188" rx="42" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <!-- 탁자와 가방 -->
+  <path d="M128 124v62M192 124v62" fill="none" stroke="#a8714a" stroke-width="5" stroke-linecap="round"/>
+  <rect x="118" y="116" width="84" height="10" rx="4" fill="#d29a63" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M148 98c0-14 24-14 24 0" fill="none" stroke="#a8714a" stroke-width="4" stroke-linecap="round"/>
+  <rect x="140" y="96" width="40" height="20" rx="5" fill="#a8714a" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M156 104h8" fill="none" stroke="#f5c84c" stroke-width="3" stroke-linecap="round"/>
+  <!-- 왼쪽 사람: 우산을 내민다 -->
+  <path d="M44 186c0-48 14-78 34-78s34 30 34 78z" fill="#5fb36f"/>
+  <path d="M70 100h16v12H70z" fill="#e3a57f"/>
+  <path d="M54 76c0-22 10-30 24-30s24 8 24 30v24c0 6-6 10-12 10H66c-6 0-12-4-12-10z" fill="#5e4a6e"/>
+  <circle cx="78" cy="78" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M58 74c2-16 12-22 20-22 10 0 19 6 21 20-10-2-20-8-24-14-4 8-10 13-17 16z" fill="#5e4a6e"/>
+  <circle cx="71" cy="80" r="2.4" fill="#3a3040"/>
+  <circle cx="86" cy="80" r="2.4" fill="#3a3040"/>
+  <path d="M74 89q4 3 8 0" fill="none" stroke="#7a6a62" stroke-width="2" stroke-linecap="round"/>
+  <path d="M100 128l22-8" fill="none" stroke="#5fb36f" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="124" cy="119" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M108 156l34-80" fill="none" stroke="#a8714a" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M142 76l-22 40c4 4 10 6 16 6z" fill="#e8553e" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M108 156c-3 7 4 10 7 5" fill="none" stroke="#a8714a" stroke-width="3.5" stroke-linecap="round"/>
+  <!-- 오른쪽 사람: 자기를 가리킨다 -->
+  <path d="M210 186c0-48 14-78 34-78s34 30 34 78z" fill="#4a82d4"/>
+  <path d="M236 100h16v12h-16z" fill="#e3a57f"/>
+  <circle cx="244" cy="78" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M224 76c0-16 10-22 20-22s20 6 20 22c-6-6-14-9-22-8-8 1-14 4-18 8z" fill="#8a5a3c"/>
+  <circle cx="237" cy="80" r="2.4" fill="#3a3040"/>
+  <circle cx="252" cy="80" r="2.4" fill="#3a3040"/>
+  <path d="M238 88q6 6 12 0" fill="#b8402f" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M222 120l-6 22 22 2" fill="none" stroke="#3b62a8" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="242" cy="143" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M246 141l6-2" fill="none" stroke="#f3c9a4" stroke-width="4" stroke-linecap="round"/>
+  <!-- 말풍선: 누구 것? -->
+  <path d="M24 20h56a10 10 0 0 1 10 10v16a10 10 0 0 1-10 10H54l-10 10 2-10H24a10 10 0 0 1-10-10V30a10 10 0 0 1 10-10z" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M44 31q0-6 6-6t6 6q0 4-6 6v3" fill="none" stroke="#e8553e" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="50" cy="46" r="2" fill="#e8553e"/>
+  <path d="M28 38h8M64 38h8" fill="none" stroke="#a0a6b3" stroke-width="3" stroke-linecap="round"/>
+</svg>
