@@ -101,7 +101,9 @@ export function LessonAside({
       {/* 낱말 정보 창(PC)이 이 자리를 잠시 덮는다: 재생기 조작과 가운데 교재는 가리지 않는다 */}
       <div
         data-word-panel-slot
-        className="relative flex min-h-0 flex-1 flex-col gap-4"
+        // flex-auto: 안의 자막 목록이 잡은 높이에서 출발해 칸 최대 높이에 맞춰 줄어든다
+        // (flex-1은 기준 높이가 0이라 칸이 재생기 높이만큼에 머물고 목록이 3~4줄로 보였다)
+        className="relative flex min-h-0 flex-auto flex-col gap-4"
       >
         {section === "writing" ? (
           <WritingReference data={data} layout="panel" />
@@ -157,7 +159,9 @@ function LecturePanel({ data }: { data: LessonData }) {
         }
         // 이 강의가 소리 나고 있지 않으면 틀고(이미 올라 있으면 이어서), 소리가 나면 자막이 그 줄로 옮긴다
         onStart={() => play(lessonQueue(lesson), 0, false)}
-        className="min-h-40 flex-1"
+        // 칸 높이(화면 아래까지)를 다 쓰도록 크게 잡고 줄여 맞춘다. flex-1만으로는 칸 높이가
+        // 정해지지 않아 목록이 최소 높이(3~4줄)에 머물렀다
+        className="min-h-40 flex-1 basis-[80vh]"
       />
     </>
   );

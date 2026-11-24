@@ -6,9 +6,15 @@ import { stickyMaxHeight } from "@/lib/shell/sticky";
 
 /** 지금 화면에 보이는 재생 막대(폰 MiniBar·PC DockBar 가운데 보이는 것) */
 function visibleBar(): HTMLElement | null {
-  // 막대는 position: fixed라 offsetParent로는 못 가린다. 감춘 쪽(display: none)은 높이가 0
+  // 막대는 position: fixed라 offsetParent로는 못 가린다. 감춘 쪽(display: none)은 높이가 0.
+  // 화면 안 재생기(강 화면 곁칸 맨 위의 InlinePlayer)도 data-player-bar를 달지만 화면 아래에 떠
+  // 있지 않다. 그것을 막대로 보면 칸 끝을 그 재생기 위로 잡아 곁칸이 최소 높이(160px)로 줄었다
   for (const el of document.querySelectorAll<HTMLElement>("[data-player-bar]"))
-    if (el.getBoundingClientRect().height > 0) return el;
+    if (
+      el.getBoundingClientRect().height > 0 &&
+      getComputedStyle(el).position === "fixed"
+    )
+      return el;
   return null;
 }
 
