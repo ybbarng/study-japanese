@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 양복에 넥타이, 서류 가방 -->
+  <path d="M12 62c0-13 9-19 20-19s20 6 20 19z" fill="#3b62a8"/>
+  <path d="M26 43l6 10 6-10z" fill="#f6f2ea" stroke="#7a6a62" stroke-width="1.2" stroke-linejoin="round"/>
+  <path d="M32 46l-2 4 2 9 2-9z" fill="#e8553e"/>
+  <path d="M28 36h8v7h-8z" fill="#e3a57f"/>
+  <circle cx="32" cy="26" r="11" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M21 25c0-9 5-12 11-12s11 3 11 12c-2-3-5-5-9-5-1 2-4 4-13 5z" fill="#5e4a6e"/>
+  <circle cx="28" cy="27" r="1.6" fill="#3a3040"/>
+  <circle cx="36" cy="27" r="1.6" fill="#3a3040"/>
+  <path d="M29.5 31.5q2.5 2 5 0" fill="none" stroke="#7a6a62" stroke-width="1.6" stroke-linecap="round"/>
+  <rect x="44" y="48" width="16" height="12" rx="2" fill="#a8714a" stroke="#7a6a62" stroke-width="1.5"/>
+  <path d="M49 48v-3h6v3" fill="none" stroke="#7a6a62" stroke-width="1.5"/>
+  <path d="M44 53h16" fill="none" stroke="#7a6a62" stroke-width="1.2"/>
+</svg>

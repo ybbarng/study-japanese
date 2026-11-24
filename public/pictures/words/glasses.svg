@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 안경 -->
+  <path d="M6 28l-2-8M58 28l2-8" fill="none" stroke="#7a6a62" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="18" cy="34" r="12" fill="#79bde8" fill-opacity="0.5" stroke="#3b62a8" stroke-width="3.5"/>
+  <circle cx="46" cy="34" r="12" fill="#79bde8" fill-opacity="0.5" stroke="#3b62a8" stroke-width="3.5"/>
+  <path d="M30 32q2-3 4 0" fill="none" stroke="#3b62a8" stroke-width="3" stroke-linecap="round"/>
+  <path d="M12 30q3-4 7-4M40 30q3-4 7-4" fill="none" stroke="#f6f2ea" stroke-width="2" stroke-linecap="round"/>
+</svg>

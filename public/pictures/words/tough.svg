@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 무거운 상자를 지고 땀 흘리는 사람: 힘든 -->
+  <rect x="10" y="4" width="34" height="22" rx="2" fill="#d29a63" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M10 15h34M27 4v22" fill="none" stroke="#a8714a" stroke-width="2"/>
+  <path d="M14 26l2 8M40 26l-2 8" fill="none" stroke="#f3c9a4" stroke-width="4" stroke-linecap="round"/>
+  <path d="M10 64c0-13 7-19 17-19s17 6 17 19z" fill="#4a82d4"/>
+  <circle cx="27" cy="38" r="9" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M22 36l3 1M32 36l-3 1" fill="none" stroke="#3a3040" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M23 43q4-3 8 0" fill="none" stroke="#7a6a62" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M42 34q-3 4 0 6 3-2 0-6zM50 40q-3 4 0 6 3-2 0-6z" fill="#79bde8"/>
+  <path d="M48 20l6-2M50 28h7" fill="none" stroke="#a0a6b3" stroke-width="2" stroke-linecap="round"/>
+</svg>

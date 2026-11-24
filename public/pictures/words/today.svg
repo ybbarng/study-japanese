@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 달력 다섯 칸, 가운데(▼)가 오늘. 색칠한 칸: 오늘 -->
+  <path d="M28 12h8l-4 6z" fill="#3fb0a6"/>
+  <rect x="2" y="24" width="10" height="14" rx="2" fill="#a0a6b3"/>
+  <rect x="14.5" y="24" width="10" height="14" rx="2" fill="#a0a6b3"/>
+  <rect x="26.5" y="21" width="11" height="18" rx="2" fill="#f5c84c" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M26.5 23a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v3h-11z" fill="#e8553e"/>
+  <rect x="39.5" y="24" width="10" height="14" rx="2" fill="#a0a6b3"/>
+  <rect x="52" y="24" width="10" height="14" rx="2" fill="#a0a6b3"/>
+  <path d="M4 48h54M53 44l5 4-5 4" fill="none" stroke="#6c7280" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

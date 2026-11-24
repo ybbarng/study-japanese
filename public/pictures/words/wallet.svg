@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 지폐가 삐져나온 지갑 -->
+  <rect x="12" y="12" width="34" height="18" rx="2" fill="#5fb36f" stroke="#7a6a62" stroke-width="1.8" transform="rotate(-8 29 21)"/>
+  <rect x="6" y="20" width="52" height="34" rx="6" fill="#a8714a" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M40 30h18v14H40a7 7 0 0 1 0-14z" fill="#d29a63" stroke="#7a6a62" stroke-width="2"/>
+  <circle cx="42" cy="37" r="2.5" fill="#f5c84c"/>
+</svg>

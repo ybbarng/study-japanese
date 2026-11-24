@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 어깨가 처지고 먹구름이 낀 사람: 아쉬운·유감스러운 -->
+  <path d="M18 18a7 7 0 0 1 2-13 9 9 0 0 1 17 1 6 6 0 0 1 2 12z" fill="#6c7280" stroke="#7a6a62" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M22 22l-1 4M30 22l-1 4M36 22l-1 4" fill="none" stroke="#79bde8" stroke-width="2" stroke-linecap="round"/>
+  <path d="M12 64c2-11 9-16 20-16s18 5 20 16z" fill="#4a82d4"/>
+  <circle cx="32" cy="40" r="10" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M22 40c0-8 4-11 10-11s10 3 10 11c-3-3-7-5-12-4-3 0-5 2-8 4z" fill="#8a5a3c"/>
+  <path d="M27 42q2 1.5 4 0M33 42q2 1.5 4 0" fill="none" stroke="#3a3040" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M29 47q3-2 6 0" fill="none" stroke="#7a6a62" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M44 34q-3 4 0 6 3-2 0-6z" fill="#79bde8"/>
+</svg>

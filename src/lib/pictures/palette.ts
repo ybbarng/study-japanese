@@ -23,6 +23,7 @@ export const PALETTE = {
   green: "#5fb36f",
   greenDark: "#3d8a50",
   teal: "#3fb0a6",
+  tealDark: "#2f8f86",
   sky: "#79bde8",
   blue: "#4a82d4",
   blueDark: "#3b62a8",

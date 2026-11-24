@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 구두 한 켤레 -->
+  <path d="M4 46c0-6 2-12 4-16h10c2 5 6 7 12 8 4 1 6 3 6 8v4H4z" fill="#a8714a" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M4 50h32" fill="none" stroke="#7a6a62" stroke-width="3" stroke-linecap="round"/>
+  <path d="M26 40c0-6 2-12 4-16h10c2 5 6 7 12 8 4 1 6 3 6 8v4H26z" fill="#e8553e" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M26 44h32" fill="none" stroke="#7a6a62" stroke-width="3" stroke-linecap="round"/>
+  <path d="M40 30l-3 4M44 32l-3 4" fill="none" stroke="#f6f2ea" stroke-width="1.8" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 별 아래 선 사람에게 사진기 불빛이 쏟아진다: 유명한 -->
+  <path d="M32 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z" fill="#f5c84c" stroke="#7a6a62" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M18 64c0-12 6-18 14-18s14 6 14 18z" fill="#e8553e"/>
+  <circle cx="32" cy="36" r="9" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M23 35c1-6 4-9 9-9s8 3 9 9c-5-1-8-3-10-6-2 3-4 5-8 6z" fill="#5e4a6e"/>
+  <path d="M28 36q1.5-1.5 3 0M33 36q1.5-1.5 3 0" fill="none" stroke="#3a3040" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M29 40q3 3 6 0" fill="none" stroke="#7a6a62" stroke-width="1.5" stroke-linecap="round"/>
+  <rect x="2" y="40" width="12" height="9" rx="2" fill="#6c7280" stroke="#7a6a62" stroke-width="1.5"/>
+  <rect x="50" y="40" width="12" height="9" rx="2" fill="#6c7280" stroke="#7a6a62" stroke-width="1.5"/>
+  <path d="M8 34l1-5M3 35l-2-3M13 35l2-3M56 34l-1-5M51 35l-2-3M61 35l2-3" fill="none" stroke="#f5c84c" stroke-width="2" stroke-linecap="round"/>
+</svg>

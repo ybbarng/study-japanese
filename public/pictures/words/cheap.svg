@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 가격표와 아래로 내려가는 화살표, 동전 하나: 싸다 -->
+  <path d="M6 30L30 6h20v20L26 50z" fill="#f5c84c" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <circle cx="42" cy="14" r="3.5" fill="#f6f2ea" stroke="#7a6a62" stroke-width="1.5"/>
+  <circle cx="26" cy="30" r="7" fill="#f0923a" stroke="#7a6a62" stroke-width="1.5"/>
+  <circle cx="26" cy="30" r="3" fill="none" stroke="#fbe7b0" stroke-width="1.5"/>
+  <path d="M52 34v24M44 50l8 8 8-8" fill="none" stroke="#5fb36f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

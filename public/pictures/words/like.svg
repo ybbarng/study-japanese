@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 하트를 꼭 안은 사람: 좋아하는 -->
+  <path d="M10 64c0-13 9-19 22-19s22 6 22 19z" fill="#f4a0b8"/>
+  <circle cx="32" cy="24" r="12" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M20 23c0-9 5-13 12-13s12 4 12 13c-4-4-9-6-15-5-3 0-7 2-9 5z" fill="#8a5a3c"/>
+  <path d="M26 24q2-2 4 0M34 24q2-2 4 0" fill="none" stroke="#3a3040" stroke-width="1.8" stroke-linecap="round"/>
+  <circle cx="25" cy="29" r="2" fill="#f4a0b8"/>
+  <circle cx="39" cy="29" r="2" fill="#f4a0b8"/>
+  <path d="M29 30q3 2.5 6 0" fill="none" stroke="#7a6a62" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M32 46c-4-6-13-4-12 3 1 6 12 12 12 12s11-6 12-12c1-7-8-9-12-3z" fill="#e8553e" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M16 52q4 6 10 6M48 52q-4 6-10 6" fill="none" stroke="#f3c9a4" stroke-width="4" stroke-linecap="round"/>
+</svg>

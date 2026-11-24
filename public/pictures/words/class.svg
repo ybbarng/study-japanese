@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 칠판 앞 선생님과 책상에 앉은 학생 둘: 수업 -->
+  <rect x="4" y="4" width="40" height="22" rx="2" fill="#3d8a50" stroke="#a8714a" stroke-width="2.5"/>
+  <path d="M9 11h14M9 18h22" fill="none" stroke="#f6f2ea" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="52" cy="12" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.8"/>
+  <path d="M43 32c0-8 4-12 9-12s9 4 9 12z" fill="#9b72c9"/>
+  <path d="M44 22l-6-6" fill="none" stroke="#a8714a" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="16" cy="40" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.8"/>
+  <path d="M10 39c0-4 3-6 6-6s6 2 6 6c-2-2-4-3-7-2-2 0-3 1-5 2z" fill="#8a5a3c"/>
+  <circle cx="40" cy="40" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.8"/>
+  <path d="M34 40c0-5 3-7 6-7s6 2 6 7v4h-12z" fill="#5e4a6e"/>
+  <circle cx="40" cy="40" r="6" fill="none" stroke="#7a6a62" stroke-width="1.8"/>
+  <path d="M7 54c0-6 4-9 9-9s9 3 9 9zM31 54c0-6 4-9 9-9s9 3 9 9z" fill="#4a82d4"/>
+  <path d="M4 52h56" fill="none" stroke="#a8714a" stroke-width="4" stroke-linecap="round"/>
+  <path d="M10 52v10M54 52v10" fill="none" stroke="#a8714a" stroke-width="3" stroke-linecap="round"/>
+</svg>

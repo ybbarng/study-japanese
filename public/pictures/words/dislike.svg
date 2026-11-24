@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 얼굴을 찡그리고 손바닥을 내밀어 막는다: 싫어하는·싫은 -->
+  <path d="M8 64c0-13 8-19 19-19s19 6 19 19z" fill="#6c7280"/>
+  <circle cx="27" cy="28" r="12" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M15 27c0-9 5-13 12-13s12 4 12 13c-4-4-9-6-15-5-3 0-7 2-9 5z" fill="#8a5a3c"/>
+  <path d="M20 26l4 2-4 2M34 26l-4 2 4 2" fill="none" stroke="#3a3040" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M22 36q2-2 5 0t5 0" fill="none" stroke="#7a6a62" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M42 52l8-12" fill="none" stroke="#6c7280" stroke-width="6" stroke-linecap="round"/>
+  <path d="M46 40v-9a2 2 0 0 1 4 0v-3a2 2 0 0 1 4 0v2a2 2 0 0 1 4 0v4a2 2 0 0 1 4 0v8c0 5-3 8-8 8h-2c-4 0-6-3-6-6z" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.6" stroke-linejoin="round"/>
+  <path d="M44 6l14 14M58 6L44 20" fill="none" stroke="#e8553e" stroke-width="4" stroke-linecap="round"/>
+</svg>

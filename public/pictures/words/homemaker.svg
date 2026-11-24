@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 앞치마를 두르고 국자를 든 사람 -->
+  <path d="M19 28c0-11 6-15 13-15s13 4 13 15v10c0 3-3 5-6 5H25c-3 0-6-2-6-5z" fill="#8a5a3c"/>
+  <path d="M14 62c0-13 8-19 18-19s18 6 18 19z" fill="#5fb36f"/>
+  <path d="M23 48h18l2 14H21z" fill="#f4a0b8" stroke="#7a6a62" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M23 48l-2-5M41 48l2-5" fill="none" stroke="#f4a0b8" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M28 52h8v4h-8z" fill="#f6f2ea" stroke="#7a6a62" stroke-width="1"/>
+  <path d="M28 37h8v6h-8z" fill="#e3a57f"/>
+  <circle cx="32" cy="27" r="11" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M21 25c1-7 6-11 11-11 6 0 10 4 11 11-6-1-11-4-13-8-2 4-5 7-9 8z" fill="#8a5a3c"/>
+  <circle cx="28" cy="28" r="1.6" fill="#3a3040"/>
+  <circle cx="36" cy="28" r="1.6" fill="#3a3040"/>
+  <path d="M29 32.5q3 2.5 6 0" fill="none" stroke="#7a6a62" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M52 30v20" fill="none" stroke="#a0a6b3" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M46 28a6 5 0 0 0 12 0z" fill="#a0a6b3" stroke="#7a6a62" stroke-width="1.5" stroke-linejoin="round"/>
+  <circle cx="51" cy="51" r="3" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.5"/>
+</svg>

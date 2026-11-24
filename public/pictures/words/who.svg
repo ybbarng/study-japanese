@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 얼굴을 모르는 사람 그림자와 물음표: 누구 -->
+  <path d="M10 62c0-13 8-19 18-19s18 6 18 19z" fill="#6c7280"/>
+  <circle cx="28" cy="28" r="12" fill="#6c7280"/>
+  <path d="M43 15q0-8 8-8t8 8q0 5-7 8v4" fill="none" stroke="#e8553e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="52" cy="34" r="2.6" fill="#e8553e"/>
+</svg>

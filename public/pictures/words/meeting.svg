@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 탁자를 둘러앉은 사람들과 발표 화면: 회의 -->
+  <rect x="18" y="4" width="28" height="16" rx="1.5" fill="#f6f2ea" stroke="#7a6a62" stroke-width="1.8"/>
+  <path d="M23 15v-4M29 15V9M35 15v-6M41 15v-3" fill="none" stroke="#4a82d4" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="10" cy="30" r="5" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.6"/>
+  <circle cx="54" cy="30" r="5" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.6"/>
+  <path d="M3 46c0-7 3-10 7-10s7 3 7 10zM47 46c0-7 3-10 7-10s7 3 7 10z" fill="#3b62a8"/>
+  <circle cx="24" cy="54" r="5" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.6"/>
+  <circle cx="40" cy="54" r="5" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.6"/>
+  <ellipse cx="32" cy="40" rx="20" ry="8" fill="#d29a63" stroke="#7a6a62" stroke-width="2"/>
+  <rect x="22" y="36" width="7" height="5" rx="1" fill="#f6f2ea"/>
+  <rect x="35" y="38" width="7" height="5" rx="1" fill="#f6f2ea"/>
+  <path d="M17 64c0-4 3-6 7-6s7 2 7 6zM33 64c0-4 3-6 7-6s7 2 7 6z" fill="#9b72c9"/>
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 턱을 괴고 생각 풍선을 띄운 사람: 생각하다 -->
+  <path d="M38 6h18a6 6 0 0 1 0 12H38a6 6 0 0 1 0-12z" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <circle cx="41" cy="12" r="1.8" fill="#a0a6b3"/>
+  <circle cx="47" cy="12" r="1.8" fill="#a0a6b3"/>
+  <circle cx="53" cy="12" r="1.8" fill="#a0a6b3"/>
+  <circle cx="34" cy="22" r="2.5" fill="#f6f2ea" stroke="#7a6a62" stroke-width="1.5"/>
+  <circle cx="30" cy="27" r="1.6" fill="#f6f2ea" stroke="#7a6a62" stroke-width="1.2"/>
+  <path d="M6 64c0-13 7-19 18-19s18 6 18 19z" fill="#3fb0a6"/>
+  <circle cx="24" cy="34" r="11" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M13 33c0-9 5-12 11-12s11 3 11 12c-3-4-8-6-14-5-3 0-6 2-8 5z" fill="#8a5a3c"/>
+  <path d="M20 33h3M27 32l3-1" fill="none" stroke="#3a3040" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M22 40h5" fill="none" stroke="#7a6a62" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M40 62c0-8-3-14-8-18" fill="none" stroke="#3fb0a6" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="30" cy="44" r="4" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.6"/>
+</svg>

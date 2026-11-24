@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 해·구름·빗방울을 함께: 날씨 -->
+  <circle cx="22" cy="22" r="11" fill="#f5c84c"/>
+  <path d="M22 4v4M22 36v4M4 22h4M36 22h4M9 9l3 3M32 32l3 3M35 9l-3 3M9 35l3-3" fill="none" stroke="#f5c84c" stroke-width="3" stroke-linecap="round"/>
+  <path d="M24 46a9 9 0 0 1 3-17 12 12 0 0 1 23 2 8 8 0 0 1 2 15z" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M30 51l-2 5M40 51l-2 5M50 51l-2 5" fill="none" stroke="#4a82d4" stroke-width="3" stroke-linecap="round"/>
+</svg>

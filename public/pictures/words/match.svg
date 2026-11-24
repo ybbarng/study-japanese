@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 공을 사이에 두고 마주 선 두 편의 선수: 시합 -->
+  <path d="M2 64c0-12 5-18 11-18s11 6 11 18z" fill="#e8553e"/>
+  <circle cx="13" cy="36" r="7" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.8"/>
+  <path d="M6 35c0-5 3-8 7-8s7 3 7 8c-2-3-5-4-8-3-2 0-4 1-6 3z" fill="#8a5a3c"/>
+  <path d="M40 64c0-12 5-18 11-18s11 6 11 18z" fill="#4a82d4"/>
+  <circle cx="51" cy="36" r="7" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.8"/>
+  <path d="M44 35c0-5 3-8 7-8s7 3 7 8c-2-3-5-4-8-3-2 0-4 1-6 3z" fill="#5e4a6e"/>
+  <circle cx="32" cy="52" r="8" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M32 47l4 3-1.5 5h-5L28 50z" fill="#6c7280"/>
+  <path d="M8 6v20M8 6l10 4-10 4" fill="#e8553e" stroke="#e8553e" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M56 6v20M56 6l-10 4 10 4" fill="#4a82d4" stroke="#4a82d4" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M26 16l12 0M30 12l-4 4 4 4M34 12l4 4-4 4" fill="none" stroke="#f5c84c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

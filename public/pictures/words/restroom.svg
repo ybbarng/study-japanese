@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 남녀 표시가 있는 화장실 문 -->
+  <rect x="6" y="6" width="52" height="52" rx="6" fill="#4a82d4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M32 12v40" fill="none" stroke="#f6f2ea" stroke-width="2"/>
+  <circle cx="19" cy="18" r="4" fill="#f6f2ea"/>
+  <path d="M13 26h12v14h-3v10h-6V40h-3z" fill="#f6f2ea"/>
+  <circle cx="45" cy="18" r="4" fill="#f6f2ea"/>
+  <path d="M41 26h8l5 16h-4v8h-8v-8h-4z" fill="#f6f2ea"/>
+</svg>

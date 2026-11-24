@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 접수대 뒤의 직원과 호출 벨 -->
+  <path d="M18 40c0-10 6-15 14-15s14 5 14 15z" fill="#3fb0a6"/>
+  <circle cx="32" cy="17" r="9" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M23 16c1-6 4-9 9-9s8 3 9 9c-5-1-8-3-10-6-2 3-4 5-8 6z" fill="#8a5a3c"/>
+  <circle cx="29" cy="18" r="1.4" fill="#3a3040"/>
+  <circle cx="35" cy="18" r="1.4" fill="#3a3040"/>
+  <path d="M30 21.5q2 1.6 4 0" fill="none" stroke="#7a6a62" stroke-width="1.5" stroke-linecap="round"/>
+  <rect x="4" y="38" width="56" height="22" rx="2" fill="#d29a63" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M4 44h56" fill="none" stroke="#a8714a" stroke-width="2"/>
+  <path d="M42 38a6 6 0 0 1 12 0z" fill="#f5c84c" stroke="#7a6a62" stroke-width="1.5"/>
+  <path d="M48 31v1" fill="none" stroke="#7a6a62" stroke-width="2.5" stroke-linecap="round"/>
+  <rect x="12" y="33" width="14" height="5" rx="1" fill="#f6f2ea" stroke="#7a6a62" stroke-width="1.2"/>
+</svg>

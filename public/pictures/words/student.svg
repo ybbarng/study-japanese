@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 가방을 멘 학생 -->
+  <path d="M14 62c0-13 8-19 18-19s18 6 18 19z" fill="#4a82d4"/>
+  <path d="M22 46l4 16M42 46l-4 16" fill="none" stroke="#f0923a" stroke-width="3" stroke-linecap="round"/>
+  <path d="M28 37h8v7h-8z" fill="#e3a57f"/>
+  <circle cx="32" cy="27" r="11" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M21 26c0-9 5-12 11-12s11 3 11 12c-3-4-8-6-14-5-3 0-6 2-8 5z" fill="#8a5a3c"/>
+  <circle cx="28" cy="28" r="1.6" fill="#3a3040"/>
+  <circle cx="36" cy="28" r="1.6" fill="#3a3040"/>
+  <path d="M29 32.5q3 2.5 6 0" fill="none" stroke="#7a6a62" stroke-width="1.6" stroke-linecap="round"/>
+  <rect x="26" y="50" width="16" height="11" rx="1.5" fill="#5fb36f" stroke="#7a6a62" stroke-width="1.5"/>
+  <path d="M34 50v11" fill="none" stroke="#3d8a50" stroke-width="1.5"/>
+</svg>

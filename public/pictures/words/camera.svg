@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 사진기 -->
+  <path d="M22 18l4-6h12l4 6z" fill="#6c7280" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <rect x="6" y="18" width="52" height="34" rx="5" fill="#a0a6b3" stroke="#7a6a62" stroke-width="2"/>
+  <circle cx="32" cy="35" r="12" fill="#6c7280" stroke="#7a6a62" stroke-width="2"/>
+  <circle cx="32" cy="35" r="7" fill="#3b62a8"/>
+  <circle cx="29" cy="32" r="2" fill="#f6f2ea"/>
+  <rect x="46" y="22" width="7" height="4" rx="1" fill="#f5c84c"/>
+  <rect x="10" y="22" width="6" height="3" rx="1" fill="#e8553e"/>
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 손잡이 달린 가방 -->
+  <path d="M22 24c0-14 20-14 20 0" fill="none" stroke="#a8714a" stroke-width="4" stroke-linecap="round"/>
+  <path d="M10 24h44l-4 34H14z" fill="#a8714a" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M11 34h42" fill="none" stroke="#7a6a62" stroke-width="1.8"/>
+  <rect x="27" y="31" width="10" height="7" rx="1.5" fill="#f5c84c" stroke="#7a6a62" stroke-width="1.5"/>
+</svg>

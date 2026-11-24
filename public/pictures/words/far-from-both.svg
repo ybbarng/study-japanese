@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 두 사람 모두에게서 먼 것: あ(저것·저기·저쪽) -->
+  <path d="M0 64c0-10 5-15 12-15s12 5 12 15z" fill="#f0923a"/>
+  <circle cx="12" cy="40" r="7.5" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.8"/>
+  <path d="M4.5 39c0-6 3-8 7.5-8s7.5 2 7.5 8c-2-3-5-4-9-3-2 0-4 1-6 3z" fill="#8a5a3c"/>
+  <path d="M22 64c0-9 4-13 10-13s10 4 10 13z" fill="#a0a6b3"/>
+  <circle cx="32" cy="44" r="6.5" fill="#f6f2ea" stroke="#7a6a62" stroke-width="1.8"/>
+  <path d="M19 50l8-10" fill="none" stroke="#f0923a" stroke-width="4" stroke-linecap="round"/>
+  <path d="M30 34l20-18" fill="none" stroke="#e8553e" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 3"/>
+  <path d="M40 26h24" fill="none" stroke="#6c7280" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="55" cy="12" r="5" fill="#e8553e" stroke="#7a6a62" stroke-width="1.8"/>
+</svg>

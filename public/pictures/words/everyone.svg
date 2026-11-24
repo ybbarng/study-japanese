@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 세 사람이 함께: 모두 -->
+  <path d="M0 62c0-10 5-15 12-15s12 5 12 15z" fill="#5fb36f"/>
+  <circle cx="12" cy="38" r="7.5" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.8"/>
+  <path d="M4.5 37c0-6 3-8 7.5-8s7.5 2 7.5 8c-2-3-5-4-9-3-2 0-4 1-6 3z" fill="#8a5a3c"/>
+  <path d="M40 62c0-10 5-15 12-15s12 5 12 15z" fill="#f0923a"/>
+  <path d="M44 38c0-7 3-10 8-10s8 3 8 10v6H44z" fill="#5e4a6e"/>
+  <circle cx="52" cy="38" r="7.5" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.8"/>
+  <path d="M45 37c1-5 3-7 7-7s6 2 7 7c-4-1-7-2-8-5-1 2-3 4-6 5z" fill="#5e4a6e"/>
+  <path d="M18 62c0-12 6-17 14-17s14 5 14 17z" fill="#4a82d4"/>
+  <circle cx="32" cy="33" r="9" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M23 32c0-7 4-10 9-10s9 3 9 10c-3-3-7-5-12-4-2 0-4 2-6 4z" fill="#a8714a"/>
+  <circle cx="29" cy="34" r="1.4" fill="#3a3040"/>
+  <circle cx="35" cy="34" r="1.4" fill="#3a3040"/>
+  <path d="M30 37.5q2 1.6 4 0" fill="none" stroke="#7a6a62" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

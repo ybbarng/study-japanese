@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 달력과 시계에 물음표: 언제 -->
+  <rect x="4" y="12" width="36" height="34" rx="3" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M4 15a3 3 0 0 1 3-3h30a3 3 0 0 1 3 3v6H4z" fill="#e8553e"/>
+  <path d="M12 8v8M32 8v8" fill="none" stroke="#7a6a62" stroke-width="3" stroke-linecap="round"/>
+  <path d="M10 28h5M19 28h5M28 28h5M10 36h5M19 36h5" fill="none" stroke="#a0a6b3" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="44" cy="44" r="14" fill="#f5c84c" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M39 40q0-6 5-6t5 6q0 4-5 5v3" fill="none" stroke="#e8553e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="44" cy="53" r="1.8" fill="#e8553e"/>
+</svg>

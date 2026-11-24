@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 주소창이 있는 누리집 창 -->
+  <rect x="4" y="8" width="56" height="48" rx="4" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M4 12a4 4 0 0 1 4-4h48a4 4 0 0 1 4 4v8H4z" fill="#a0a6b3"/>
+  <circle cx="10" cy="14" r="2" fill="#e8553e"/>
+  <circle cx="16" cy="14" r="2" fill="#f5c84c"/>
+  <circle cx="22" cy="14" r="2" fill="#5fb36f"/>
+  <rect x="28" y="11" width="28" height="6" rx="3" fill="#f6f2ea"/>
+  <rect x="10" y="26" width="20" height="16" rx="1.5" fill="#79bde8"/>
+  <path d="M10 42l7-8 5 5 3-3 5 6z" fill="#5fb36f"/>
+  <path d="M35 28h19M35 34h19M35 40h12M10 48h44" fill="none" stroke="#a0a6b3" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

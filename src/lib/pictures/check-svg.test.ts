@@ -50,6 +50,15 @@ describe("checkSvg", () => {
     ]);
   });
 
+  it("굵기·투명도가 0인 보이지 않는 도형을 알린다", () => {
+    const svg = word(
+      `<path d="M1 1h4" fill="none" stroke="${PALETTE.line}" stroke-width="0"/>`,
+    );
+    expect(checkSvg(svg, "words")).toEqual([
+      "보이지 않는 도형(굵기·투명도 0)을 남기지 않는다",
+    ]);
+  });
+
   it("크기 상한을 넘으면 알린다", () => {
     const big = `<path d="M0 0${"h1".repeat(3000)}" fill="none" stroke="${PALETTE.line}"/>`;
     expect(checkSvg(word(big), "words")[0]).toMatch(

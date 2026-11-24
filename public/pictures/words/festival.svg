@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 줄에 걸린 붉은 초롱과 큰북: 축제 -->
+  <path d="M0 8q32 14 64 0" fill="none" stroke="#7a6a62" stroke-width="2"/>
+  <ellipse cx="12" cy="20" rx="7" ry="9" fill="#e8553e" stroke="#7a6a62" stroke-width="1.6"/>
+  <ellipse cx="32" cy="24" rx="7" ry="9" fill="#e8553e" stroke="#7a6a62" stroke-width="1.6"/>
+  <ellipse cx="52" cy="20" rx="7" ry="9" fill="#e8553e" stroke="#7a6a62" stroke-width="1.6"/>
+  <path d="M7 16h10M7 24h10M27 20h10M27 28h10M47 16h10M47 24h10" fill="none" stroke="#b8402f" stroke-width="1.5"/>
+  <path d="M12 11v-1M32 15v-3M52 11v-1" fill="none" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M18 44c0-6 6-8 14-8s14 2 14 8v8c0 6-6 8-14 8s-14-2-14-8z" fill="#a8714a" stroke="#7a6a62" stroke-width="2"/>
+  <ellipse cx="32" cy="44" rx="14" ry="5" fill="#fbe7b0" stroke="#7a6a62" stroke-width="1.8"/>
+  <path d="M10 34l14 8M54 34l-14 8" fill="none" stroke="#d29a63" stroke-width="3" stroke-linecap="round"/>
+</svg>

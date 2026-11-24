@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 깃이 선 교복(가쿠란)에 금단추, 아직 앳된 학생 -->
+  <path d="M17 62c0-11 7-16 15-16s15 5 15 16z" fill="#3b62a8"/>
+  <path d="M27 46h10v4H27z" fill="#3b62a8" stroke="#7a6a62" stroke-width="1.2"/>
+  <circle cx="32" cy="54" r="1.6" fill="#f5c84c"/>
+  <circle cx="32" cy="59" r="1.6" fill="#f5c84c"/>
+  <path d="M28.5 40h7v6h-7z" fill="#e3a57f"/>
+  <circle cx="32" cy="31" r="11" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M21 30c0-9 5-12 11-12s11 3 11 12c-2-4-6-5-11-5s-9 1-11 5z" fill="#5e4a6e"/>
+  <circle cx="28" cy="32" r="1.6" fill="#3a3040"/>
+  <circle cx="36" cy="32" r="1.6" fill="#3a3040"/>
+  <path d="M29.5 36.5q2.5 2 5 0" fill="none" stroke="#7a6a62" stroke-width="1.6" stroke-linecap="round"/>
+</svg>

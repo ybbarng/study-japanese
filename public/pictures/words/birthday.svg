@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 촛불을 꽂은 생일 케이크 -->
+  <path d="M22 8q-3 4 0 6 3-2 0-6zM32 6q-3 4 0 6 3-2 0-6zM42 8q-3 4 0 6 3-2 0-6z" fill="#f0923a"/>
+  <path d="M22 16v10M32 14v12M42 16v10" fill="none" stroke="#79bde8" stroke-width="3" stroke-linecap="round"/>
+  <rect x="10" y="26" width="44" height="14" rx="3" fill="#f4a0b8" stroke="#7a6a62" stroke-width="2"/>
+  <rect x="6" y="40" width="52" height="18" rx="3" fill="#fbe7b0" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M6 46c5 4 8-3 13 0s8 4 13 0 8-3 13 0 8 4 13 0" fill="none" stroke="#f4a0b8" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="18" cy="32" r="2" fill="#e8553e"/>
+  <circle cx="32" cy="33" r="2" fill="#e8553e"/>
+  <circle cx="46" cy="32" r="2" fill="#e8553e"/>
+</svg>
