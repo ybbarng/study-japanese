@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { type KeyboardEvent, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { wordHref } from "@/components/dictionary/word-href";
+import { toKeyInput } from "@/components/keyboard/key-input";
 import { Ruby } from "@/components/songs/line-words";
 import { dictKey } from "@/lib/dictionary/entries";
 import { lessonLabel } from "@/lib/ilmuta/labels";
@@ -11,6 +13,7 @@ import { type LearnedIndex, learnedLessonOf } from "@/lib/songs/learned";
 import { naverDictUrl, posLabel, wordRuby } from "@/lib/songs/words";
 import type { HelpMode } from "@/lib/word-tap/help-mode";
 import { particleNote } from "@/lib/word-tap/kana-info";
+import { panelKeyFor } from "@/lib/word-tap/panel-keys";
 import { kanaForm, neighborToken, type TapToken } from "@/lib/word-tap/tokens";
 import { CharBreakdown } from "./char-breakdown";
 
@@ -26,9 +29,64 @@ interface Props {
   onClose: () => void;
 }
 
+/** 폰(또는 자리가 없는 화면): 아래에서 올라오는 시트, PC는 오른쪽 위에 뜨는 창 */
+const FLOATING =
+  "fixed inset-x-0 bottom-0 z-50 max-h-[72dvh] overflow-y-auto rounded-t-3xl border border-line bg-bg-raised px-5 pt-4 pb-[max(env(safe-area-inset-bottom),1.25rem)] shadow-2xl outline-none lg:inset-x-auto lg:top-20 lg:right-6 lg:bottom-auto lg:max-h-[calc(100dvh-7rem)] lg:w-[26rem] lg:rounded-3xl lg:pb-5";
+
+/** PC 강 화면: 오른쪽 칸의 재생기 아래(지금 하는 말·자막 자리)를 잠시 덮는다 */
+const IN_SLOT =
+  "absolute inset-x-0 top-0 z-20 min-h-full overflow-y-auto rounded-3xl border border-line bg-bg-raised px-5 pt-4 pb-5 shadow-xl outline-none";
+
+/** lg(64rem) 이상이고 강 화면 오른쪽 칸에 창 자리가 보이면 그 자리 */
+function findSlot(): HTMLElement | null {
+  if (typeof window === "undefined") return null;
+  if (!window.matchMedia("(min-width: 64rem)").matches) return null;
+  const el = document.querySelector<HTMLElement>("[data-word-panel-slot]");
+  return el && el.getClientRects().length > 0 ? el : null;
+}
+
 /**
- * 누른 낱말(또는 글자)의 정보 창. 폰은 아래에서 올라오는 시트, PC는 오른쪽에 뜨는 창.
- * 키보드: Esc 닫기, ←·→ 앞뒤 낱말. 열리면 창에 초점이 온다.
+ * 창을 둘 곳. 창은 누른 뒤에야 그려지므로(서버에서 그리지 않는다) 처음 값을 바로 잰다.
+ * 창 넓이가 lg 경계를 넘나들면 다시 정한다.
+ */
+function usePanelSlot(): HTMLElement | null {
+  const [slot, setSlot] = useState<HTMLElement | null>(findSlot);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 64rem)");
+    const update = () => setSlot(findSlot());
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  return slot;
+}
+
+/** 자리 안에 띄운 창이 화면 아래로 넘치지 않게: 자리 위쪽부터 화면 끝까지 */
+function useSlotMaxHeight(slot: HTMLElement | null): number | null {
+  const [h, setH] = useState<number | null>(null);
+  useEffect(() => {
+    if (!slot) return;
+    const measure = () =>
+      setH(
+        Math.max(
+          240,
+          window.innerHeight - slot.getBoundingClientRect().top - 16,
+        ),
+      );
+    measure();
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", measure, { passive: true });
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", measure);
+    };
+  }, [slot]);
+  return h;
+}
+
+/**
+ * 누른 낱말(또는 글자)의 정보 창. 폰은 아래에서 올라오는 시트, PC 강 화면은 오른쪽 칸의 재생기 아래를
+ * 덮는 창(재생 조작과 가운데 교재는 가리지 않는다).
+ * 키보드: 창이 열려 있는 동안 Esc 닫기, ←·→ 앞뒤 낱말(닫히면 ←·→는 다시 재생기 5초 옮기기). 열리면 창에 초점이 온다.
  */
 export function WordPanel({
   tokens,
@@ -45,41 +103,46 @@ export function WordPanel({
   const prev = neighborToken(tokens, index, -1);
   const next = neighborToken(tokens, index, 1);
 
+  const slot = usePanelSlot();
+  const maxHeight = useSlotMaxHeight(slot);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: 창이 자리를 옮기면(새 요소) 다시 초점을 준다
   useEffect(() => {
     ref.current?.focus({ preventScroll: true });
-  }, []);
+  }, [slot]);
 
-  // 초점이 창 밖에 있어도 Esc로 닫는다(재생기 단축키보다 먼저)
+  // 초점이 창 밖(본문·재생기 단추)에 있어도 창이 열려 있으면 Esc·←·→는 창의 일이다.
+  // 붙잡기 단계에서 먼저 받아 재생기의 5초 옮기기로 넘어가지 않게 한다
+  const latest = useRef({ prev, next, onMove, onClose });
+  latest.current = { prev, next, onMove, onClose };
   useEffect(() => {
     const onKey = (e: globalThis.KeyboardEvent) => {
-      if (e.key !== "Escape" || e.defaultPrevented) return;
+      if (e.defaultPrevented) return;
+      const action = panelKeyFor(toKeyInput(e));
+      if (!action) return;
       e.preventDefault();
-      onClose();
+      const h = latest.current;
+      if (action === "close") h.onClose();
+      else {
+        const to = action === "prev" ? h.prev : h.next;
+        if (to !== null) h.onMove(to);
+      }
     };
     window.addEventListener("keydown", onKey, true);
     return () => window.removeEventListener("keydown", onKey, true);
-  }, [onClose]);
-
-  const onKeyDown = (e: KeyboardEvent) => {
-    if (e.altKey || e.ctrlKey || e.metaKey) return;
-    const to =
-      e.key === "ArrowLeft" ? prev : e.key === "ArrowRight" ? next : null;
-    if (to === null) return;
-    // 재생기의 5초 옮기기보다 먼저 받는다
-    e.preventDefault();
-    onMove(to);
-  };
+  }, []);
 
   if (!token) return null;
-  return (
+  const panel = (
     <div
       ref={ref}
       role="dialog"
       aria-label={token.charOnly ? "글자 설명" : "낱말 설명"}
       tabIndex={-1}
-      onKeyDown={onKeyDown}
       data-word-panel
-      className="fixed inset-x-0 bottom-0 z-50 max-h-[72dvh] overflow-y-auto rounded-t-3xl border border-line bg-bg-raised px-5 pt-4 pb-[max(env(safe-area-inset-bottom),1.25rem)] shadow-2xl outline-none lg:inset-x-auto lg:top-20 lg:right-6 lg:bottom-auto lg:max-h-[calc(100dvh-7rem)] lg:w-[26rem] lg:rounded-3xl lg:pb-5"
+      data-word-panel-place={slot ? "aside" : "float"}
+      style={slot && maxHeight ? { maxHeight } : undefined}
+      className={slot ? IN_SLOT : FLOATING}
     >
       <div
         aria-hidden
@@ -128,6 +191,7 @@ export function WordPanel({
       )}
     </div>
   );
+  return slot ? createPortal(panel, slot) : panel;
 }
 
 function CharOnly({ token }: { token: TapToken }) {

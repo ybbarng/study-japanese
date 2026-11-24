@@ -37,6 +37,12 @@ function fromTranscript(cue: ContextCue): boolean {
   return cue.card?.origin === "transcript";
 }
 
+/** 낱말을 눌러 볼 수 있는 소책자 문장(받아 적은 글로 만든 문장은 빼고) */
+export function tapSentencesOf(cue: ContextCue): string[] {
+  if (!cue.card || fromTranscript(cue)) return [];
+  return cue.card.sentences.map((s) => s.ja);
+}
+
 /** 받아 적은 글로 만든 문장임을 작게 알린다 */
 export const TRANSCRIPT_NOTE = "자막에서 받아 적은 글 — 교재와 다를 수 있음";
 
@@ -172,11 +178,7 @@ export function CueExtras({ cue }: { cue: ContextCue }) {
   if (!card) return null;
   const sentences = leads(cue) ? [] : card.sentences;
   // 낱말 누르기(분석이 있는 소책자 문장만, 강 화면 안에서만 그린다)
-  const taps = (
-    <CueWordTaps
-      sentences={fromTranscript(cue) ? [] : card.sentences.map((s) => s.ja)}
-    />
-  );
+  const taps = <CueWordTaps sentences={tapSentencesOf(cue)} />;
   if (sentences.length === 0 && card.words.length === 0) return taps;
   return (
     <div>

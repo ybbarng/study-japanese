@@ -1,6 +1,8 @@
 "use client";
 
 import { type ReactNode, useMemo } from "react";
+import { CueTapLine } from "@/components/word-tap/cue-tap-line";
+import { CueWordTaps } from "@/components/word-tap/cue-word-taps";
 import { cn } from "@/lib/cn";
 import {
   type ContextCue,
@@ -10,7 +12,7 @@ import {
 } from "@/lib/context/cues";
 import { usePlaybackClock, usePositionOf } from "@/lib/player/clock";
 import { stageView } from "@/lib/player/follow";
-import { CueExtras, CueHeadline } from "./cue-card";
+import { CueExtras, CueHeadline, tapSentencesOf } from "./cue-card";
 import { LoopButton } from "./loop-button";
 import { useCueActions } from "./use-cue-actions";
 
@@ -93,7 +95,11 @@ export function LectureContext({
         {held ? (
           <p className="truncate">
             <span lang="ja" className="font-ja-serif text-base text-accent">
-              {cueText(held)}
+              {/* 접혀도 지금 줄의 낱말을 눌러 볼 수 있게(구간 전체를 소책자 문장과 맞춘 줄만: 그때 글이 같다) */}
+              <CueTapLine
+                sentences={meaning ? tapSentencesOf(held) : []}
+                fallback={cueText(held)}
+              />
             </span>
             {meaning ? (
               <span className="ml-2 text-ink-soft">{meaning}</span>
@@ -149,6 +155,8 @@ export function LectureContext({
             <CueHeadline cue={held} size="list" detail />
           </button>
         ) : null}
+        {/* 큰 글은 "다시 듣기" 단추 안이라, 분석 있는 문장은 낱말 단추 줄을 따로 둔다 */}
+        {held ? <CueWordTaps sentences={tapSentencesOf(held)} /> : null}
         {current && !heldIsCurrent ? (
           <button
             type="button"

@@ -45,6 +45,85 @@ test("예문 낱말을 누르면 뜻·읽는 법·글자 하나씩이 뜨고, �
   await expect(word).toBeFocused();
 });
 
+test("PC에서 낱말 창은 오른쪽 칸의 재생기 아래를 덮고(재생기는 가리지 않음), 창이 열린 동안 ←·→는 앞뒤 낱말·닫히면 재생기 5초 옮기기", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(isMobile, "PC 배치");
+  await login(page, `/ilmuta/${LONG_LECTURE.no}?step=lecture`);
+  await page
+    .getByRole("button", { name: /강의 듣기/ })
+    .first()
+    .click();
+  await expect.poll(() => audioIsPlaying(page)).toBe(true);
+  await page
+    .locator("[data-inline-player] button[aria-label='멈춤']")
+    .locator("visible=true")
+    .click();
+  const audioTime = () =>
+    page.evaluate(() => document.querySelector("audio")?.currentTime ?? 0);
+  await page.evaluate(() => {
+    const a = document.querySelector("audio");
+    if (a) a.currentTime = 8;
+  });
+
+  await page.locator("#step-patterns [data-word-tap]").first().click();
+  const dialog = panel(page);
+  await expect(dialog).toHaveAttribute("data-word-panel-place", "aside");
+
+  // 창 위쪽이 재생기 아래에 있고, 가운데 교재 칸과 겹치지 않는다
+  const player = page.locator("[data-inline-player]").locator("visible=true");
+  const pBox = await player.boundingBox();
+  const dBox = await dialog.boundingBox();
+  const textBox = await page.locator("#step-patterns").boundingBox();
+  expect(pBox && dBox && textBox).toBeTruthy();
+  if (!pBox || !dBox || !textBox) return;
+  expect(dBox.y).toBeGreaterThanOrEqual(pBox.y + pBox.height);
+  expect(dBox.x).toBeGreaterThanOrEqual(textBox.x + textBox.width);
+
+  // 초점을 창 밖(본문)으로 옮겨도 ←는 앞 낱말일 뿐 재생 위치를 옮기지 않는다
+  await page.locator("h1").click();
+  const before = await audioTime();
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("ArrowLeft");
+  await expect(dialog).toBeVisible();
+  expect(await audioTime()).toBeCloseTo(before, 1);
+
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await page.locator("h1").click();
+  await page.keyboard.press("ArrowRight");
+  await expect.poll(audioTime).toBeGreaterThan(before + 4);
+});
+
+test("폰 재생기가 접혀도 지금 일본어 줄의 낱말을 눌러 창을 열고, 소리는 계속 난다", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!isMobile, "폰 배치");
+  await login(page, `/ilmuta/${LONG_LECTURE.no}`);
+  await page.getByRole("button", { name: "강의 듣기" }).click();
+  await expect.poll(() => audioIsPlaying(page)).toBe(true);
+  await page.evaluate((s) => {
+    const a = document.querySelector("audio");
+    if (a) a.currentTime = s;
+  }, LONG_LECTURE_CUES[1].start + 1);
+
+  // 내려 읽어 재생기를 접는다(접히며 높이가 바뀌어 스크롤이 끊기므로 볼 때마다 다시 옮긴다)
+  const line = page.locator("[data-inline-player] [data-cue-tap-line]");
+  await expect
+    .poll(async () => {
+      await page.evaluate(() =>
+        window.scrollTo({ top: 1200, behavior: "instant" }),
+      );
+      return line.isVisible();
+    })
+    .toBe(true);
+  await line.locator("[data-word-tap]").first().click();
+  await expect(panel(page).getByText("시험", { exact: true })).toBeVisible();
+  expect(await audioIsPlaying(page)).toBe(true);
+});
+
 test("낱말 분석이 없는 초반 강의 예문은 글자 하나씩 눌러 소리·한글 근사치를 본다", async ({
   page,
 }) => {

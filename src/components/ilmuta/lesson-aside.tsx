@@ -97,11 +97,17 @@ export function LessonAside({
   return (
     <>
       <InlinePlayer variant="panel" idle={idle} />
-      {section === "writing" ? (
-        <WritingReference data={data} layout="panel" />
-      ) : (
-        <LecturePanel data={data} />
-      )}
+      {/* 낱말 정보 창(PC)이 이 자리를 잠시 덮는다: 재생기 조작과 가운데 교재는 가리지 않는다 */}
+      <div
+        data-word-panel-slot
+        className="relative flex min-h-0 flex-1 flex-col gap-4"
+      >
+        {section === "writing" ? (
+          <WritingReference data={data} layout="panel" />
+        ) : (
+          <LecturePanel data={data} />
+        )}
+      </div>
     </>
   );
 }
