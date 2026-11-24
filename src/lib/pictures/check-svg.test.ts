@@ -50,13 +50,23 @@ describe("checkSvg", () => {
     ]);
   });
 
-  it("굵기·투명도가 0인 보이지 않는 도형을 알린다", () => {
+  it.each(["0", "0.0", "0.0001"])(
+    "굵기가 %s인 보이지 않는 도형을 알린다",
+    (width) => {
+      const svg = word(
+        `<path d="M1 1h4" fill="none" stroke="${PALETTE.line}" stroke-width="${width}"/>`,
+      );
+      expect(checkSvg(svg, "words")).toEqual([
+        "보이지 않는 도형(굵기·투명도 0)을 남기지 않는다",
+      ]);
+    },
+  );
+
+  it("옅은 투명도(0.45)는 그림자로 쓸 수 있다", () => {
     const svg = word(
-      `<path d="M1 1h4" fill="none" stroke="${PALETTE.line}" stroke-width="0"/>`,
+      `<circle cx="1" cy="1" r="1" fill="${PALETTE.grayDark}" fill-opacity="0.45"/>`,
     );
-    expect(checkSvg(svg, "words")).toEqual([
-      "보이지 않는 도형(굵기·투명도 0)을 남기지 않는다",
-    ]);
+    expect(checkSvg(svg, "words")).toEqual([]);
   });
 
   it("크기 상한을 넘으면 알린다", () => {

@@ -1,12 +1,29 @@
-import type { ScenePictureMap } from "../types";
+import type { ScenePicture, ScenePictureMap } from "../types";
 
 // 일무따 1~15강 회화 장면 그림. 장면 열쇠(types.ts sceneKey) → public/pictures/scenes/<id>.svg
 // label은 세션이 쓴 장면 설명이다(교재 문장을 옮기지 않는다).
 
-export const SCENES: ScenePictureMap = {
-  "ilmuta-03-conversation": {
-    id: "ilmuta-03-conversation",
-    label:
-      "한 사람이 우산을 내밀며 누구 것인지 묻고, 다른 사람이 자기를 가리킨다. 탁자에 가방이 있다.",
-  },
+const LABELS: Record<number, string> = {
+  1: "아침 길에서 남자가 멀리 걸어가는 사람을 가리키며 묻고, 여자가 웃으며 답한다.",
+  2: "저녁 교실 뒤쪽에서 두 사람이 칠판 앞의 선생님을 두고 이야기한다.",
+  3: "한 사람이 우산을 내밀며 누구 것인지 묻고, 다른 사람이 자기를 가리킨다. 탁자에 가방이 있다.",
+  4: "퇴근하는 사무실에서 여자가 두고 간 안경을 내밀고, 가방을 든 남자가 돌아본다. 옷걸이에 옷이 걸려 있다.",
+  5: "모임 자리에서 남자가 멀리 서 있는 두 사람을 가리키며 누구인지 묻고, 여자가 알려 준다.",
+  6: "처음 만난 두 사람이 서로 고개 숙여 인사한다.",
+  7: "책상 위 선물 상자를 여자가 가리키고, 남자가 숙제 공책을 들고 답한다. 색종이가 날린다.",
+  8: "거리의 안내 지도 앞에서 여행 가방을 끈 여자가 길을 묻고, 남자가 지도를 가리킨다.",
+  9: "4시를 가리키는 시계 아래, 시험을 마친 남자가 술 모임을 떠올리며 홀가분해하고 여자가 묻는다.",
+  10: "아침 사무실의 시계와 일정표 앞에서 남자가 회의 시간을 묻고, 여자가 수첩을 보며 답한다.",
+  11: "벽에 붙은 가수 포스터를 여자가 가리키며 묻고, 남자는 덤덤하게 어깨를 으쓱한다.",
+  12: "찻집에서 남자가 성실하고 친절한 회사 동료를 떠올리며 이야기하고, 여자가 듣는다.",
+  13: "찻집에서 여자가 남자 친구의 가족(예쁜 어머니, 좀 별난 아버지)을 떠올리며 이야기하고, 남자가 듣는다.",
+  14: "초롱이 걸리고 노점이 선 밤 축제 거리를 유카타 입은 여자와 남자가 함께 걷는다.",
+  15: "부엌에서 남자가 엄지를 세우며 요리에 자신 있다고 하고, 여자는 요리책을 들고 자신 없어한다.",
 };
+
+export const SCENES: ScenePictureMap = Object.fromEntries(
+  Object.entries(LABELS).map(([no, label]): [string, ScenePicture] => {
+    const id = `ilmuta-${no.padStart(2, "0")}-conversation`;
+    return [id, { id, label }];
+  }),
+);

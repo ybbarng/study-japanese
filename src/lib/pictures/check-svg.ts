@@ -66,7 +66,9 @@ export function checkSvg(text: string, kind: PictureKind): string[] {
       problems.push(`바깥을 가리키는 href "${m[1]}"를 쓰지 않는다`);
   if (/url\(/.test(body)) problems.push("url()을 쓰지 않는다");
   if (
-    /\s(stroke-width|opacity|fill-opacity|stroke-opacity)="0(\.0*)?"/.test(body)
+    /\s(stroke-width|opacity|fill-opacity|stroke-opacity)="0(\.0\d*)?"/.test(
+      body,
+    )
   )
     problems.push("보이지 않는 도형(굵기·투명도 0)을 남기지 않는다");
   if (/style="/.test(body))

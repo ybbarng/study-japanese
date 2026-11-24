@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200">
+  <!-- 밤 축제: 초롱이 걸리고 노점이 선 거리, 사람들이 붐빈다. 유카타 입은 여자와 남자가 함께 걷는다 -->
+  <path d="M290 14a12 12 0 1 0 10 20 10 10 0 1 1-10-20z" fill="#f5c84c"/>
+  <path d="M0 22q160 40 320 0" fill="none" stroke="#7a6a62" stroke-width="2"/>
+  <ellipse cx="40" cy="38" rx="9" ry="12" fill="#e8553e" stroke="#7a6a62" stroke-width="1.8"/>
+  <ellipse cx="100" cy="50" rx="9" ry="12" fill="#e8553e" stroke="#7a6a62" stroke-width="1.8"/>
+  <ellipse cx="160" cy="54" rx="9" ry="12" fill="#e8553e" stroke="#7a6a62" stroke-width="1.8"/>
+  <ellipse cx="220" cy="50" rx="9" ry="12" fill="#e8553e" stroke="#7a6a62" stroke-width="1.8"/>
+  <ellipse cx="280" cy="38" rx="9" ry="12" fill="#e8553e" stroke="#7a6a62" stroke-width="1.8"/>
+  <!-- 노점 -->
+  <path d="M112 80h96l8 16h-112z" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M120 80l-4 16M136 80v16M152 80v16M168 80v16M184 80v16M200 80l4 16" fill="none" stroke="#e8553e" stroke-width="5"/>
+  <rect x="112" y="96" width="96" height="40" fill="#d29a63" stroke="#7a6a62" stroke-width="2"/>
+  <circle cx="134" cy="112" r="6" fill="#f0923a"/>
+  <circle cx="152" cy="112" r="6" fill="#f0923a"/>
+  <circle cx="170" cy="112" r="6" fill="#f0923a"/>
+  <!-- 뒤의 사람들 -->
+  <circle cx="104" cy="122" r="8" fill="#6c7280"/>
+  <circle cx="220" cy="120" r="8" fill="#6c7280"/>
+  <path d="M92 150c0-12 5-20 12-20s12 8 12 20zM208 150c0-12 5-20 12-20s12 8 12 20z" fill="#6c7280"/>
+  <!-- 그림자 -->
+  <ellipse cx="70" cy="188" rx="42" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <ellipse cx="250" cy="188" rx="42" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <!-- 왼쪽 여자: 유카타 -->
+  <path d="M50 70c0-18 8-26 20-26s20 8 20 26c0 4-2 6-4 6H54c-2 0-4-2-4-6z" fill="#5e4a6e"/>
+  <path d="M40 186l6-60c2-12 12-18 24-18s22 6 24 18l6 60z" fill="#79bde8"/>
+  <path d="M58 110l12 20 12-20" fill="none" stroke="#f6f2ea" stroke-width="3"/>
+  <rect x="44" y="134" width="52" height="12" fill="#e8553e"/>
+  <circle cx="58" cy="160" r="4" fill="#f4a0b8"/>
+  <circle cx="82" cy="168" r="4" fill="#f4a0b8"/>
+  <path d="M62 100h16v12H62z" fill="#e3a57f"/>
+  <circle cx="70" cy="80" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M50 76c2-14 10-20 20-20s18 6 20 20c-8-2-14-6-18-12-4 6-12 10-22 12z" fill="#5e4a6e"/>
+  <circle cx="63" cy="82" r="2.4" fill="#3a3040"/>
+  <circle cx="78" cy="82" r="2.4" fill="#3a3040"/>
+  <path d="M66 91q4 3 8 0" fill="none" stroke="#7a6a62" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="88" cy="62" r="4" fill="#f4a0b8"/>
+  <!-- 오른쪽 남자: 둘러보며 즐거워한다 -->
+  <path d="M216 186c0-48 14-78 34-78s34 30 34 78z" fill="#5fb36f"/>
+  <path d="M242 100h16v12h-16z" fill="#e3a57f"/>
+  <circle cx="250" cy="78" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M230 76c0-16 10-22 20-22s20 6 20 22c-6-6-14-9-22-8-8 1-14 4-18 8z" fill="#8a5a3c"/>
+  <path d="M240 80q3-3 6 0M254 80q3-3 6 0" fill="none" stroke="#3a3040" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M244 88q6 6 12 0" fill="#b8402f" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+</svg>
