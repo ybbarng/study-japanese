@@ -100,11 +100,18 @@ export function LessonFlow({
     };
   }, [steps]);
 
-  // 단계 표에서 지금 구역이 화면 밖이면 보이게 민다(가로 단계 표일 때)
+  // 단계 표에서 지금 구역이 가로 목록 밖이면 보이게 민다(가로 단계 표일 때).
+  // scrollIntoView는 창도 세로로 굴려 읽던 자리를 단계 표 쪽으로 끌어올리므로 목록만 가로로 굴린다
   useEffect(() => {
-    document
-      .querySelector(`[data-step="${current}"]`)
-      ?.scrollIntoView({ inline: "center", block: "nearest" });
+    const btn = document.querySelector<HTMLElement>(`[data-step="${current}"]`);
+    const nav = btn?.parentElement;
+    if (!btn || !nav || nav.scrollWidth <= nav.clientWidth) return;
+    const offset =
+      btn.getBoundingClientRect().left - nav.getBoundingClientRect().left;
+    nav.scrollTo({
+      left: nav.scrollLeft + offset - nav.clientWidth / 2 + btn.clientWidth / 2,
+      behavior: "smooth",
+    });
   }, [current]);
 
   const go = useCallback((s: StepId, smooth = true) => {
