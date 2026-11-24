@@ -1,59 +1,92 @@
 import { expect, type Page, test } from "@playwright/test";
 import { login } from "./helpers/auth";
 
-// 폰 강 화면 아래에는 이전·다음 단추와 재생 막대가 겹겹이 떠 있다.
-// 끝까지 내렸을 때 마지막 글이 그 뒤로 숨거나, 단추 틈으로 글이 비쳐 보이면 안 된다.
+// 재생기 자리. 강 화면(일무따 강·일문따 과)은 재생기를 화면 안에 붙인다: 폰은 화면 위(내려 읽으면 한 줄로
+// 접힌다), PC는 오른쪽 칸 맨 위. 그 밖의 화면은 아래 막대를 쓴다. 어느 쪽이든 글을 가리면 안 된다.
 
-/** 화면 아래에 떠 있는 단추 영역의 위쪽 끝과, 그 영역이 화면 끝까지 덮는지 */
-async function bottomLayout(page: Page) {
+/** 화면 안 재생기의 위치와 접혔는지, 출처 글(강 화면 맨 끝 글)의 아래 끝 */
+async function topLayout(page: Page) {
   return page.evaluate(() => {
-    const nav = document.querySelector<HTMLElement>("[data-bottom-nav]");
+    const el = [
+      ...document.querySelectorAll<HTMLElement>("[data-inline-player]"),
+    ].find((e) => e.getBoundingClientRect().height > 0);
     const credit = [...document.querySelectorAll("aside")].find((a) =>
       a.textContent?.includes("자료:"),
     );
-    if (!nav || !credit) return null;
-    const n = nav.getBoundingClientRect();
-    const bg = getComputedStyle(nav).backgroundColor;
+    if (!el || !credit) return null;
+    const r = el.getBoundingClientRect();
     return {
-      navTop: n.top,
-      navBottom: n.bottom,
+      top: r.top,
+      bottom: r.bottom,
+      collapsed: el.hasAttribute("data-collapsed"),
       viewport: window.innerHeight,
+      creditTop: credit.getBoundingClientRect().top,
       creditBottom: credit.getBoundingClientRect().bottom,
-      // rgba(…, a)에서 a가 1보다 작으면 뒤 글이 비친다
-      opaque: !/rgba\(.*,\s*0(\.\d+)?\)$/.test(bg) && bg !== "transparent",
     };
   });
 }
 
-test("폰 강 화면에서 재생 막대가 떠 있어도 끝까지 내리면 마지막 글이 아래 단추에 가리지 않고, 단추 영역이 불투명하게 화면 끝까지 덮는다", async ({
+test("폰 강 화면은 재생기가 위에 붙어, 내려 읽으면 한 줄로 접히고 위로 올리면 펴지며, 끝까지 내려도 마지막 글이 가리지 않는다", async ({
   page,
 }, testInfo) => {
   test.skip(
     testInfo.project.name !== "android-chrome",
-    "PC는 단추가 글 흐름 안에 놓인다",
+    "PC는 재생기가 오른쪽 칸에 있다",
   );
-  await login(page, "/ilmuta/1");
-  await page.getByRole("button", { name: /강의 듣기/ }).click();
+  // 3강은 강의가 길어(40초) 시험 중에 끝나지 않는다(1강 들은 기록을 보는 시험과 겹치지 않게)
+  await login(page, "/ilmuta/3");
+  await page.getByRole("button", { name: "강의 듣기" }).click();
   await expect(
     page.getByRole("button", { name: "재생 화면 펼치기" }),
   ).toBeVisible();
+  // 강 화면에서는 아래 막대를 따로 띄우지 않는다
+  await expect(
+    page.locator("[data-player-bar]").locator("visible=true"),
+  ).toHaveCount(1);
 
-  await page.evaluate(() =>
-    window.scrollTo(0, document.documentElement.scrollHeight),
-  );
+  // 끝까지 내리면 재생기는 화면 위에 한 줄로 붙고, 마지막 글은 화면 안(재생기 아래)에 다 보인다.
+  // 재생기가 접히며 높이가 바뀌면 부드러운 스크롤이 끊기므로, 볼 때마다 끝으로 곧장 옮긴다
   await expect
     .poll(async () => {
-      const l = await bottomLayout(page);
-      return l && l.creditBottom <= l.navTop;
+      await page.evaluate(() =>
+        window.scrollTo({
+          top: document.documentElement.scrollHeight,
+          behavior: "instant",
+        }),
+      );
+      const l = await topLayout(page);
+      return (
+        !!l &&
+        l.collapsed &&
+        l.top <= 1 &&
+        l.creditBottom <= l.viewport &&
+        l.creditTop >= l.bottom
+      );
     })
     .toBe(true);
-  const l = await bottomLayout(page);
-  expect(l?.opaque).toBe(true);
-  // 단추와 재생 막대 사이 틈으로 글이 보이지 않게 단추 영역이 화면 맨 아래까지 이어진다
-  expect(l?.navBottom).toBe(l?.viewport);
+  // 접힌 재생기는 한 줄(재생·시간·진행) + 지금 하는 말 한두 줄만 차지한다
+  const collapsed = await topLayout(page);
+  expect(collapsed && collapsed.bottom - collapsed.top).toBeLessThan(130);
+  await expect(
+    page
+      .locator("[data-inline-player] [data-player-time]")
+      .locator("visible=true"),
+  ).toBeVisible();
+
+  // 위로 조금 올리면 다시 편다(시간·조작이 다 보인다)
+  // (접힌 직후 0.35초 동안의 움직임은 접힘이 만든 위치 보정으로 보고 넘기므로, 사람처럼 이어서 올린다)
+  await expect
+    .poll(async () => {
+      await page.evaluate(() =>
+        window.scrollBy({ top: -150, behavior: "instant" }),
+      );
+      return (await topLayout(page))?.collapsed;
+    })
+    .toBe(false);
+  await expect(page.getByRole("button", { name: "A–B" })).toBeVisible();
 });
 
-test("PC 일문따 과 화면에서 재생 막대가 뜨면, 내리기 전에도 오른쪽 자막 칸이 다 자라도 끝이 막대 위에 있다", async ({
+test("PC 일문따 과 화면은 오른쪽 칸 맨 위에 재생기를 두고 아래 막대를 띄우지 않으며, 칸이 다 자라도 끝이 화면 안에 있다", async ({
   page,
 }, testInfo) => {
   test.skip(
@@ -62,11 +95,16 @@ test("PC 일문따 과 화면에서 재생 막대가 뜨면, 내리기 전에도
   );
   await login(page, "/ilmunta/1");
   await page.getByRole("button", { name: /처음부터 듣기|이어서 듣기/ }).click();
-  const bar = page.locator("[data-player-bar]:visible");
-  await expect(bar).toBeVisible();
+  const aside = page.getByRole("complementary", { name: "강의 자막" });
+  await expect(
+    aside.locator("[data-inline-player] [data-player-time]"),
+  ).toBeVisible();
+  await expect(
+    page.locator("[data-player-bar]").locator("visible=true"),
+  ).toHaveCount(1);
   await page.evaluate(() => window.scrollTo(0, 0));
 
-  // 칸이 가장 크게 자랐을 때의 끝(지금 위치 + 최대 높이)이 막대 위쪽보다 위여야 한다.
+  // 칸이 가장 크게 자랐을 때의 끝(지금 위치 + 최대 높이)이 화면 아래보다 위여야 한다.
   // 자막 길이와 상관없이 보려고 실제 높이가 아니라 최대 높이로 잰다
   await expect
     .poll(() =>
@@ -74,16 +112,9 @@ test("PC 일문따 과 화면에서 재생 막대가 뜨면, 내리기 전에도
         const panel = document.querySelector<HTMLElement>(
           'aside[aria-label="강의 자막"] [data-sticky-panel]',
         );
-        // 막대는 position: fixed라 offsetParent가 없다. 감춘 쪽은 높이가 0
-        const dock = [
-          ...document.querySelectorAll<HTMLElement>("[data-player-bar]"),
-        ].find((el) => el.getBoundingClientRect().height > 0);
-        if (!panel || !dock) return null;
+        if (!panel) return null;
         const max = Number.parseFloat(getComputedStyle(panel).maxHeight);
-        return (
-          panel.getBoundingClientRect().top + max <=
-          dock.getBoundingClientRect().top
-        );
+        return panel.getBoundingClientRect().top + max <= window.innerHeight;
       }),
     )
     .toBe(true);

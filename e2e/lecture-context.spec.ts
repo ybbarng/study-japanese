@@ -41,24 +41,22 @@ test("소책자 문장과 맞춘 자막 줄이 재생되면 그 문장의 뜻 �
   page,
 }) => {
   await startLecture(page);
+  // 강 화면은 교재 구역(회화·따라 말하기)이 한 장으로 이어져 같은 문장이 교재에도 보이므로,
+  // 재생기 곁의 "지금 하는 말" 칸 안에서만 본다
+  const now = page
+    .getByRole("region", { name: "지금 하는 말" })
+    .locator("visible=true");
   await seekAudio(page, MATCHED.start + 1);
   await expect(
-    page
-      .getByText(LONG_LECTURE_BOOKLET.ko, { exact: true })
-      .locator("visible=true"),
+    now.getByText(LONG_LECTURE_BOOKLET.ko, { exact: true }),
   ).toBeVisible();
 
   await seekAudio(page, UNMATCHED.start + 1);
   await expect(
-    page
-      .getByText(UNMATCHED.text, { exact: true })
-      .locator("visible=true")
-      .first(),
+    now.getByText(UNMATCHED.text, { exact: true }).first(),
   ).toBeVisible();
   await expect(
-    page
-      .getByText(LONG_LECTURE_BOOKLET.ko, { exact: true })
-      .locator("visible=true"),
+    now.getByText(LONG_LECTURE_BOOKLET.ko, { exact: true }),
   ).toHaveCount(0);
 });
 

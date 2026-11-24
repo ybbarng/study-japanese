@@ -32,6 +32,18 @@ export const LONG_LECTURE_BOOKLET = {
 } as const;
 
 /**
+ * 3강 문형 예문(03-3)의 가짜 자막. 실제 예문 mp3처럼 한국어 안내 → 일본어 문장이 이어지고,
+ * 일본어 줄은 소책자 문장과 같아 서버가 카드를 붙인다. 화면이 지금 문장을 따라가는지 볼 수 있게
+ * 이 예문만 mp3를 길게 둔다.
+ */
+export const FOLLOW_EXAMPLE = { id: "03-3", seconds: 16 } as const;
+export const FOLLOW_EXAMPLE_CUES = [
+  { start: 0, end: 2, text: "시험 문형 안내입니다.", lang: "ko" },
+  { start: 3, end: 5, text: "山は山だ。", lang: "ja" },
+  { start: 9, end: 11, text: "山のうえ。", lang: "ja" },
+] as const;
+
+/**
  * 일문따 2과: 문법 예문(02-1) 자막이 "일본어 → 뜻 → 같은 일본어"를 되풀이하고, 첫 강의(L02-01) 자막의
  * 일본어 줄이 그 문장이라 서버가 받아 적은 글 출처 카드를 붙인다. 강의는 자리를 옮겨 볼 수 있게 길게 둔다.
  */
@@ -168,6 +180,17 @@ export function writeFakeTextbook(contentDir: string, mediaDir: string) {
     }),
   );
 
+  writeFileSync(
+    path.join(contentDir, "transcripts", "ilmuta", `${FOLLOW_EXAMPLE.id}.json`),
+    JSON.stringify({
+      book: "ilmuta",
+      item: FOLLOW_EXAMPLE.id,
+      kind: "example",
+      durationSec: FOLLOW_EXAMPLE.seconds,
+      segments: FOLLOW_EXAMPLE_CUES,
+    }),
+  );
+
   const pn = nn(ILMUNTA_PAIR_LESSON.no);
   const pairLecture = `L${pn}-01`;
   mkdirSync(path.join(contentDir, "transcripts", "ilmunta"), {
@@ -185,6 +208,8 @@ export function writeFakeTextbook(contentDir: string, mediaDir: string) {
   const mp3 = silentMp3(AUDIO_SECONDS);
   const longMp3 = silentMp3(LONG_LECTURE.seconds);
   const pairMp3 = silentMp3(ILMUNTA_PAIR_LESSON.seconds);
+  const followMp3 = silentMp3(FOLLOW_EXAMPLE.seconds);
+  const followFile = `${FOLLOW_EXAMPLE.id}.mp3`;
   const files = [
     ...ilmuta.lessons.flatMap((l) => [
       ["ilmuta", l.lecture.file],
@@ -204,7 +229,9 @@ export function writeFakeTextbook(contentDir: string, mediaDir: string) {
         ? longMp3
         : file.endsWith(`${pairLecture}.MP3`) && book === "ilmunta"
           ? pairMp3
-          : mp3,
+          : file.endsWith(`/${followFile}`) && book === "ilmuta"
+            ? followMp3
+            : mp3,
     );
   }
 }
