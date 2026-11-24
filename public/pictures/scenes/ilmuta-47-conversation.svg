@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200">
+  <!-- 뒤 진열대 -->
+  <rect x="10" y="12" width="300" height="112" rx="3" fill="#a0a6b3" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M10 48h300M10 86h300" fill="none" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M18 24h14v24H18zM36 30h14v18H36zM54 24h14v24H54zM120 28h16v20h-16zM140 28h16v20h-16zM196 24h12v24h-12zM212 24h12v24h-12zM272 30h14v18h-14zM290 30h14v18h-14z" fill="#e8553e" stroke="#7a6a62" stroke-width="1.5"/>
+  <path d="M74 30h14v18H74zM92 30h14v18H92zM164 24h12v24h-12zM230 30h18v18h-18zM252 30h16v18h-16z" fill="#f5c84c" stroke="#7a6a62" stroke-width="1.5"/>
+  <path d="M18 62h18v24H18zM40 66h18v20H40zM146 62h16v24h-16zM166 62h16v24h-16zM260 66h20v20h-20zM284 66h20v20h-20z" fill="#5fb36f" stroke="#7a6a62" stroke-width="1.5"/>
+  <path d="M62 66h18v20H62zM120 66h22v20h-22zM190 62h14v24h-14zM208 62h14v24h-14zM226 62h14v24h-14z" fill="#79bde8" stroke="#7a6a62" stroke-width="1.5"/>
+  <!-- 바닥 그림자 -->
+  <ellipse cx="90" cy="188" rx="44" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <ellipse cx="234" cy="188" rx="44" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <!-- 왼쪽 사람: 반가워 손을 흔든다 -->
+  <path d="M56 186c0-48 14-78 34-78s34 30 34 78z" fill="#f0923a"/>
+  <path d="M82 100h16v12H82z" fill="#e3a57f"/>
+  <path d="M66 76c0-22 10-30 24-30s24 8 24 30v24c0 6-6 10-12 10H78c-6 0-12-4-12-10z" fill="#5e4a6e"/>
+  <circle cx="90" cy="78" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M70 74c2-16 12-22 20-22 10 0 19 6 21 20-10-2-20-8-24-14-4 8-10 13-17 16z" fill="#5e4a6e"/>
+  <circle cx="83" cy="80" r="2.6" fill="#3a3040"/>
+  <circle cx="98" cy="80" r="2.6" fill="#3a3040"/>
+  <ellipse cx="90" cy="90" rx="4" ry="4.5" fill="#b8402f" stroke="#7a6a62" stroke-width="1.5"/>
+  <path d="M116 126l18-34" fill="none" stroke="#f0923a" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="136" cy="86" r="7" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M146 74l6-4M148 86h7M144 96l6 3" fill="none" stroke="#7a6a62" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- 오른쪽 사람: 장바구니에 고기 -->
+  <path d="M200 186c0-48 14-78 34-78s34 30 34 78z" fill="#3fb0a6"/>
+  <path d="M226 100h16v12h-16z" fill="#e3a57f"/>
+  <circle cx="234" cy="78" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M214 76c0-16 10-22 20-22s20 6 20 22c-6-6-14-9-22-8-8 1-14 4-18 8z" fill="#8a5a3c"/>
+  <circle cx="227" cy="80" r="2.4" fill="#3a3040"/>
+  <circle cx="242" cy="80" r="2.4" fill="#3a3040"/>
+  <path d="M228 88q6 5 12 0" fill="none" stroke="#7a6a62" stroke-width="2" stroke-linecap="round"/>
+  <path d="M206 126l-14 26" fill="none" stroke="#3fb0a6" stroke-width="11" stroke-linecap="round"/>
+  <path d="M164 150h48l-6 30h-36z" fill="#e8553e" stroke="#7a6a62" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M168 150c0-22 40-22 40 0" fill="none" stroke="#b8402f" stroke-width="4" stroke-linecap="round"/>
+  <rect x="170" y="140" width="28" height="14" rx="2" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M174 146c4-4 12-4 16 0s-2 6-8 6-10-2-8-6z" fill="#b8402f"/>
+  <circle cx="190" cy="152" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <!-- 말풍선: 놀람 -->
+  <path d="M140 20h40a10 10 0 0 1 10 10v12a10 10 0 0 1-10 10h-14l-10 10 2-10h-18a10 10 0 0 1-10-10V30a10 10 0 0 1 10-10z" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M160 28v12" fill="none" stroke="#e8553e" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="160" cy="46" r="2.4" fill="#e8553e"/>
+</svg>
