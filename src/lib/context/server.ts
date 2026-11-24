@@ -4,13 +4,8 @@ import { readSiteSettings } from "@/lib/sources/settings";
 import { getDb } from "@/lib/store/db";
 import { contentDir, loadIlmuta, loadTranscript } from "@/lib/textbook/load";
 import type { Ilmuta } from "@/lib/textbook/schema";
-import { withoutNoise } from "@/lib/transcript/hallucination";
-import {
-  ilmuntaCardSource,
-  ilmutaCardSource,
-  lessonNoOfItem,
-} from "./card-sources";
-import { buildCards } from "./cards";
+import { contextTranscript } from "./build";
+import { lessonNoOfItem } from "./card-sources";
 import type { Transcript } from "./cues";
 import { ilmuntaLessonPairs } from "./ilmunta-pairs";
 import type { TranscriptPair } from "./transcript-pairs";
@@ -55,23 +50,8 @@ export function loadContextTranscript(
   const hit = entries.find((e) => e.ilmuta === ilmuta && e.pairs === pairs);
   if (hit) return hit.result;
 
-  // 음악 구간에서 음성 인식이 지어낸 줄(기호만, 제작진 표기)은 내주지 않는다.
-  // 카드 열쇠(segments 차례)가 어긋나지 않게 거른 뒤에 카드를 붙인다
-  const segments = withoutNoise(transcript.segments);
-  const clean: Transcript =
-    segments.length === transcript.segments.length
-      ? transcript
-      : { ...transcript, segments };
-
-  const source =
-    book === "ilmuta"
-      ? ilmuta && no !== null
-        ? ilmutaCardSource(ilmuta.lessons, no)
-        : null
-      : ilmuntaCardSource(ilmuta?.lessons ?? null, pairs ?? [], no);
-  const withCards: Transcript = source
-    ? { ...clean, cards: buildCards(clean.segments, source) }
-    : clean;
+  // 잡음 줄(기호만, 제작진 표기, 영문)과 한국어 말을 받아 적은 가타카나 줄은 내주지 않는다
+  const withCards = contextTranscript(book, item, transcript, ilmuta, pairs);
   // 교재·짝이 바뀐 옛 결과는 버리고, 볼 수 있는 경우(일무따 있음·없음) 둘까지만 둔다
   cache.set(transcript, [
     ...entries
