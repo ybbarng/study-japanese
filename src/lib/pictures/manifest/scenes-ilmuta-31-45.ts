@@ -29,4 +29,29 @@ export const SCENES: ScenePictureMap = {
     label:
       "더운 날 공항에 막 도착한 사람이 외투를 벗어 들고 전화를 건다. 뒤로 비행기가 뜬다.",
   },
+  "ilmuta-36-conversation": {
+    id: "ilmuta-36-conversation",
+    label:
+      "과학관 앞에서 남자 아이는 로켓 모형을 가리키며 신나 하고, 여자 아이는 심심해 하품한다. 엄마가 곁에 있다.",
+  },
+  "ilmuta-37-conversation": {
+    id: "ilmuta-37-conversation",
+    label:
+      "첫눈이 내린 날 유치원 앞에서 선생님이 전화를 받고, 털모자를 쓴 아이가 막 도착해 곁에 서 있다.",
+  },
+  "ilmuta-38-conversation": {
+    id: "ilmuta-38-conversation",
+    label:
+      "케이크 상자를 든 친구가 가게 앞에 오래 줄 선 일을 떠올리고, 다른 친구가 놀란다.",
+  },
+  "ilmuta-39-conversation": {
+    id: "ilmuta-39-conversation",
+    label:
+      "동료가 무슨 일인지 묻자 남자가 부끄러워 머리를 긁는다. 전철에서 열쇠를 잃어버려 아내가 소리친 일을 떠올린다.",
+  },
+  "ilmuta-40-conversation": {
+    id: "ilmuta-40-conversation",
+    label:
+      "역 승강장에서 한 사람이 떨어진 표를 주워 건네고, 다른 사람은 주머니를 뒤지며 놀란다.",
+  },
 };

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200">
+  <ellipse cx="78" cy="188" rx="42" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <ellipse cx="244" cy="188" rx="42" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <!-- 생각 풍선: 한 시간 줄을 섰다 -->
+  <path d="M92 10h132a16 16 0 0 1 16 16v38a16 16 0 0 1-16 16H92a16 16 0 0 1-16-16V26a16 16 0 0 1 16-16z" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2.5"/>
+  <circle cx="84" cy="90" r="6" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <circle cx="78" cy="102" r="3.5" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <rect x="96" y="22" width="30" height="48" fill="#f4a0b8" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M94 22l4-6h26l4 6z" fill="#e8553e" stroke="#7a6a62" stroke-width="1.8" stroke-linejoin="round"/>
+  <rect x="102" y="34" width="18" height="12" fill="#79bde8"/>
+  <circle cx="138" cy="38" r="5" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.5"/>
+  <circle cx="154" cy="40" r="5" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.5"/>
+  <circle cx="170" cy="40" r="5" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.5"/>
+  <circle cx="186" cy="42" r="5" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.5"/>
+  <path d="M132 70V52c0-4 2-7 6-7s6 3 6 7v18zM148 70V54c0-4 2-7 6-7s6 3 6 7v16zM164 70V54c0-4 2-7 6-7s6 3 6 7v16zM180 70V56c0-4 2-7 6-7s6 3 6 7v14z" fill="#9b72c9"/>
+  <circle cx="218" cy="42" r="14" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M218 34v8h7" fill="none" stroke="#e8553e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M206 62a14 14 0 0 0 24 0" fill="none" stroke="#f0923a" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- 왼쪽: 케이크 상자를 든 친구 -->
+  <path d="M54 82c0-20 10-28 24-28s24 8 24 28v16c0 6-6 10-12 10H66c-6 0-12-4-12-10z" fill="#8a5a3c"/>
+  <path d="M44 186c0-46 14-74 34-74s34 28 34 74z" fill="#5fb36f"/>
+  <path d="M70 104h16v12H70z" fill="#e3a57f"/>
+  <circle cx="78" cy="86" r="19" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M59 82c2-15 12-21 19-21 10 0 18 6 20 19-10-2-19-7-23-13-4 7-9 12-16 15z" fill="#8a5a3c"/>
+  <path d="M68 87q3-3 6 0M82 87q3-3 6 0" fill="none" stroke="#3a3040" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M72 96q6 5 12 0" fill="none" stroke="#7a6a62" stroke-width="2" stroke-linecap="round"/>
+  <path d="M104 138l18 4" fill="none" stroke="#5fb36f" stroke-width="10" stroke-linecap="round"/>
+  <rect x="118" y="124" width="40" height="32" rx="2" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M138 124v32M118 138h40" fill="none" stroke="#e8553e" stroke-width="3"/>
+  <path d="M138 124c-6-8-12-4-8 0M138 124c6-8 12-4 8 0" fill="none" stroke="#e8553e" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="124" cy="144" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <!-- 오른쪽: 놀란 친구 -->
+  <path d="M210 186c0-46 14-74 34-74s34 28 34 74z" fill="#4a82d4"/>
+  <path d="M236 104h16v12h-16z" fill="#e3a57f"/>
+  <circle cx="244" cy="86" r="19" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M225 84c0-15 9-21 19-21s19 6 19 21c-6-6-13-8-21-7-8 1-13 3-17 7z" fill="#5e4a6e"/>
+  <circle cx="237" cy="88" r="3" fill="#f6f2ea" stroke="#3a3040" stroke-width="2"/>
+  <circle cx="252" cy="88" r="3" fill="#f6f2ea" stroke="#3a3040" stroke-width="2"/>
+  <ellipse cx="244" cy="98" rx="3.5" ry="4.5" fill="#b8402f"/>
+  <path d="M232 76q4-3 8-1M248 75q4-2 8 1" fill="none" stroke="#7a6a62" stroke-width="2" stroke-linecap="round"/>
+  <path d="M272 70v12M272 88v1" fill="none" stroke="#e8553e" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M280 74l-2 8" fill="none" stroke="#e8553e" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

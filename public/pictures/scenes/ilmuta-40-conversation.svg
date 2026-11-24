@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200">
+  <!-- 역 승강장: 뒤 전철, 지붕 표지판 -->
+  <rect x="4" y="44" width="312" height="70" rx="10" fill="#5fb36f" stroke="#7a6a62" stroke-width="2.5"/>
+  <rect x="16" y="54" width="44" height="30" rx="3" fill="#79bde8"/>
+  <rect x="136" y="54" width="48" height="30" rx="3" fill="#79bde8"/>
+  <rect x="260" y="54" width="44" height="30" rx="3" fill="#79bde8"/>
+  <path d="M4 96h312" fill="none" stroke="#f6f2ea" stroke-width="5"/>
+  <path d="M0 124h320" fill="none" stroke="#f5c84c" stroke-width="5" stroke-dasharray="12 8"/>
+  <path d="M138 4v10M182 4v10" fill="none" stroke="#a0a6b3" stroke-width="3" stroke-linecap="round"/>
+  <rect x="124" y="14" width="72" height="24" rx="4" fill="#3b62a8" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M140 26h40M172 19l8 7-8 7" fill="none" stroke="#f6f2ea" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <ellipse cx="78" cy="190" rx="42" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <ellipse cx="244" cy="190" rx="42" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <!-- 왼쪽: 주운 표를 건넨다 -->
+  <path d="M54 80c0-22 10-30 24-30s24 8 24 30v20c0 6-6 10-12 10H66c-6 0-12-4-12-10z" fill="#8a5a3c"/>
+  <path d="M44 188c0-48 14-78 34-78s34 30 34 78z" fill="#f0923a"/>
+  <path d="M70 102h16v12H70z" fill="#e3a57f"/>
+  <circle cx="78" cy="82" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M58 78c2-16 12-22 20-22 10 0 19 6 21 20-10-2-20-8-24-14-4 8-10 13-17 16z" fill="#8a5a3c"/>
+  <circle cx="71" cy="84" r="2.4" fill="#3a3040"/>
+  <circle cx="85" cy="84" r="2.4" fill="#3a3040"/>
+  <path d="M73 93q4 3 8 0" fill="none" stroke="#7a6a62" stroke-width="2" stroke-linecap="round"/>
+  <path d="M104 140l34-8" fill="none" stroke="#f0923a" stroke-width="11" stroke-linecap="round"/>
+  <circle cx="140" cy="132" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M142 120h28v4a4 4 0 0 0 0 8v4h-28v-4a4 4 0 0 0 0-8z" fill="#f5c84c" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M162 121v14" fill="none" stroke="#7a6a62" stroke-width="1.5" stroke-dasharray="2 2"/>
+  <!-- 오른쪽: 주머니를 뒤지는 사람 -->
+  <path d="M210 188c0-48 14-78 34-78s34 30 34 78z" fill="#6c7280"/>
+  <path d="M236 102h16v12h-16z" fill="#e3a57f"/>
+  <circle cx="244" cy="82" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M224 80c0-16 10-22 20-22s20 6 20 22c-6-6-14-9-22-8-8 1-14 4-18 8z" fill="#a0a6b3"/>
+  <circle cx="237" cy="85" r="3" fill="#f6f2ea" stroke="#3a3040" stroke-width="2"/>
+  <circle cx="252" cy="85" r="3" fill="#f6f2ea" stroke="#3a3040" stroke-width="2"/>
+  <ellipse cx="244" cy="95" rx="3" ry="3.5" fill="#b8402f"/>
+  <path d="M220 130l-6 30 10 6" fill="none" stroke="#6c7280" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M220 160h18v12h-18z" fill="#3b62a8" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <circle cx="226" cy="166" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M276 52q0-6 6-6t6 6q0 4-6 6v3" fill="none" stroke="#e8553e" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="282" cy="67" r="2" fill="#e8553e"/>
+</svg>
