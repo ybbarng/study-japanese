@@ -2,6 +2,7 @@
 
 import { audioUrl, hasAudio } from "@/lib/kana/data";
 import { tokenize } from "@/lib/kana/text";
+import { pickJapaneseVoice, type WordVoice } from "@/lib/kana/voice";
 
 /**
  * 가나 소리는 사이트 재생기(교재 오디오 대기열)와 따로, 짧은 효과음처럼 낸다.
@@ -21,6 +22,7 @@ export function playSound(soundId: string): Promise<PlayResult> {
   if (!canPlay(soundId)) return Promise.resolve("missing");
   if (typeof Audio === "undefined") return Promise.resolve("skipped");
   current?.pause();
+  if (typeof speechSynthesis !== "undefined") speechSynthesis.cancel();
   const audio = new Audio(audioUrl(soundId));
   current = audio;
   return new Promise((resolve) => {
@@ -38,8 +40,41 @@ export function playSound(soundId: string): Promise<PlayResult> {
   });
 }
 
-/** 낱말을 글자 하나씩 이어서 들려준다(소리가 있는 글자만). 하나라도 냈으면 played. */
+function japaneseVoice(): SpeechSynthesisVoice | null {
+  if (typeof speechSynthesis === "undefined") return null;
+  return pickJapaneseVoice(speechSynthesis.getVoices());
+}
+
+/** 낱말 소리를 지금 기기에서 어떻게 낼지(음성 목록은 늦게 차므로 누를 때마다 다시 본다) */
+export function wordVoice(): WordVoice {
+  return japaneseVoice() ? "tts" : "joined";
+}
+
+function speak(word: string, voice: SpeechSynthesisVoice): Promise<PlayResult> {
+  current?.pause();
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(word);
+  u.voice = voice;
+  u.lang = voice.lang;
+  u.rate = 0.85;
+  return new Promise((resolve) => {
+    u.onend = () => resolve("played");
+    u.onerror = () => resolve("skipped");
+    speechSynthesis.speak(u);
+  });
+}
+
+/**
+ * 낱말 소리. 일본어 음성 합성이 있으면 그것으로 낱말째 읽고(높낮이·길이가 붙는다),
+ * 없으면 글자 소리를 하나씩 잇는다(소리가 있는 글자만, 하나라도 냈으면 played).
+ */
 export async function playWord(word: string): Promise<PlayResult> {
+  const voice = japaneseVoice();
+  if (voice) return speak(word, voice);
+  return playJoined(word);
+}
+
+async function playJoined(word: string): Promise<PlayResult> {
   let result: PlayResult = "missing";
   for (const u of tokenize(word)) {
     if (u.soundId && canPlay(u.soundId)) {
