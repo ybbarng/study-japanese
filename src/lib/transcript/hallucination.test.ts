@@ -161,6 +161,28 @@ describe("지어낸 되풀이 묶음", () => {
   });
 });
 
+describe("앞 줄 꼬리 조각", () => {
+  it("앞 줄과 글이 같은 0.3초 미만 구간은 뺀다", () => {
+    const segs = [seg(0, 1.5, "ねこがすきだ"), seg(1.5, 1.7, "ねこがすきだ。")];
+    expect(withoutNoise(segs).map((s) => s.end)).toEqual([1.5]);
+  });
+
+  it("0.3초가 되는 구간은 남긴다", () => {
+    const segs = [seg(0, 1.5, "ねこがすきだ"), seg(1.5, 1.8, "ねこがすきだ")];
+    expect(withoutNoise(segs)).toHaveLength(2);
+  });
+
+  it("글이 다르면 짧아도 남긴다", () => {
+    const segs = [seg(0, 1.5, "ねこがすきだ"), seg(1.5, 1.7, "いぬがすきだ")];
+    expect(withoutNoise(segs)).toHaveLength(2);
+  });
+
+  it("두 글자 이하 대답은 짧게 되풀이해도 남긴다", () => {
+    const segs = [seg(0, 0.25, "うん"), seg(0.3, 0.55, "うん")];
+    expect(withoutNoise(segs)).toHaveLength(2);
+  });
+});
+
 describe("같은 구간이 잇달아 나온 횟수", () => {
   it("부호·공백을 무시하고 가장 긴 연속을 센다", () => {
     const run = longestSameRun(["가", "나.", "나", " 나!", "가"]);

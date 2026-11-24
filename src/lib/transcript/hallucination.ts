@@ -165,13 +165,40 @@ export function blipRunIndexes(segments: Timed[]): Set<number> {
   return out;
 }
 
+/** 앞 줄 꼬리 조각으로 볼 구간 길이(초). 이보다 짧으면서 앞 줄과 글이 같으면 소리가 아니다 */
+const TAIL_ECHO_SEC = 0.3;
+/** 꼬리 조각으로 볼 글의 최소 글자 수. 1~2글자 대답(うん·はい)은 0.3초 안에 되풀이해 말할 수 있다 */
+const TAIL_ECHO_MIN_CHARS = 3;
+
 /**
- * 잡음 줄(isNoiseLine)과 지어낸 되풀이 묶음(blipRunIndexes)을 뺀 구간들.
+ * 앞 줄과 글(부호·공백 무시)이 같은 0.3초 미만 구간. 음성 인식이 앞 줄 끝에 같은 글을 한 번 더 붙인
+ * 꼬리 조각이다(0.1~0.25초에 세 글자 넘는 말을 다시 할 수는 없다). 교정 파일 시범에서 이런 줄이 강마다 나왔다.
+ */
+export function tailEchoIndexes(segments: Timed[]): Set<number> {
+  const out = new Set<number>();
+  for (let i = 1; i < segments.length; i++) {
+    const s = segments[i];
+    const c = compact(s.text);
+    if (
+      s.end - s.start < TAIL_ECHO_SEC &&
+      [...c].length >= TAIL_ECHO_MIN_CHARS &&
+      c === compact(segments[i - 1].text)
+    )
+      out.add(i);
+  }
+  return out;
+}
+
+/**
+ * 잡음 줄(isNoiseLine), 지어낸 되풀이 묶음(blipRunIndexes), 앞 줄 꼬리 조각(tailEchoIndexes)을 뺀 구간들.
  * 원본 자막 파일은 그대로 두고 내줄 때만 거른다.
  */
 export function withoutNoise<T extends Timed>(segments: T[]): T[] {
   const blips = blipRunIndexes(segments);
-  return segments.filter((s, i) => !blips.has(i) && !isNoiseLine(s.text));
+  const echoes = tailEchoIndexes(segments);
+  return segments.filter(
+    (s, i) => !blips.has(i) && !echoes.has(i) && !isNoiseLine(s.text),
+  );
 }
 
 /** 같은 글(부호·공백 무시)이 잇달아 나온 가장 긴 횟수와 그 글 */
