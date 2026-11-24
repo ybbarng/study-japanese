@@ -77,7 +77,10 @@ export function DockBar({
             </IconButton>
           </div>
           <div className="flex w-full max-w-2xl items-center gap-3">
-            <span className="w-10 text-right font-mono text-xs text-ink-faint">
+            <span
+              data-player-time
+              className="w-10 text-right font-mono text-xs text-ink-faint"
+            >
               {clock(p.pos)}
             </span>
             <input

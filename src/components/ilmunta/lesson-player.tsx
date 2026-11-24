@@ -128,7 +128,11 @@ export function LessonPlayer({
                   <button
                     type="button"
                     onClick={() => {
-                      playQueue(tracks, i);
+                      // 지금 올라 있는 트랙을 다시 누르면 멈추거나 이어서 듣는다(처음으로 돌리지 않게)
+                      const st = usePlayer.getState();
+                      if (currentTrack(st)?.item === t.item)
+                        st.setPlaying(!st.wantPlaying);
+                      else playQueue(tracks, i);
                       if (transcripts[t.item]) setChosen(t.item);
                     }}
                     className={cn(
@@ -146,10 +150,17 @@ export function LessonPlayer({
                       )}
                       aria-hidden
                     >
-                      {isPlaying ? "♪" : "▶"}
+                      {isPlaying ? "❚❚" : "▶"}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate">{t.title}</span>
+                      <span className="block truncate">
+                        {t.title}
+                        {isPlaying ? (
+                          <span className="ml-2 text-xs text-accent">
+                            재생 중
+                          </span>
+                        ) : null}
+                      </span>
                       <span className="text-xs text-ink-faint">
                         {formatDuration(durations[i] ?? 0)}
                         {transcripts[t.item] ? " · 자막" : ""}
