@@ -50,6 +50,13 @@ describe("맞장구·대답", () => {
     expect(cards["0"].sentences[0]).toMatchObject({ ja: "うん", ko: "응" });
   });
 
+  it("머뭇거리는 소리(あのー)만 있는 줄은 정해 둔 뜻으로", () => {
+    expect(cardsOf([ja("あのー…。")])["0"].sentences[0]).toMatchObject({
+      ja: "あの",
+      ko: "저어",
+    });
+  });
+
   it("ん 하나는 이웃이 가르쳐 주지 않으면 카드를 두지 않는다", () => {
     expect(cardsOf([ja("ん?")])["0"]).toBeUndefined();
   });

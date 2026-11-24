@@ -133,20 +133,46 @@ export function alignInOrder(
       Math.max(...(lasts as number[])),
     ];
   };
+  /**
+   * 닻 구간이 실제로 읽은 조각 범위. 소책자 항목 하나에 문장이 여럿이면(うん。今、着いたよ。…)
+   * 받아쓰기가 그 일부만 한 줄로 적기도 해서, 항목 전체가 아니라 줄 글과 가장 닮은 조각 범위를 닻으로 쓴다
+   * (그래야 다음 줄이 같은 항목의 남은 조각과 맞는다).
+   */
+  const covered = (i: number, range: [number, number]): [number, number] => {
+    const [a, b] = range;
+    if (a === b) return range;
+    const plain = undoubled(normalizeJa(segments[i].text));
+    const kana = undoubled(normalizeJa(toKana(segments[i].text)));
+    let best: [number, number] = range;
+    let bestScore = -1;
+    for (let from = a; from <= b; from++)
+      for (let to = from; to <= b; to++) {
+        const run = units.slice(from, to + 1);
+        const score = Math.max(
+          similarity(plain, run.map((u) => u.plain).join("")),
+          similarity(kana, run.map((u) => u.kana).join("")),
+        );
+        if (score > bestScore) {
+          bestScore = score;
+          best = [from, to];
+        }
+      }
+    return best;
+  };
   // 뒤 닻: 바로 맞춘 결과에서 미리 찾아 둔다
   const nextAnchor: (number | null)[] = Array(segments.length).fill(null);
   let upcoming: number | null = null;
   for (let i = segments.length - 1; i >= 0; i--) {
     nextAnchor[i] = upcoming;
     const s = span(cards[String(i)]);
-    if (s) upcoming = s[0];
+    if (s) upcoming = covered(i, s)[0];
   }
 
   let prev: number | null = null;
   segments.forEach((seg, i) => {
     const own = span(out[String(i)]);
     if (own) {
-      prev = own[1];
+      prev = covered(i, own)[1];
       return;
     }
     if (seg.lang !== "ja") return;

@@ -23,6 +23,30 @@ const ko = (text: string) => ({ text, lang: "ko" as const });
 const shown = (cards: ReturnType<typeof buildCards>, i: number) =>
   cards[String(i)]?.whole ? cards[String(i)].sentences.map((s) => s.ja) : null;
 
+describe("문장이 여럿인 소책자 항목의 일부만 받아 적은 줄", () => {
+  const call = [
+    { ja: "あ、もしもし。", ko: "아, 여보세요." },
+    {
+      ja: "うん。今、着いたよ。さっき電車を降りた。",
+      ko: "응. 지금 도착했어. 좀 전에 전철 내렸어.",
+    },
+  ];
+  const callSource: CardSource = {
+    sentences: call,
+    ordered: call,
+    glossary: { 今: "いま", 着: "つ", 電車: "でんしゃ", 降: "お" },
+    words: [],
+  };
+
+  it("뒤 줄이 항목의 뒷부분만 맞췄으면 앞 줄은 같은 항목의 앞부분과 맞춘다", () => {
+    const cards = buildCards(
+      [ja("あ、もしもし"), ja("今着いたよ"), ja("さっき電車を降りた")],
+      callSource,
+    );
+    expect(shown(cards, 1)).toEqual([call[1].ja]);
+  });
+});
+
 describe("예문 mp3를 읽는 차례로 맞추기", () => {
   it("두 문장을 붙여 받아 적은 줄을 앞뒤 닻 사이 문장 둘로 맞춘다", () => {
     const cards = buildCards(
