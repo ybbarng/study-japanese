@@ -83,6 +83,28 @@ describe("자막을 내줄 때 거를 잡음 줄", () => {
     expect(isNoiseLine("A형")).toBe(false);
   });
 
+  it("영문 한 글자에 장음 기호가 붙은 줄도 거른다", () => {
+    expect(isNoiseLine("E ー")).toBe(true);
+  });
+
+  it("영문이 대부분인 줄(영어로 잘못 받아 적은 말)을 거른다", () => {
+    expect(isNoiseLine("got it!")).toBe(true);
+    expect(isNoiseLine("WARMING UP")).toBe(true);
+    expect(isNoiseLine("in 。")).toBe(true);
+  });
+
+  it("줄임말만 있는 줄이나 일본어 문장 속 영문은 남긴다", () => {
+    expect(isNoiseLine("DVD")).toBe(false);
+    expect(isNoiseLine("DVDを借りません。")).toBe(false);
+    expect(isNoiseLine("青い t シャツを買います")).toBe(false);
+  });
+
+  it("한글 낱자만 있는 줄을 거르고, 낱자가 섞인 한국어 문장은 남긴다", () => {
+    expect(isNoiseLine("ㅇ,")).toBe(true);
+    expect(isNoiseLine("ㄹ")).toBe(true);
+    expect(isNoiseLine("ㅈ의 발음은 어렵습니다.")).toBe(false);
+  });
+
   it("글자가 하나라도 있는 짧은 대답은 남긴다", () => {
     expect(isNoiseLine("え")).toBe(false);
     expect(isNoiseLine("はい。")).toBe(false);

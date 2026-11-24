@@ -84,20 +84,50 @@ export function isCreditLine(text: string): boolean {
  * 영문 한 글자만 있는 줄(「E」「A.」). 교재 오디오는 일본어·한국어뿐이라 글자 종류부터 틀렸다.
  * 짧은 감탄사(え 등)를 영문으로 받아 적은 것으로 보이지만 무엇인지 알 수 없어 고치지 않고 뺀다.
  */
-const LONE_LATIN = /^[\s\p{P}]*[A-Za-zＡ-Ｚａ-ｚ][\s\p{P}]*$/u;
+const LONE_LATIN = /^[\s\p{P}ー〜~]*[A-Za-zＡ-Ｚａ-ｚ][\s\p{P}ー〜~]*$/u;
 
 export function isLoneLatin(text: string): boolean {
   return LONE_LATIN.test(text);
 }
 
+const LATIN_LETTER = /[A-Za-zＡ-Ｚａ-ｚ]/gu;
+/** 말소리 글자 하나하나(가나·한자·한글·영문·숫자) */
+const SPEECH_CHARS = new RegExp(SPEECH_CHAR.source, "gu");
+/** 영문이 이만큼 넘게 차지하면 영문 줄로 본다 */
+const LATIN_SHARE = 0.6;
+
 /**
- * 자막을 내줄 때 뺄 줄: 말소리 글자가 하나도 없는 줄, 영문 한 글자 줄, 제작진 표기 줄, 정해진 환각 문구.
+ * 영문이 대부분인 줄(「got it!」「warming up」). 교재 오디오는 일본어·한국어뿐이라,
+ * 강사의 말이나 잡음을 영어로 잘못 받아 적은 것이다.
+ * 대문자 세 글자까지의 줄임말(DVD·OK·CD)만 있는 줄은 실제로 쓰는 말이라 남긴다.
+ */
+export function isLatinLine(text: string): boolean {
+  const latin = text.match(LATIN_LETTER)?.length ?? 0;
+  if (latin < 2) return false;
+  const speech = text.match(SPEECH_CHARS)?.length ?? 0;
+  if (latin / speech <= LATIN_SHARE) return false;
+  const tokens = text.normalize("NFKC").match(/[A-Za-z]+/g) ?? [];
+  return !tokens.every((t) => /^[A-Z]{1,3}$/.test(t));
+}
+
+/** 한글 낱자(ㄱ·ㅏ)와 부호만 있는 줄(「ㅇ,」「ㄹ」). 말소리를 글자로 옮기지 못한 자리다 */
+const JAMO_ONLY = /^[\s\p{P}ㄱ-ㅎㅏ-ㅣ]*[ㄱ-ㅎㅏ-ㅣ][\s\p{P}ㄱ-ㅎㅏ-ㅣ]*$/u;
+
+export function isJamoOnly(text: string): boolean {
+  return JAMO_ONLY.test(text);
+}
+
+/**
+ * 자막을 내줄 때 뺄 줄: 말소리 글자가 하나도 없는 줄, 영문 한 글자 줄, 영문이 대부분인 줄,
+ * 한글 낱자만 있는 줄, 제작진 표기 줄, 정해진 환각 문구.
  * 한 글자 대답(「え」「はい」 등)처럼 가나·한글·숫자가 하나라도 있는 짧은 줄은 남긴다.
  */
 export function isNoiseLine(text: string): boolean {
   return (
     !hasSpeechChar(text) ||
     isLoneLatin(text) ||
+    isLatinLine(text) ||
+    isJamoOnly(text) ||
     isCreditLine(text) ||
     isKnownHallucination(text)
   );
