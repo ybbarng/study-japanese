@@ -1,5 +1,6 @@
 import type { CacheLike, FetchLike } from "./download";
 import { DownloadError, ERROR_TEXT } from "./download";
+import { codePointsOf, fontFaces, fontsFor } from "./font-faces";
 
 // 강 화면을 끊긴 곳에서도 열 수 있게 화면 HTML과 그 화면이 부르는 빌드 파일(JS·CSS·글꼴)을 받아 둔다.
 // 화면은 service worker가 "네트워크 먼저, 끊기면 캐시"로 준다(public/sw.js).
@@ -27,8 +28,9 @@ interface SavePagesOptions {
 export async function savePages(
   pageUrls: readonly string[],
   { pageCache, staticCache, fetch, signal }: SavePagesOptions,
-): Promise<void> {
+): Promise<{ html: string[]; assets: string[] }> {
   const assets = new Set<string>();
+  const htmls: string[] = [];
   for (const url of pageUrls) {
     const html = await fetchText(url, fetch, signal, "text/html");
     await pageCache.put(
@@ -37,9 +39,47 @@ export async function savePages(
         headers: { "Content-Type": "text/html; charset=utf-8" },
       }),
     );
+    htmls.push(html);
     for (const a of staticAssetUrls(html)) assets.add(a);
   }
   await saveStaticAssets([...assets], { staticCache, fetch, signal });
+  return { html: htmls, assets: [...assets] };
+}
+
+/**
+ * 받아 둔 CSS가 부르는 글꼴 조각 가운데, texts(강 화면·자막)에 쓰인 글자를 맡는 것을 받아 둔다
+ * (font-faces.ts). 끊긴 곳에서 처음 보는 글자가 기본 글꼴로 보이지 않게 한다. 새로 받은 바이트 수를 돌려준다.
+ */
+export async function saveFonts(
+  cssUrls: readonly string[],
+  texts: readonly string[],
+  {
+    staticCache,
+    fetch,
+    signal,
+  }: Pick<SavePagesOptions, "staticCache" | "fetch" | "signal">,
+): Promise<number> {
+  const used = codePointsOf(texts);
+  const wanted = new Set<string>();
+  for (const cssUrl of new Set(cssUrls)) {
+    const css = await staticCache.match(cssUrl);
+    if (!css) continue;
+    for (const url of fontsFor(fontFaces(await css.text(), cssUrl), used))
+      wanted.add(url);
+  }
+  let bytes = 0;
+  for (const url of wanted) {
+    if (await staticCache.match(url)) continue;
+    const response = await safeFetch(url, fetch, signal);
+    if (!response.ok) continue;
+    const body = await response.blob();
+    bytes += body.size;
+    await staticCache.put(
+      url,
+      new Response(body, { headers: response.headers }),
+    );
+  }
+  return bytes;
 }
 
 /**

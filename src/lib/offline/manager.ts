@@ -22,7 +22,12 @@ import {
   packFiles,
   SHARED_PAGES,
 } from "./pack";
-import { savePages, saveStaticAssets, staticAssetUrls } from "./page-assets";
+import {
+  saveFonts,
+  savePages,
+  saveStaticAssets,
+  staticAssetUrls,
+} from "./page-assets";
 import { useOffline } from "./store";
 
 // 받는 일을 한 번에 하나씩 차례로 돌린다. 앱 안에서 다른 화면으로 옮겨도(같은 탭) 계속 받는다.
@@ -116,6 +121,17 @@ function loadedStaticUrls(): string[] {
   return staticAssetUrls(names);
 }
 
+/** 캐시에 받아 둔 글 파일들(자막 API 응답)의 본문 */
+async function cachedTexts(urls: readonly string[], cacheName: string) {
+  const cache = await openCache(cacheName);
+  const out: string[] = [];
+  for (const url of urls) {
+    const hit = await cache.match(url);
+    if (hit) out.push(await hit.text());
+  }
+  return out;
+}
+
 /** 서버에 자막·그림까지 채운 묶음을 묻는다(server-pack.ts) */
 async function fetchFullPack(
   pack: OfflinePack,
@@ -150,7 +166,7 @@ async function run(given: OfflinePack, signal: AbortSignal) {
   try {
     const pack = given.full ? given : await fetchFullPack(given, signal);
     st.savePack(pack, Date.now());
-    await savePages([pack.pageUrl, ...SHARED_PAGES[pack.book]], {
+    const pages = await savePages([pack.pageUrl, ...SHARED_PAGES[pack.book]], {
       pageCache: await openCache(PAGE_CACHE),
       staticCache: await openCache(STATIC_CACHE),
       fetch: (url, init) => fetch(url, init),
@@ -159,7 +175,8 @@ async function run(given: OfflinePack, signal: AbortSignal) {
     // 쓸 때 불러오는 덩어리를 불러 두고, 이 탭이 지금까지 불러온 빌드 파일을 모두 담는다
     // (service worker가 화면을 맡기 전에 불러온 덩어리는 캐시에 들어가지 않았을 수 있다)
     await warmup?.().catch(() => {});
-    await saveStaticAssets(loadedStaticUrls(), {
+    const loaded = loadedStaticUrls();
+    await saveStaticAssets(loaded, {
       staticCache: await openCache(STATIC_CACHE),
       fetch: (url, init) => fetch(url, init),
       signal,
@@ -174,6 +191,16 @@ async function run(given: OfflinePack, signal: AbortSignal) {
       onProgress: (progress) =>
         useOffline.getState().setJob(pack.id, { phase: "running", progress }),
     });
+    // 강 화면과 자막에 쓰인 글자의 글꼴 조각을 담는다(끊긴 곳에서 기본 글꼴로 보이지 않게)
+    await saveFonts(
+      [...pages.assets, ...loaded].filter((u) => u.endsWith(".css")),
+      [...pages.html, ...(await cachedTexts(pack.dataUrls ?? [], DATA_CACHE))],
+      {
+        staticCache: await openCache(STATIC_CACHE),
+        fetch: (url, init) => fetch(url, init),
+        signal,
+      },
+    );
     st.setJob(pack.id, null);
   } catch (err) {
     if (err instanceof DownloadError && err.kind === "aborted") {
