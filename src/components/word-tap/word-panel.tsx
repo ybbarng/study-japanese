@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { type KeyboardEvent, useEffect, useRef } from "react";
+import { wordHref } from "@/components/dictionary/word-href";
 import { Ruby } from "@/components/songs/line-words";
+import { dictKey } from "@/lib/dictionary/entries";
 import { lessonLabel } from "@/lib/ilmuta/labels";
 import type { GrammarNote } from "@/lib/songs/analysis";
 import { type LearnedIndex, learnedLessonOf } from "@/lib/songs/learned";
@@ -242,14 +244,22 @@ function WordBody({
         </div>
       ) : null}
 
-      <a
-        href={naverDictUrl(base)}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="w-fit rounded-xl border border-line px-4 py-2 text-sm hover:bg-bg-sunken"
-      >
-        네이버 사전에서 뜻 보기 ↗
-      </a>
+      <div className="flex flex-wrap gap-2">
+        <Link
+          href={wordHref(dictKey(base))}
+          className="w-fit rounded-xl border border-accent px-4 py-2 text-sm text-accent hover:bg-accent-soft"
+        >
+          사전에서 보기 →
+        </Link>
+        <a
+          href={naverDictUrl(base)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-fit rounded-xl border border-line px-4 py-2 text-sm hover:bg-bg-sunken"
+        >
+          네이버 사전에서 뜻 보기 ↗
+        </a>
+      </div>
     </section>
   );
 }
