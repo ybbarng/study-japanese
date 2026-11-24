@@ -216,7 +216,15 @@ export function japaneseShare(plain: string, known: Set<string>): number {
  * ヒョンジン·チョン에, でよ 뒤 く는 「病院でよく」에 걸려 뺐다).
  */
 const KOREAN_TELLS =
-  /がてよ|がでよ|かてよ|がてご|がてしょ|がでしょ|がてくよ|へよ|へっそ|はげ(?:て|はだ)|らご(?:は|へ)|ぬん|さらみ|ぴょん|ぷち|ぶち|ぶっち|ぱっき|ちょ$|ますよくよ|いっちょ|でよ(?![くう])|っこよ|じゃっこ|ちょそ|えよ$|でしじゃ|まんち|いしょ$|わいちょ/u;
+  /がてよ|がでよ|かてよ|がてご|がてしょ|がでしょ|がてくよ|へよ|へっそ|はげ(?:て|はだ)|らご(?:は|へ)|ぬん|さらみ|ぴょん|ぷち|ぶち|ぶっち|ぱっき|ちょ$|ますよくよ|いっちょ|でよ(?![くう])|っこよ|じゃっこ|ちょそ|えよ$|でしじゃ|まんち|いしょ$|わいちょ|[ふぶぷ]っ?け[てで][よや]|がてや|よっせよ|だねん|おだね|なおじょ|はだじょ|だじょ$|おじま$|^(?:じゃあ)?あ[ーあ]?だね/u;
+// 2026-11-24 더함: 붙여요(ふけてよ·ぷっけてや)·거예요(がてや)·였어요(よっせよ)·~다는(おだねん)·~다죠(はだじょ)·
+// ~지마(おじま)·「아단이네」(あーだね, あ段). 일무따·일문따 예문 mp3와 소책자에서 걸리지 않는 것만 골랐다.
+
+/**
+ * 받아 적은 그대로(가타카나를 바꾸기 전)의 글에서 본 신호: 줄 머리에 가타카나 한 글자를 쉼표로 늘어놓음
+ * (「ク、グ로 끝나는」을 「ク、グロー」로 받아 적음). 일본어 문장은 가타카나 한 글자 + 쉼표로 시작하지 않는다.
+ */
+const KOREAN_TELLS_RAW = /^[ァ-ヺ]ー?[、・][ァ-ヺ]/u;
 
 /** 히라가나가 섞인 줄을 한국어 말로 볼 최소 가나 수와, 일본어로 설명되는 비율의 상한 */
 const KOREAN_KANA_MIN = 5;
@@ -255,7 +263,10 @@ export function koreanKanaIndexes(
   const isKo = (j: number) => !segments[j] || segments[j].lang === "ko";
   segments.forEach((seg, i) => {
     if (seg.lang !== "ja") return;
-    if (KOREAN_TELLS.test(normalizeJa(seg.text))) {
+    if (
+      KOREAN_TELLS.test(normalizeJa(seg.text)) ||
+      KOREAN_TELLS_RAW.test(seg.text.trim())
+    ) {
       out.add(i);
       return;
     }
@@ -291,11 +302,11 @@ export function withoutMisheardKorean<T extends MisheardSegment>(
 }
 
 /**
- * 한글이 두 글자 넘게 이어 섞인 일본어 줄(「…라는 단어를」)은 강사의 한국어 설명이다.
- * 한국어 줄로 돌린다(일본어 칸에 크게 보이지 않게).
+ * 한글이 섞인 일본어 줄(「…라는 단어를」, 「374쪽の…」)은 강사의 한국어 설명이거나 한국어 말이 섞인 줄이다.
+ * 한국어 줄로 돌린다(일본어 칸에 크게 보이지 않게). 교재의 일본어 글에는 한글이 나오지 않는다.
  */
 export function isKoreanMixed(text: string): boolean {
-  return /[가-힣]{2,}/u.test(text);
+  return /[가-힣]/u.test(text);
 }
 
 /** 한글 자음 낱자 → 소리 갈래(phonetic.ts 자모열의 첫 글자. 모음으로 시작하면 "") */

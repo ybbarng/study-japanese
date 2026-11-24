@@ -235,6 +235,38 @@ describe("한국어 말을 히라가나로 받아 적은 줄", () => {
     ).toEqual([1]);
   });
 
+  it("~붙여요·~거예요·~다죠를 옮긴 조각과 「아단이네」 줄을 찾는다", () => {
+    expect(
+      dropped([ja("山へ行く"), ja("ルがぷっけてや"), ja("山へ行く")]),
+    ).toEqual([1]);
+    expect(
+      dropped([ja("山へ行く"), ja("こさせるがてや。"), ja("山へ行く")]),
+    ).toEqual([1]);
+    expect(
+      dropped([ja("山へ行く"), ja("くるがおだじょ"), ja("山へ行く")]),
+    ).toEqual([1]);
+    expect(
+      dropped([ja("山へ行く"), ja("ああだね、なかった"), ja("山へ行く")]),
+    ).toEqual([1]);
+  });
+
+  it("줄 머리에 가타카나 한 글자를 쉼표로 늘어놓은 줄(「ㄱ, ㄱ로」)을 찾는다", () => {
+    expect(
+      dropped([ja("山へ行く"), ja("ク、グロー 終わる"), ja("山へ行く")]),
+    ).toEqual([1]);
+  });
+
+  it("일본어 문장의 そうだね·~てよ·인물 이름은 새 신호에 걸리지 않는다", () => {
+    expect(
+      dropped([
+        ja("そうだね、山へ行こう"),
+        ja("ちょっと見てよ"),
+        ja("ヒョンジンの本だ"),
+        ja("ア、そうか"),
+      ]),
+    ).toEqual([]);
+  });
+
   it("가나 네 글자 이하 줄은 짧은 대답일 수 있어 남긴다", () => {
     expect(dropped(talk(ja("くらめさ")))).toEqual([]);
   });
@@ -251,7 +283,11 @@ describe("한글이 섞인 일본어 줄", () => {
     expect(isKoreanMixed("「ね、いっぱい」라는 단어를")).toBe(true);
   });
 
-  it("한글이 없거나 낱자 하나면 그대로 일본어로 둔다", () => {
+  it("한글 음절이 하나만 섞여도(쪽수 등) 한국어 줄로 본다", () => {
+    expect(isKoreanMixed("12쪽の山を見てください。")).toBe(true);
+  });
+
+  it("한글이 없거나 자모 낱자 하나면 그대로 일본어로 둔다", () => {
     expect(isKoreanMixed("猫が好きです")).toBe(false);
     expect(isKoreanMixed("ㄱがある")).toBe(false);
   });
