@@ -1,5 +1,9 @@
 import { expect, type Page, test } from "@playwright/test";
-import { LONG_LECTURE, LONG_LECTURE_CUES } from "./fixtures/textbook";
+import {
+  LONG_LECTURE,
+  LONG_LECTURE_BOOKLET,
+  LONG_LECTURE_CUES,
+} from "./fixtures/textbook";
 import { login } from "./helpers/auth";
 import { audioIsPlaying } from "./helpers/listen";
 
@@ -13,6 +17,13 @@ const LESSON = `/ilmuta/${LONG_LECTURE.no}`;
 
 function audioTime(page: Page): Promise<number> {
   return page.evaluate(() => document.querySelector("audio")?.currentTime ?? 0);
+}
+
+async function seekAudio(page: Page, sec: number) {
+  await page.evaluate((s) => {
+    const a = document.querySelector("audio");
+    if (a) a.currentTime = s;
+  }, sec);
 }
 
 function audioPaused(page: Page): Promise<boolean> {
@@ -107,6 +118,36 @@ test("PC 강 화면 오른쪽 자막 목록에서 줄을 누르면 강의가 그
   await expect.poll(() => audioTime(page)).toBeGreaterThanOrEqual(cue.start);
   expect(await audioTime(page)).toBeLessThan(cue.end + 2);
   await expect(line).toHaveAttribute("aria-current", "true");
+});
+
+test("PC에서 강의를 재생하는 동안 가운데 넓은 칸에 지금 일본어 카드가 크게 뜨고, 오른쪽 칸은 자막 목록을 길게 보인다", async ({
+  page,
+}) => {
+  await login(page, LESSON);
+  const stage = page.locator("[data-lecture-stage]");
+  const aside = page.getByRole("complementary", { name: "강의와 자막" });
+  // 틀기 전에는 가운데가 교재(문형 카드)뿐이다
+  await expect(aside.getByRole("button", { name: /강의 듣기/ })).toBeVisible();
+  await expect(stage).toHaveCount(0);
+  await aside.getByRole("button", { name: /강의 듣기/ }).click();
+  await expect.poll(() => audioIsPlaying(page)).toBe(true);
+  await expect(stage).toBeVisible();
+
+  await seekAudio(page, LONG_LECTURE_CUES[1].start + 1);
+  await expect(
+    stage.getByText(LONG_LECTURE_BOOKLET.ko, { exact: true }),
+  ).toBeVisible();
+  await expect(aside.getByRole("region", { name: "지금 하는 말" })).toHaveCount(
+    0,
+  );
+  await expect(aside.getByRole("region", { name: "강의 자막" })).toBeVisible();
+
+  // 가운데 무대가 화면 밖으로 나가면 오른쪽 칸이 다시 지금 하는 말을 맡는다
+  await page.locator("#step-words").scrollIntoViewIfNeeded();
+  await page.evaluate(() => window.scrollBy(0, 400));
+  await expect(
+    aside.getByRole("region", { name: "지금 하는 말" }),
+  ).toBeVisible();
 });
 
 test("PC에서 ? 키로 단축키 도움말을 열고 Esc로 닫는다", async ({ page }) => {

@@ -2,6 +2,7 @@
 
 import { examplesOf } from "@/lib/ilmuta/steps";
 import { lectureItem, lessonQueue } from "@/lib/ilmuta/tracks";
+import { LectureStage } from "./lecture-stage";
 import type { StepProps } from "./lesson-types";
 import { OrientationGuide } from "./orientation-guide";
 import { PlayCard } from "./play-card";
@@ -9,7 +10,8 @@ import { useNowPlaying, usePlay } from "./use-player-bridge";
 
 /**
  * 강의 구역: 이 강 강의를 고르는 단추(강의 다음에 그 강 예문이 이어진다)와 이 강의 문형.
- * 재생 위치·지금 하는 말은 화면 위(폰)·오른쪽 칸(PC)에 붙은 재생기에 있다.
+ * 재생 위치·지금 하는 말은 화면 위(폰)·오른쪽 칸(PC)에 붙은 재생기에 있다. PC에서 강의를 재생하는
+ * 동안에는 지금 하는 말을 이 구역(가운데 넓은 칸)에 크게 띄운다.
  */
 export function StepLecture({ data, listens }: StepProps) {
   const { lesson } = data;
@@ -34,6 +36,9 @@ export function StepLecture({ data, listens }: StepProps) {
         playing={now.item === item && now.playing}
         onPress={() => play(lessonQueue(lesson), 0)}
       />
+
+      {/* PC: 강의를 재생하는 동안 넓은 가운데에 지금 하는 말을 크게 */}
+      <LectureStage data={data} />
 
       {lesson.no === 0 ? <OrientationGuide /> : null}
 

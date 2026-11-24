@@ -6,6 +6,7 @@ import { InlinePlayer } from "@/components/player/inline-player";
 import type { LessonData } from "@/lib/ilmuta/server-data";
 import type { StepId } from "@/lib/ilmuta/steps";
 import { lectureItem, lessonQueue } from "@/lib/ilmuta/tracks";
+import { useLectureStage } from "./lecture-stage";
 import { type LessonNow, useLessonNow } from "./use-lesson-now";
 import { usePlay } from "./use-player-bridge";
 import { WritingReference } from "./writing-reference";
@@ -119,6 +120,8 @@ function LecturePanel({ data }: { data: LessonData }) {
   // 강의가 끝나 예문이 이어지면 지금 하는 말과 자막 목록도 그 예문의 자막으로
   const shown = useLessonNow(data);
   const transcript = shown.transcript;
+  // 가운데 칸에 강의 무대가 보이면 같은 카드를 겹쳐 두지 않고 자막 목록을 길게 쓴다
+  const staged = useLectureStage((s) => s.visible) && shown.item === item;
 
   if (!transcript)
     return (
@@ -129,15 +132,17 @@ function LecturePanel({ data }: { data: LessonData }) {
     );
   return (
     <>
-      <LectureContext
-        key={`ctx-${shown.item}`}
-        transcript={transcript}
-        book="ilmuta"
-        item={shown.item}
-        heading={<NowHeading shown={shown} />}
-        idle={idleText(shown)}
-        className="shrink-0"
-      />
+      {staged ? null : (
+        <LectureContext
+          key={`ctx-${shown.item}`}
+          transcript={transcript}
+          book="ilmuta"
+          item={shown.item}
+          heading={<NowHeading shown={shown} />}
+          idle={idleText(shown)}
+          className="shrink-0"
+        />
+      )}
       <TranscriptList
         key={shown.item}
         transcript={transcript}
