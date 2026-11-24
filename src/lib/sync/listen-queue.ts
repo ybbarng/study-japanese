@@ -58,25 +58,44 @@ export function removeSent(
 }
 
 let flushing: Promise<void> | null = null;
+let again = false;
+
+async function sendOnce(
+  fetchImpl: typeof fetch,
+  storage: KeyValueStorage | null,
+) {
+  const events = readQueue(storage);
+  if (events.length === 0) return;
+  try {
+    const batch = events.slice(0, 500);
+    const res = await fetchImpl("/api/listen", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ events: batch }),
+      keepalive: true,
+    });
+    if (res.ok) removeSent(new Set(batch.map((e) => e.clientId)), storage);
+  } catch {
+    // 오프라인
+  }
+}
 
 /** 대기열을 보낸다. 실패하면 남겨 두고 다음 기회(온라인 복귀·화면 전환)에 다시 보낸다. */
-export function flushQueue(fetchImpl: typeof fetch = fetch): Promise<void> {
-  if (flushing) return flushing;
+export function flushQueue(
+  fetchImpl: typeof fetch = fetch,
+  storage: KeyValueStorage | null = safeStorage(),
+): Promise<void> {
+  // 보내는 중에 또 불리면(예: 끊긴 채 시작한 요청이 아직 실패하기 전에 다시 연결됨) 그 요청에 묻지 않고
+  // 끝난 뒤 한 번 더 보낸다. 묻으면 그 요청이 실패해 다음 기회(화면 전환)까지 기록이 서버에 안 간다
+  if (flushing) {
+    again = true;
+    return flushing;
+  }
   flushing = (async () => {
-    const events = readQueue();
-    if (events.length === 0) return;
-    try {
-      const batch = events.slice(0, 500);
-      const res = await fetchImpl("/api/listen", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ events: batch }),
-        keepalive: true,
-      });
-      if (res.ok) removeSent(new Set(batch.map((e) => e.clientId)));
-    } catch {
-      // 오프라인
-    }
+    do {
+      again = false;
+      await sendOnce(fetchImpl, storage);
+    } while (again);
   })().finally(() => {
     flushing = null;
   });
