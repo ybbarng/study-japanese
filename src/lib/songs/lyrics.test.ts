@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   applyKo,
   koText,
+  lineAtCursor,
   linesFromText,
   lyricsText,
   splitLyrics,
@@ -124,5 +125,23 @@ describe("linesFromText", () => {
     expect(
       linesFromText("くりかえし\nくりかえし", chorus).map((l) => l.start),
     ).toEqual([10, 30]);
+  });
+});
+
+describe("lineAtCursor", () => {
+  const text = "そらをみた\n\nうみへいく\nかぜがふく";
+
+  it("커서가 있는 줄을 빈 줄을 뺀 차례(1부터)로 센다", () => {
+    expect(lineAtCursor(text, 0)).toBe(1);
+    expect(lineAtCursor(text, text.indexOf("うみ") + 1)).toBe(2);
+    expect(lineAtCursor(text, text.length)).toBe(3);
+  });
+
+  it("줄 끝(줄바꿈 바로 앞)에 있는 커서는 그 줄로 센다", () => {
+    expect(lineAtCursor(text, "そらをみた".length)).toBe(1);
+  });
+
+  it("빈 줄에 있는 커서는 줄 번호가 없다", () => {
+    expect(lineAtCursor(text, "そらをみた\n".length)).toBeNull();
   });
 });

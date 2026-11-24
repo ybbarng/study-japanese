@@ -203,6 +203,26 @@ test("관리자가 가사 공개를 끄면 방문자에게는 노래가 보이�
   await visitor.context().close();
 });
 
+test("가사 칸에서 커서를 옮기면 그 줄이 빈 줄을 뺀 몇 번째 줄인지 보인다", async ({
+  page,
+}) => {
+  await login(page, "/songs/new");
+  const lyrics = page.locator("#song-lyrics");
+  await lyrics.fill(
+    `${FAKE_LYRICS[0]}\n\n${FAKE_LYRICS[1]}\n${FAKE_LYRICS[2]}`,
+  );
+  // 셋째 글줄(빈 줄을 빼면 3번째) 맨 앞에 커서를 두고 오른쪽으로 한 칸
+  const start = FAKE_LYRICS[0].length + 2 + FAKE_LYRICS[1].length + 1;
+  await lyrics.evaluate((el: HTMLTextAreaElement, pos) => {
+    el.focus();
+    el.setSelectionRange(pos, pos);
+  }, start);
+  await lyrics.press("ArrowRight");
+  await expect(page.locator('label[for="song-lyrics"]')).toContainText(
+    "커서: 3번째 줄",
+  );
+});
+
 test("관리자는 노래를 넣고, 박자를 맞춘 뒤, 줄을 누르면 그 줄의 시작으로 간다", async ({
   page,
   isMobile,

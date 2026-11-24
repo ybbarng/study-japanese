@@ -11,6 +11,18 @@ export function splitLyrics(text: string): string[] {
     .filter((line) => line !== "");
 }
 
+/**
+ * 고치기 칸에서 커서(pos, UTF-16 위치)가 있는 줄이 가사 몇 번째 줄인지(1부터).
+ * splitLyrics처럼 빈 줄은 세지 않으므로 학습 화면의 줄 차례와 같다. 커서가 빈 줄에 있으면 null.
+ */
+export function lineAtCursor(text: string, pos: number): number | null {
+  const before = text.slice(0, pos).split(/\r?\n/);
+  const rest = text.slice(pos).split(/\r?\n/)[0];
+  const current = `${before[before.length - 1]}${rest}`;
+  if (splitLyrics(current).length === 0) return null;
+  return splitLyrics(before.slice(0, -1).join("\n")).length + 1;
+}
+
 /** 가사 줄을 고치기 칸에 다시 넣을 글로 */
 export function lyricsText(lines: readonly Pick<SongLine, "ja">[]): string {
   return lines.map((l) => l.ja).join("\n");

@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, type SyntheticEvent, useState } from "react";
 import {
   applyKo,
   koText,
+  lineAtCursor,
   linesFromText,
   lyricsText,
   NO_KO,
@@ -51,6 +52,16 @@ export function SongForm({ song, initialFile }: Props) {
   const [busy, setBusy] = useState(false);
 
   const [ko, setKo] = useState(song ? koText(song.lines) : "");
+  // 고치기 칸에는 줄 번호가 없어서, 커서가 있는 줄이 몇 번째 줄인지 칸 제목에 보인다
+  // undefined: 커서가 칸 밖, null: 빈 줄
+  const [lyricsCursor, setLyricsCursor] = useState<number | null>();
+  const [koCursor, setKoCursor] = useState<number | null>();
+  const trackCursor =
+    (set: (line: number | null | undefined) => void) =>
+    (e: SyntheticEvent<HTMLTextAreaElement>) => {
+      const el = e.currentTarget;
+      set(lineAtCursor(el.value, el.selectionStart));
+    };
 
   const lineCount = splitLyrics(lyrics).length;
   const koCount = splitLyrics(ko).length;
@@ -111,11 +122,14 @@ export function SongForm({ song, initialFile }: Props) {
         <div className="flex flex-col gap-2">
           <label htmlFor="song-lyrics" className="text-sm text-ink-soft">
             가사 붙여 넣기 · 한 줄이 한 줄({lineCount}줄)
+            <CursorLine line={lyricsCursor} />
           </label>
           <textarea
             id="song-lyrics"
             value={lyrics}
             onChange={(e) => setLyrics(e.target.value)}
+            onSelect={trackCursor(setLyricsCursor)}
+            onBlur={() => setLyricsCursor(undefined)}
             rows={18}
             lang="ja"
             placeholder="가사를 줄마다 붙여 넣으세요. 빈 줄은 버립니다."
@@ -125,11 +139,14 @@ export function SongForm({ song, initialFile }: Props) {
         <div className="flex flex-col gap-2">
           <label htmlFor="song-ko" className="text-sm text-ink-soft">
             한국어 해석(선택) · {koCount}줄
+            <CursorLine line={koCursor} />
           </label>
           <textarea
             id="song-ko"
             value={ko}
             onChange={(e) => setKo(e.target.value)}
+            onSelect={trackCursor(setKoCursor)}
+            onBlur={() => setKoCursor(undefined)}
             rows={18}
             placeholder={`가사 줄마다 해석을 한 줄씩 붙여 넣으세요. 해석이 없는 줄은 ${NO_KO} 로 적습니다.`}
             // 가사 칸과 같은 글자 크기·줄 간격이라 PC에서 나란히 놓으면 줄이 맞는다
@@ -276,5 +293,15 @@ function Field({
       {children}
       {hint ? <p className="text-xs text-ink-faint">{hint}</p> : null}
     </div>
+  );
+}
+
+/** 칸 제목 끝에 붙는 "커서: n번째 줄"(칸 밖이면 숨김, 빈 줄이면 "빈 줄") */
+function CursorLine({ line }: { line: number | null | undefined }) {
+  if (line === undefined) return null;
+  return (
+    <span className="ml-2 font-medium text-accent" aria-live="polite">
+      · 커서: {line === null ? "빈 줄" : `${line}번째 줄`}
+    </span>
   );
 }
