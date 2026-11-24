@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <ellipse cx="32" cy="34" rx="24" ry="16" fill="none" stroke="#7a6a62" stroke-width="1.6"/>
+  <circle cx="8" cy="34" r="4.5" fill="#f5c84c" stroke="#7a6a62" stroke-width="1.5"/>
+  <circle cx="13" cy="23" r="4.5" fill="#9b72c9" stroke="#7a6a62" stroke-width="1.5"/>
+  <circle cx="24" cy="18.5" r="4.5" fill="#3fb0a6" stroke="#7a6a62" stroke-width="1.5"/>
+  <circle cx="36" cy="18" r="4.5" fill="#f5c84c" stroke="#7a6a62" stroke-width="1.5"/>
+  <circle cx="48" cy="21" r="4.5" fill="#9b72c9" stroke="#7a6a62" stroke-width="1.5"/>
+  <circle cx="55" cy="30" r="4.5" fill="#3fb0a6" stroke="#7a6a62" stroke-width="1.5"/>
+  <circle cx="54" cy="41" r="4.5" fill="#f5c84c" stroke="#7a6a62" stroke-width="1.5"/>
+  <circle cx="45" cy="48" r="4.5" fill="#9b72c9" stroke="#7a6a62" stroke-width="1.5"/>
+  <circle cx="32" cy="50" r="4.5" fill="#e8553e" stroke="#7a6a62" stroke-width="1.5"/>
+  <circle cx="19" cy="48" r="4.5" fill="#9b72c9" stroke="#7a6a62" stroke-width="1.5"/>
+  <circle cx="10" cy="43" r="4.5" fill="#3fb0a6" stroke="#7a6a62" stroke-width="1.5"/>
+  <path d="M32 55v5l-3 2M32 60l3 2" fill="none" stroke="#f5c84c" stroke-width="2" stroke-linecap="round"/>
+</svg>
