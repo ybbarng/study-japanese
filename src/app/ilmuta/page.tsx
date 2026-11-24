@@ -20,9 +20,15 @@ export default async function IlmutaMapPage() {
   return (
     <PageFrame className="px-4 pb-8 lg:px-10">
       <header className="px-2 lg:px-0">
-        <Link href="/" className="text-sm text-ink-faint lg:hidden">
-          ← にほんご
-        </Link>
+        {/* 폰에는 왼쪽 탐색이 없으니 사전으로 가는 길도 머리에 둔다 */}
+        <div className="flex items-center justify-between lg:hidden">
+          <Link href="/" className="text-sm text-ink-faint">
+            ← にほんご
+          </Link>
+          <Link href="/words" className="text-sm text-accent">
+            낱말 사전
+          </Link>
+        </div>
         <h1 className="mt-3 text-2xl font-bold">{BOOK_NAME}</h1>
         <p className="mt-1 text-sm text-ink-soft">
           강의 {lectures.done}/{lectures.total} 들음

@@ -1,6 +1,12 @@
 import Link from "next/link";
 
+// 폰에는 왼쪽 탐색이 없으므로, 탐색에만 있던 자리(낱말 사전)도 여기서 닿게 한다.
 const TOOLS = [
+  {
+    href: "/words",
+    label: "낱말 사전",
+    sub: "배운 낱말을 찾고 예문 듣기",
+  },
   { href: "/songs", label: "노래로 배우기", sub: "외워 부르는 노래의 낱말" },
   {
     href: "/ime",
