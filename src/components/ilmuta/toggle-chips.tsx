@@ -25,6 +25,7 @@ export function ToggleChips({
           key={t.id}
           type="button"
           aria-pressed={t.on}
+          aria-label={t.label}
           onClick={() => onChange(t.id, !t.on)}
           className={cn(
             "rounded-full border px-4 py-2 text-sm",
