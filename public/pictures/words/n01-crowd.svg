@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <circle cx="10" cy="26" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.5"/>
+  <circle cx="24" cy="22" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.5"/>
+  <circle cx="40" cy="22" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.5"/>
+  <circle cx="54" cy="26" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.5"/>
+  <path d="M0 46c0-8 4-12 10-12s10 4 10 12zM14 42c0-8 4-12 10-12s10 4 10 12zM30 42c0-8 4-12 10-12s10 4 10 12zM44 46c0-8 4-12 10-12s10 4 10 12z" fill="#9b72c9"/>
+  <path d="M14 42c0-8 4-12 10-12s10 4 10 12zM44 46c0-8 4-12 10-12s10 4 10 12z" fill="#3fb0a6"/>
+  <circle cx="16" cy="42" r="7" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.5"/>
+  <circle cx="32" cy="40" r="7" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.5"/>
+  <circle cx="48" cy="42" r="7" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.5"/>
+  <path d="M5 64c0-9 5-13 11-13s11 4 11 13zM21 64c0-9 5-14 11-14s11 5 11 14zM37 64c0-9 5-13 11-13s11 4 11 13z" fill="#e8553e"/>
+  <path d="M21 64c0-9 5-14 11-14s11 5 11 14z" fill="#f0923a"/>
+  <path d="M9 40c0-5 3-6 7-6s7 1 7 6c-2-2-4-2-7-2s-5 0-7 2zM25 38c0-5 3-6 7-6s7 1 7 6c-2-2-4-2-7-2s-5 0-7 2zM41 40c0-5 3-6 7-6s7 1 7 6c-2-2-4-2-7-2s-5 0-7 2z" fill="#8a5a3c"/>
+</svg>
