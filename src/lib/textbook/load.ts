@@ -6,6 +6,10 @@ import {
   type TranscriptReview,
   transcriptReviewSchema,
 } from "@/lib/context/review";
+import {
+  type SentenceReadings,
+  sentenceReadingsSchema,
+} from "@/lib/context/sentence-readings";
 import { type Ilmuta, ilmutaSchema } from "./schema";
 
 // 교재 JSON은 이미지에 넣지 않고 실행할 때 CONTENT_DIR(기본 <cwd>/content)에서 읽는다.
@@ -79,6 +83,32 @@ export function loadTranscriptReview(
     return review && review.book === book && review.item === item
       ? review
       : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 받아 적은 문장의 읽는 법(`transcripts-review/<book>/readings/<NN>.json`, docs/transcript-review.md).
+ * 없거나 깨졌거나 책·과가 다르면 조용히 null(낱말 표로만 읽기를 단다)
+ */
+export function loadSentenceReadings(
+  book: string,
+  lesson: number,
+  dir: string = contentDir(),
+): SentenceReadings | null {
+  if (!TRANSCRIPT_BOOKS.has(book) || !Number.isInteger(lesson) || lesson < 1)
+    return null;
+  try {
+    const file = path.join(
+      dir,
+      "transcripts-review",
+      book,
+      "readings",
+      `${String(lesson).padStart(2, "0")}.json`,
+    );
+    const data = readJson(file, sentenceReadingsSchema);
+    return data && data.book === book && data.lesson === lesson ? data : null;
   } catch {
     return null;
   }

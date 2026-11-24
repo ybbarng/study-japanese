@@ -5,6 +5,7 @@ import { getDb } from "@/lib/store/db";
 import {
   contentDir,
   loadIlmuta,
+  loadSentenceReadings,
   loadTranscript,
   loadTranscriptReview,
 } from "@/lib/textbook/load";
@@ -16,6 +17,7 @@ import { ilmuntaLessonPairs } from "./ilmunta-pairs";
 import { koreanVocab } from "./korean-vocab-server";
 import { contextExtras } from "./lesson-names-server";
 import type { TranscriptReview } from "./review";
+import type { SentenceReadings } from "./sentence-readings";
 import type { TranscriptPair } from "./transcript-pairs";
 
 // 서버에서 자막을 읽어 맥락 카드를 붙인다. 자막 API와 강·과 화면이 함께 쓴다.
@@ -33,6 +35,7 @@ type Entry = {
   ilmuta: Ilmuta | null;
   pairs: TranscriptPair[] | null;
   review: TranscriptReview | null;
+  readings: SentenceReadings | null;
   result: Transcript;
 };
 const cache = new WeakMap<Transcript, Entry[]>();
@@ -57,9 +60,15 @@ export function loadContextTranscript(
     book === "ilmunta" && no !== null ? ilmuntaLessonPairs(no, dir) : null;
   // Claude가 고친 자막 줄(교정 파일). 지문이 맞는 줄만 쓴다(review.ts)
   const review = loadTranscriptReview(book, item, dir);
+  // 문장 읽기 파일이 바뀌어도 새로 맞춘다(같은 파일이면 readJson이 같은 객체를 준다)
+  const readings = no !== null ? loadSentenceReadings(book, no, dir) : null;
   const entries = cache.get(transcript) ?? [];
   const hit = entries.find(
-    (e) => e.ilmuta === ilmuta && e.pairs === pairs && e.review === review,
+    (e) =>
+      e.ilmuta === ilmuta &&
+      e.pairs === pairs &&
+      e.review === review &&
+      e.readings === readings,
   );
   if (hit) return hit.result;
 
@@ -81,10 +90,14 @@ export function loadContextTranscript(
   cache.set(transcript, [
     ...entries
       .filter(
-        (e) => e.ilmuta === null && e.pairs === pairs && e.review === review,
+        (e) =>
+          e.ilmuta === null &&
+          e.pairs === pairs &&
+          e.review === review &&
+          e.readings === readings,
       )
       .slice(0, ilmuta ? 1 : 0),
-    { ilmuta, pairs, review, result: withCards },
+    { ilmuta, pairs, review, readings, result: withCards },
   ]);
   return withCards;
 }

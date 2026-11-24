@@ -124,6 +124,55 @@ export interface LessonExtras {
   echoes?: string[];
   /** 사전 색인에서 고른 칩 낱말(dict-words.ts). 받아 적은 글에서만 더 찾는다 */
   dict?: DictChips;
+  /** 받아 적은 문장의 읽는 법(문장 읽기 파일, sentence-readings.ts). 열쇠는 plainForm(ja) */
+  sentenceReadings?: ReadonlyMap<string, string>;
+}
+
+let formReadings: Glossary | null = null;
+
+/**
+ * 드릴 낱말 활용한 꼴의 표기 → 읽기(来ない → こない). 활용 엔진이 만든 꼴이라 읽기가 정확하다.
+ * 같은 표기에 읽기가 둘이면(行った: いった·おこなった) 어느 쪽인지 모르니 뺀다
+ */
+export function conjugatedFormReadings(): Glossary {
+  if (formReadings) return formReadings;
+  const seen = new Map<string, string | null>();
+  for (const f of conjugatedForms()) {
+    if (!hasKanji(f.kanji) || [...f.kanji].length < 2) continue;
+    const had = seen.get(f.kanji);
+    if (had === undefined) seen.set(f.kanji, f.reading);
+    else if (had !== f.reading) seen.set(f.kanji, null);
+  }
+  formReadings = {};
+  for (const [form, reading] of seen) if (reading) formReadings[form] = reading;
+  return formReadings;
+}
+
+/**
+ * 받아 적은 글에 읽는 법을 달 낱말 표: 기본 낱말 표에, 읽기가 하나뿐인 사전 색인 낱말과
+ * 드릴 활용한 꼴을 보탠다(기본 낱말 표가 먼저). 자리 확인은 그대로 거친다(word-bounds.ts)
+ */
+export function heardGlossaryOf(
+  glossary: Glossary,
+  extras: LessonExtras | null,
+): Glossary {
+  const out: Glossary = { ...conjugatedFormReadings() };
+  for (const w of extras?.dict?.words ?? [])
+    if (w.reading && hasKanji(w.ja) && !readingNeedsContext(w))
+      out[w.ja] = w.reading;
+  return { ...out, ...glossary };
+}
+
+/**
+ * 앞뒤를 봐야 읽기가 정해지는 사전 낱말: 세는 말·접미사(뜻이 ~로 시작: 時 じ는 수 뒤에서만, 君 くん은 이름 뒤에서만)와
+ * 「수 + 세는 말」 낱말(1日·一日 ついたち는 「하루에」의 いちにち이기도 하다)
+ */
+function readingNeedsContext(w: CueWord): boolean {
+  return (
+    /^[~～]/u.test(w.ko) ||
+    /[0-9０-９]/u.test(w.ja) ||
+    /^[一二三四五六七八九十百千何]+[日時月年分回個本枚人]$/u.test(w.ja)
+  );
 }
 
 /** 받아 적은 글에서 찾을 낱말의 활용한 꼴: 드릴 활용형과 사전 색인(예문 분석)의 꼴 */
@@ -157,6 +206,10 @@ export function ilmutaCardSource(
         .map(toCueWord)
         .filter((w): w is CueWord => w !== null)
     : [];
+  const glossary = {
+    ...(extras?.glossary ?? {}),
+    ...buildGlossary(lessons, no),
+  };
   return {
     sentences: lesson
       ? [
@@ -166,7 +219,11 @@ export function ilmutaCardSource(
         ]
       : [],
     ...(ordered ? { ordered } : {}),
-    glossary: { ...(extras?.glossary ?? {}), ...buildGlossary(lessons, no) },
+    glossary,
+    heardGlossary: heardGlossaryOf(glossary, extras),
+    ...(extras?.sentenceReadings
+      ? { sentenceReadings: extras.sentenceReadings }
+      : {}),
     words: ilmutaWords(lessons, no),
     // 받아 적은 글 속 활용한 꼴은 그 강까지 일무따에 나온 드릴 낱말만
     inflected: heardInflected(inflectedWords(learnedInIlmuta), extras),
@@ -312,6 +369,10 @@ export function ilmuntaCardSource(
     sentences,
     origin: "transcript",
     glossary,
+    heardGlossary: heardGlossaryOf(glossary, extras),
+    ...(extras?.sentenceReadings
+      ? { sentenceReadings: extras.sentenceReadings }
+      : {}),
     words,
     inflected: heardInflected(inflectedWords(), extras),
     heardOnlyWords: extras?.dict?.words,

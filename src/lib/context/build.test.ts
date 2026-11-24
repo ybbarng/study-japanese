@@ -81,6 +81,47 @@ describe("교정 파일을 반영한 자막", () => {
   });
 });
 
+describe("받아 적은 문장 카드의 읽는 법", () => {
+  const ja = "叔父は朝、来ない。";
+  const lecture: Transcript = {
+    book: "ilmunta",
+    item: "L09-02",
+    kind: "lecture",
+    durationSec: 10,
+    segments: [{ start: 1, end: 3, text: ja, lang: "ja" }],
+  };
+  const pairs = [
+    { ja, ko: "삼촌은 아침에 오지 않는다.", start: 0, end: 5, score: 1 },
+  ];
+  const rubyOf = (extras: Parameters<typeof contextTranscript>[5]) =>
+    contextTranscript("ilmunta", "L09-02", lecture, null, pairs, extras)
+      .cards?.["0"]?.sentences[0].ruby;
+
+  it("드릴 낱말의 활용한 꼴은 활용 엔진의 읽기로 단다(来ない → こ)", () => {
+    expect(rubyOf(null)).toContainEqual({ text: "来", reading: "こ" });
+  });
+
+  it("문장 읽기 파일이 있으면 낱말 표에 없는 한자에도 덩어리마다 읽기를 단다", () => {
+    const sentenceReadings = new Map([["叔父は朝来ない", "おじはあさこない"]]);
+    expect(rubyOf({ sentenceReadings })).toEqual([
+      { text: "叔父", reading: "おじ" },
+      { text: "は" },
+      { text: "朝", reading: "あさ" },
+      { text: "、" },
+      { text: "来", reading: "こ" },
+      { text: "ない。" },
+    ]);
+  });
+
+  it("문장 읽기의 가나가 글과 어긋나면 그 읽기를 쓰지 않는다", () => {
+    const sentenceReadings = new Map([["叔父は朝来ない", "おじがあさこない"]]);
+    expect(rubyOf({ sentenceReadings })).not.toContainEqual({
+      text: "叔父",
+      reading: "おじ",
+    });
+  });
+});
+
 describe("카드 뜻과 바로 옆 강사 줄이 낱말 하나만 다를 때", () => {
   // 예문 mp3에서 받아 적은 뜻(카드)과 강사 줄이 같은 뜻을 따로 받아 적었다
   const lecture = (ko: string): Transcript => ({

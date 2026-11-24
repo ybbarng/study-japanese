@@ -20,11 +20,11 @@ import {
 } from "./match";
 import { rubyFromReading } from "./reading-ruby";
 import { type RepairSegment, repairCards, wordSentence } from "./repair";
+import { plainForm } from "./review";
 import {
   counterFitsAt,
   inflectedFitsAt,
   kanjiCompounds,
-  verifiedRubySegments,
   wordFitsAt,
 } from "./word-bounds";
 
@@ -60,6 +60,16 @@ export interface CardSource {
   origin?: CueOrigin;
   /** 한자 낱말 → 읽는 법(문장에 후리가나를 단다) */
   glossary: Glossary;
+  /**
+   * 받아 적은 글에 읽는 법을 달 때 더 쓸 낱말(읽기가 하나뿐인 사전 색인 낱말, 드릴 낱말의 활용한 꼴).
+   * 자리 확인(word-bounds.ts)은 그대로 거친다. 없으면 glossary만
+   */
+  heardGlossary?: Glossary;
+  /**
+   * 받아 적은 문장의 읽는 법(Claude가 문장마다 적은 히라가나, sentence-readings.ts). 열쇠는 plainForm(ja).
+   * 있으면 그 읽기를 한자 덩어리마다 나눠 단다(reading-ruby.ts)
+   */
+  sentenceReadings?: ReadonlyMap<string, string>;
   /** 낱말 카드로 띄울 낱말 */
   words: CueWord[];
   /** 이 강·과에서 익히는 낱말. 한글 소리나 가나로 적힌 곳을 찾는다(repair.ts). 없으면 찾지 않는다 */
@@ -81,11 +91,24 @@ const MAX_WORDS = 6;
 
 /** 문장의 읽는 법. 받아 적은 글(transcript)이면 자리가 확인된 낱말에만 단다(word-bounds.ts) */
 function rubyOf(s: Sentence, source: CardSource): RubySegment[] {
+  if (source.origin === "transcript") return heardRuby(s.ja, s.reading, source);
   if (s.reading && s.reading !== s.ja && hasKanji(s.ja))
     return splitOkurigana(s.ja, s.reading);
-  return source.origin === "transcript"
-    ? verifiedRubySegments(s.ja, source.glossary)
-    : rubySegments(s.ja, source.glossary);
+  return rubySegments(s.ja, source.glossary);
+}
+
+/**
+ * 받아 적은 글의 읽는 법: 문장 읽기(교정 파일·문장 읽기 파일)가 있으면 한자 덩어리마다 나눠 달고,
+ * 없거나 글과 맞지 않으면 자리가 확인된 낱말에만 단다(사전 색인·활용한 꼴까지)
+ */
+function heardRuby(
+  text: string,
+  reading: string | null | undefined,
+  source: CardSource,
+): RubySegment[] {
+  const glossary = source.heardGlossary ?? source.glossary;
+  const known = reading ?? source.sentenceReadings?.get(plainForm(text));
+  return rubyFromReading(text, known, glossary);
 }
 
 /** 문장 글 속 낱말. 받아 적은 글로 만든 카드면 낱말 칩도 자리가 확인된 것만(활용한 꼴까지) */
@@ -384,9 +407,7 @@ export function reviewedCard(
   return {
     origin: "transcript",
     reviewed: true,
-    sentences: [
-      { ja: text, ko, ruby: rubyFromReading(text, reading, source.glossary) },
-    ],
+    sentences: [{ ja: text, ko, ruby: heardRuby(text, reading, source) }],
     whole: true,
     words: heardWords(text, source)
       .filter((w) => w.ja !== text)
