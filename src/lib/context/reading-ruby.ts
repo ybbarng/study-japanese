@@ -71,13 +71,23 @@ export function rubyFromReading(
   let pattern = "^";
   let prevOpen = false;
   let at = 0;
-  for (const t of tokens) {
+  for (const [k, t] of tokens.entries()) {
     const start = at;
     at += t.length;
     if (KANJI_RUN.test(t)) {
-      const known = glossary[t] ?? runReading(text, start, t, glossary);
-      if (known) {
-        pattern += `(${escapeRegExp(normalizeJa(known))})`;
+      // 덩어리 뒤 가나까지 이어진 낱말(話します: はな)이 덩어리 혼자 읽기(話: はなし)보다 먼저다
+      const inflected = runReading(text, start, t, glossary);
+      const alone = glossary[t];
+      const nextIsKana = KANA_RUN.test(tokens[k + 1] ?? "");
+      if (inflected) {
+        pattern += `(${escapeRegExp(normalizeJa(inflected))})`;
+        prevOpen = false;
+      } else if (alone && nextIsKana) {
+        // 뒤에 가나 닻이 있으면 혼자 읽기가 맞지 않을 때(上げる의 上은 うえ가 아니다) 문장 읽기에 맡긴다
+        pattern += `(${escapeRegExp(normalizeJa(alone))}|.+?)`;
+        prevOpen = false;
+      } else if (alone) {
+        pattern += `(${escapeRegExp(normalizeJa(alone))})`;
         prevOpen = false;
       } else {
         if (prevOpen) return fallback();
@@ -95,8 +105,15 @@ export function rubyFromReading(
       prevOpen = true;
     }
   }
-  const match = new RegExp(`${pattern}$`, "u").exec(normalizeJa(reading));
+  const plain = normalizeJa(reading);
+  const match = new RegExp(`${pattern}$`, "u").exec(plain);
   if (!match) return fallback();
+  // 닻 가나가 한자 읽기 안에도 있으면(数学が苦手: すうがくがにがて) 가르는 자리가 여럿이다.
+  // 짧게 잡은 것과 길게 잡은 것이 다르면 어느 쪽인지 모르니 쓰지 않는다
+  const greedy = new RegExp(`${pattern.split(".+?").join(".+")}$`, "u").exec(
+    plain,
+  );
+  if (!greedy || greedy.some((g, i) => g !== match[i])) return fallback();
   const out: RubySegment[] = [];
   let group = 1;
   for (const t of tokens) {
