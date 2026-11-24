@@ -4,22 +4,31 @@ import { pdfLines } from "./text-utils";
 /**
  * 일문따 핵심정리 소책자(`pdftotext -layout`)의 과 머리:
  *   `    01    명사의 보통체형          본 책 023~029쪽`
+ * pdftotext는 쪽마다 \f를 넣으므로, 머리가 나온 PDF 쪽(1부터)도 함께 센다(`#page=`로 그 쪽을 연다).
  */
 export function parseIlmuntaBookletHeaders(
   text: string,
-): { no: number; title: string; pages: PageRange }[] {
-  const out: { no: number; title: string; pages: PageRange }[] = [];
-  for (const line of pdfLines(text)) {
-    const m = line.match(
-      /^\s*(\d{2})\s+(.+?)\s+본\s*책\s*(\d+)\s*~\s*(\d+)\s*쪽/,
-    );
-    if (!m) continue;
-    out.push({
-      no: Number(m[1]),
-      title: m[2].replace(/\s+/g, " ").trim(),
-      pages: { from: Number(m[3]), to: Number(m[4]) },
-    });
-  }
+): { no: number; title: string; pages: PageRange; bookletPage: number }[] {
+  const out: {
+    no: number;
+    title: string;
+    pages: PageRange;
+    bookletPage: number;
+  }[] = [];
+  text.split("\f").forEach((pageText, i) => {
+    for (const line of pdfLines(pageText)) {
+      const m = line.match(
+        /^\s*(\d{2})\s+(.+?)\s+본\s*책\s*(\d+)\s*~\s*(\d+)\s*쪽/,
+      );
+      if (!m) continue;
+      out.push({
+        no: Number(m[1]),
+        title: m[2].replace(/\s+/g, " ").trim(),
+        pages: { from: Number(m[3]), to: Number(m[4]) },
+        bookletPage: i + 1,
+      });
+    }
+  });
   return out;
 }
 

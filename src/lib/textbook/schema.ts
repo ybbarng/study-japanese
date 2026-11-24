@@ -104,6 +104,8 @@ export const ilmuntaLessonSchema = z.object({
   no: z.number().int().positive(),
   title: z.string(),
   pages: pageRangeSchema.optional(),
+  /** 핵심정리 소책자 PDF에서 이 과가 시작하는 쪽(1부터, `#page=`로 연다) */
+  bookletPage: z.number().int().positive().optional(),
   /** 60일 학습 스케줄에서 이 과를 공부하는 날(한 과가 여러 날에 걸치기도 한다) */
   scheduleDays: z.array(z.number().int().positive()).optional(),
   lectures: z.array(audioSchema),

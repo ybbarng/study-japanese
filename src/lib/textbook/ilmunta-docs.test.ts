@@ -6,15 +6,28 @@ import {
 } from "./ilmunta-docs";
 
 describe("parseIlmuntaBookletHeaders", () => {
-  it("과 머리 줄에서 번호·제목·본책 쪽수를 뽑는다", () => {
+  it("과 머리 줄에서 번호·제목·본책 쪽수와 머리가 나온 PDF 쪽을 뽑는다", () => {
+    // pdftotext는 쪽 끝마다 \f를 넣는다
     const text = [
-      "\f    01    명사의 기본형                                   본 책 023~029쪽",
+      "    01    명사의 기본형                                   본 책 023~029쪽",
       "          ～だ             ～じゃない",
-      "    12    동사의  기본형  본 책 108~113쪽",
+      "\f",
+      "          ～だった",
+      "\f    12    동사의  기본형  본 책 108~113쪽",
     ].join("\n");
     expect(parseIlmuntaBookletHeaders(text)).toEqual([
-      { no: 1, title: "명사의 기본형", pages: { from: 23, to: 29 } },
-      { no: 12, title: "동사의 기본형", pages: { from: 108, to: 113 } },
+      {
+        no: 1,
+        title: "명사의 기본형",
+        pages: { from: 23, to: 29 },
+        bookletPage: 1,
+      },
+      {
+        no: 12,
+        title: "동사의 기본형",
+        pages: { from: 108, to: 113 },
+        bookletPage: 3,
+      },
     ]);
   });
 });

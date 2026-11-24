@@ -4,7 +4,7 @@ import {
   skillLabel,
   skillsOfLesson,
 } from "@/lib/ilmunta/curriculum";
-import { ILMUNTA_PDFS, ilmuntaMediaUrl } from "@/lib/ilmunta/media";
+import { ilmuntaPdfLinks } from "@/lib/ilmunta/media";
 import { monthOfLesson } from "@/lib/ilmunta/months";
 import type { IlmuntaLesson } from "@/lib/textbook/schema";
 
@@ -65,20 +65,20 @@ export function LessonDrillLink({ no }: { no: number }) {
   );
 }
 
-/** 함께 보는 PDF(로그인 뒤 열림) */
-export function PdfLinks() {
+/** 함께 보는 PDF(로그인 뒤 열림). 소책자는 그 과의 쪽으로 바로 연다 */
+export function PdfLinks({ lesson }: { lesson: IlmuntaLesson }) {
   return (
     <div className="flex flex-col gap-2">
-      {ILMUNTA_PDFS.map((p) => (
+      {ilmuntaPdfLinks(lesson).map((p) => (
         <a
-          key={p.file}
-          href={ilmuntaMediaUrl(p.file)}
+          key={p.href}
+          href={p.href}
           target="_blank"
           rel="noreferrer"
           className="flex items-center justify-between rounded-xl bg-bg-raised px-4 py-3 text-sm active:bg-bg-sunken"
         >
           <span>{p.label}</span>
-          <span className="text-ink-faint">PDF ↗</span>
+          <span className="text-ink-faint">{p.note}</span>
         </a>
       ))}
     </div>
