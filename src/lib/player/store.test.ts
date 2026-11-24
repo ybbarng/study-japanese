@@ -38,3 +38,30 @@ describe("seekTo", () => {
     expect(usePlayer.getState().wantPlaying).toBe(true);
   });
 });
+
+describe("playQueue의 처음 자리", () => {
+  const track = {
+    book: "ilmuta",
+    item: "03-3",
+    kind: "example",
+    title: "시험 예문",
+    src: "/media/ilmuta/03-3.mp3",
+  } as const;
+
+  beforeEach(() => {
+    usePlayer.setState({ loadToken: 0, startAt: null, queue: [], index: 0 });
+  });
+
+  it("같은 트랙을 다시 올려도 이번 불러오기의 처음 자리로 새 자리를 남긴다", () => {
+    usePlayer.getState().playQueue([track], 0, 3);
+    usePlayer.getState().playQueue([track], 0, 9);
+    expect(usePlayer.getState().startAt).toEqual({ sec: 9, token: 2 });
+    expect(usePlayer.getState().loadToken).toBe(2);
+  });
+
+  it("처음 자리 없이 올리면 앞서 남긴 자리를 지워 처음부터 튼다", () => {
+    usePlayer.getState().playQueue([track], 0, 9);
+    usePlayer.getState().playQueue([track]);
+    expect(usePlayer.getState().startAt).toBeNull();
+  });
+});

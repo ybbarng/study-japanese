@@ -21,6 +21,11 @@ interface PlayerState {
   expanded: boolean;
   /** 이 위치(초)로 옮겨 달라는 요청. token이 바뀔 때마다 GlobalPlayer가 따른다 */
   seekRequest: { sec: number; token: number; at: number } | null;
+  /**
+   * 트랙을 올릴 때 처음 자리(초). token이 지금 loadToken과 같을 때만 GlobalPlayer가 따른다.
+   * 올린 뒤 seekTo로 옮기면 같은 트랙을 다시 올릴 때 옮긴 자리가 새로 불러오기에 지워졌다
+   */
+  startAt: { sec: number; token: number } | null;
   /** 한 문장 반복 중인 자막 구간(저장하지 않는다) */
   cueLoop: CueLoop | null;
   /** A–B 구간 반복(저장하지 않는다). 한 문장 반복과 함께 걸리지 않는다 */
@@ -28,7 +33,8 @@ interface PlayerState {
   setAbLoop: (loop: AbLoop | null) => void;
 
   setCueLoop: (loop: CueLoop | null) => void;
-  playQueue: (tracks: Track[], start?: number) => void;
+  /** 대기열을 새로 올려 start번째 트랙부터 튼다. fromSec를 주면 그 트랙의 그 자리부터 */
+  playQueue: (tracks: Track[], start?: number, fromSec?: number) => void;
   /** 지금 트랙의 그 위치부터 재생(자막 줄을 눌러 다시 듣기) */
   seekTo: (sec: number) => void;
   jump: (index: number) => void;
@@ -53,6 +59,7 @@ export const usePlayer = create<PlayerState>()(
       shadowGap: false,
       expanded: false,
       seekRequest: null,
+      startAt: null,
       cueLoop: null,
       abLoop: null,
 
@@ -71,12 +78,16 @@ export const usePlayer = create<PlayerState>()(
           wantPlaying: true,
         })),
 
-      playQueue: (tracks, start = 0) =>
+      playQueue: (tracks, start = 0, fromSec) =>
         set((s) => ({
           queue: tracks,
           index: start,
           wantPlaying: true,
           loadToken: s.loadToken + 1,
+          startAt:
+            fromSec !== undefined && fromSec > 0
+              ? { sec: fromSec, token: s.loadToken + 1 }
+              : null,
         })),
       jump: (index) =>
         set((s) => ({ index, wantPlaying: true, loadToken: s.loadToken + 1 })),

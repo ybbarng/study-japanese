@@ -86,8 +86,17 @@ export function GlobalPlayer() {
     setSrc(a, track.src);
     a.playbackRate = s.rate;
     startedAt.current = Date.now();
+    // 처음 자리가 있으면 새 파일의 길이를 안 뒤 옮긴다(불러오기 전에 옮기면 무시될 수 있다)
+    const startAt = usePlayer.getState().startAt;
+    const from = startAt?.token === s.loadToken ? startAt.sec : null;
+    const seekStart = () => {
+      if (from !== null) a.currentTime = from;
+    };
+    if (from !== null)
+      a.addEventListener("loadedmetadata", seekStart, { once: true });
     if (s.wantPlaying)
       a.play().catch(() => usePlayer.getState().setPlaying(false));
+    return () => a.removeEventListener("loadedmetadata", seekStart);
   }, [s.loadToken, s.index]);
 
   // 재생/멈춤 요청 맞추기

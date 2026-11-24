@@ -3,24 +3,15 @@
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 import type { DictExample } from "@/lib/dictionary/server";
-import { usePlaybackClock } from "@/lib/player/clock";
 import { usePlayer } from "@/lib/player/store";
 
 /**
- * 예문 mp3를 그 문장 자리부터 튼다. 트랙을 올린 뒤 재생기가 그 트랙 위치를 알리면 옮긴다
- * (불러오기 전에 옮기면 무시될 수 있어서).
+ * 예문 mp3를 그 문장 자리부터 튼다. 시작 자리를 트랙과 함께 넘겨, 재생기가 파일을 새로 불러온 뒤
+ * 옮기게 한다. 올린 뒤 따로 옮기면 같은 mp3가 이미 올라 있을 때 옮긴 자리가 새로 불러오기에 지워져
+ * 둘째 예문부터 파일 처음부터 나왔다.
  */
 function playExample(ex: DictExample) {
-  const player = usePlayer.getState();
-  player.playQueue([ex.track]);
-  const cue = ex.cue;
-  if (!cue) return;
-  const unsub = usePlaybackClock.subscribe((s) => {
-    if (s.book !== ex.track.book || s.item !== ex.track.item) return;
-    unsub();
-    usePlayer.getState().seekTo(cue.start);
-  });
-  setTimeout(unsub, 15_000);
+  usePlayer.getState().playQueue([ex.track], 0, ex.cue?.start);
 }
 
 /** 낱말이 나오는 교재 예문. 낱말 자리는 강조하고, 누르면 그 문장 소리를 듣는다 */

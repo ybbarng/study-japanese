@@ -11,6 +11,8 @@ const hash = (ja: string) =>
 
 /** 3강 문형 예문(가짜 교재 fixtures/textbook.ts와 같은 글) */
 export const TAP_PATTERN = "山は山だ。";
+/** 3강 문형의 둘째 예문(같은 mp3) */
+const TAP_PATTERN_2 = "山のうえ。";
 export const TAP_WORD = {
   surface: "山",
   reading: "やま",
@@ -42,6 +44,23 @@ export function writeFakeWordTap(contentDir: string) {
           { start: 3, length: 1, pos: "助動詞", gloss: "~이다" },
         ],
         grammar: [{ pattern: "〜は〜だ", explain: "시험 문법 메모." }],
+      },
+      // 같은 예문 mp3의 둘째 문장. 사전 낱말 화면에 같은 mp3 예문이 둘 생겨, 차례로 눌러 볼 수 있다
+      {
+        example: `${n}-3`,
+        index: 1,
+        hash: hash(TAP_PATTERN_2),
+        tokens: [
+          {
+            start: 0,
+            length: 1,
+            reading: TAP_WORD.reading,
+            pos: "名詞",
+            gloss: TAP_WORD.gloss,
+          },
+          { start: 1, length: 1, pos: "助詞", gloss: "~의" },
+          { start: 2, length: 2, pos: "名詞", gloss: "위" },
+        ],
       },
       {
         example: `${n}-1`,
