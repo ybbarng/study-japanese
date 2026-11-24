@@ -2,11 +2,12 @@
 
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { recentSeek } from "@/components/context/use-cue-actions";
 import { fetchTranscript } from "@/components/context/use-transcript";
 import { isAdminClient } from "@/lib/auth/client";
-import { cueIndexBefore, transcriptCues } from "@/lib/context/cues";
+import { transcriptCues } from "@/lib/context/cues";
 import { setPlaybackClock } from "@/lib/player/clock";
-import { cueLoopStep } from "@/lib/player/cue-loop";
+import { cueLoopStep, resolveLoopCue } from "@/lib/player/cue-loop";
 import {
   isCompleted,
   type ListenMeter,
@@ -224,7 +225,9 @@ export function GlobalPlayer() {
     const transcript = await fetchTranscript(t.book, t.item);
     if (!transcript) return;
     const cues = transcriptCues(transcript);
-    const i = cueIndexBefore(cues, a.currentTime);
+    // 자막 줄을 누른 직후(mp3가 줄 시작보다 조금 앞에 내려앉아도)는 그 줄을,
+    // 막 다음 문장으로 넘어간 순간이면 화면에 보이던 앞 문장을 잡는다
+    const i = resolveLoopCue(cues, a.currentTime, { seek: recentSeek() });
     if (i < 0) return;
     st.setCueLoop({
       book: t.book,

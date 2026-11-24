@@ -39,6 +39,73 @@ export function cueLoopStep(
   return { kind: "none" };
 }
 
+/** 반복을 고를 때 볼 자막 구간(시각만) */
+export interface TimedCue {
+  start: number;
+  end: number;
+}
+
+/** 줄을 눌러 옮긴 뒤 이만큼 안에 반복을 걸면 그 줄을 잡는다 */
+const SEEK_MEMORY_SEC = 4;
+/** 새 문장이 시작된 지 이만큼 안이면 사람은 아직 앞 문장을 보고 있다(보고 누르는 데 걸리는 시간) */
+const REACTION_SEC = 0.8;
+/** 앞 문장이 끝난 뒤 이만큼 안일 때만 앞 문장을 잡는다(그보다 오래 비었으면 앞 문장은 이미 화면에서 내려갔다) */
+const PREV_VISIBLE_SEC = 1.5;
+/** 줄을 눌러 옮기면 mp3는 그 시각보다 조금 앞에 내려앉기도 한다 */
+const SEEK_LANDING_SEC = 0.25;
+
+function lastStartedBefore(cues: TimedCue[], t: number): number {
+  let found = -1;
+  for (let i = 0; i < cues.length; i++) {
+    if (cues[i].start <= t) found = i;
+    else break;
+  }
+  return found;
+}
+
+/**
+ * "이 문장 반복"(단추·L 키)이 잡을 구간의 차례. -1이면 잡을 것이 없다.
+ * - 다른 줄의 단추를 눌렀으면(pressed가 지금 줄이 아니면) 그 줄.
+ * - 방금 자막 줄을 눌러 옮겼으면(seek) 그 줄. mp3가 조금 앞에 내려앉아도 앞 줄로 새지 않는다.
+ * - 지금 줄이 막 시작됐으면(보고 누르는 사이에 넘어갔으면) 화면에 보이던 앞 줄.
+ * cues는 시작 시각 차례다.
+ */
+export function resolveLoopCue(
+  cues: TimedCue[],
+  pos: number,
+  opts: {
+    /** 눌린 단추가 붙어 있던 줄(L 키면 없음) */
+    pressed?: number | null;
+    /** 마지막으로 자막 줄을 눌러 옮긴 곳과 그 뒤 지난 시간 */
+    seek?: { sec: number; ageSec: number } | null;
+  } = {},
+): number {
+  const here = lastStartedBefore(cues, pos + SEEK_LANDING_SEC);
+  const pressed = opts.pressed ?? null;
+  if (pressed !== null && pressed !== here) return pressed;
+
+  const seek = opts.seek;
+  if (seek && seek.ageSec >= 0 && seek.ageSec < SEEK_MEMORY_SEC) {
+    const sought = cues.findIndex((c) => Math.abs(c.start - seek.sec) < 0.05);
+    if (
+      sought >= 0 &&
+      pos >= cues[sought].start - 1 &&
+      pos <= cues[sought].end + SLACK_AFTER
+    )
+      return sought;
+  }
+
+  if (here < 0) return -1;
+  const prev = here - 1;
+  if (
+    prev >= 0 &&
+    pos - cues[here].start < REACTION_SEC &&
+    cues[here].start - cues[prev].end < PREV_VISIBLE_SEC
+  )
+    return prev;
+  return here;
+}
+
 /** 같은 구간이면 풀고, 아니면 그 구간으로 건다 */
 export function toggleLoop(
   current: CueLoop | null,

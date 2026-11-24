@@ -39,7 +39,7 @@ export function LectureContext({
   );
   const pos = usePositionOf(book, item);
   const loopPause = usePlaybackClock((s) => s.loopPause);
-  const actions = useCueActions(book, item);
+  const actions = useCueActions(book, item, cues);
   if (cues.length === 0) return null;
 
   if (pos === null)

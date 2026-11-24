@@ -40,7 +40,7 @@ export function TranscriptList({
   const cues = useMemo(() => transcriptCues(transcript), [transcript]);
   const pos = usePositionOf(book, item);
   const seekTo = usePlayer((s) => s.seekTo);
-  const actions = useCueActions(book, item);
+  const actions = useCueActions(book, item, cues);
   const loopPause = usePlaybackClock((s) => s.loopPause);
   const at = pos === null ? -1 : cueIndexAt(cues, pos);
   const listRef = useRef<HTMLOListElement>(null);

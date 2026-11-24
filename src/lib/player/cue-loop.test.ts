@@ -3,6 +3,7 @@ import {
   type CueLoop,
   cueLoopStep,
   loopPauseSec,
+  resolveLoopCue,
   toggleLoop,
 } from "./cue-loop";
 
@@ -46,6 +47,52 @@ describe("쉬는 시간", () => {
   it("아주 짧은 문장도 1.5초, 아주 긴 문장도 15초까지", () => {
     expect(loopPauseSec({ ...loop, end: 10.2 }, true)).toBe(1.5);
     expect(loopPauseSec({ ...loop, end: 60 }, true)).toBe(15);
+  });
+});
+
+describe("반복이 잡을 문장", () => {
+  // 짧은 문장이 이어지는 단어·예문 구간처럼: 2초짜리 문장이 0.4초 틈을 두고 이어진다
+  const cues = [
+    { start: 295.5, end: 297.5 },
+    { start: 297.9, end: 299.9 },
+    { start: 300.3, end: 302.3 },
+  ];
+
+  it("문장 한가운데서 누르면 그 문장", () => {
+    expect(resolveLoopCue(cues, 298.9)).toBe(1);
+  });
+
+  it("다음 문장이 시작된 지 0.8초 안에 누르면 화면에 보이던 앞 문장", () => {
+    expect(resolveLoopCue(cues, 298.2)).toBe(0);
+    expect(resolveLoopCue(cues, 298.2, { pressed: 1 })).toBe(0);
+  });
+
+  it("앞 문장이 끝난 뒤 오래 비었으면 막 시작한 문장", () => {
+    const gap = [
+      { start: 10, end: 12 },
+      { start: 20, end: 22 },
+    ];
+    expect(resolveLoopCue(gap, 20.2)).toBe(1);
+  });
+
+  it("자막 줄을 눌러 옮긴 직후에는 그 줄(재생 위치가 줄 시작보다 조금 앞이어도)", () => {
+    const seek = { sec: 297.9, ageSec: 0.3 };
+    expect(resolveLoopCue(cues, 297.85, { seek })).toBe(1);
+    expect(resolveLoopCue(cues, 298.2, { seek, pressed: 1 })).toBe(1);
+  });
+
+  it("옮긴 지 오래됐으면 옮긴 줄을 기억하지 않는다", () => {
+    expect(
+      resolveLoopCue(cues, 300.5, { seek: { sec: 297.9, ageSec: 10 } }),
+    ).toBe(1);
+  });
+
+  it("지금 줄이 아닌 줄의 단추를 누르면 그 줄", () => {
+    expect(resolveLoopCue(cues, 301, { pressed: 0 })).toBe(0);
+  });
+
+  it("첫 줄보다 앞이면 잡을 것이 없다", () => {
+    expect(resolveLoopCue(cues, 100)).toBe(-1);
   });
 });
 
