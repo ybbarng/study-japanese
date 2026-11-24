@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200">
+  <!-- 뒤 벽 달력: 모레에 표시 -->
+  <rect x="128" y="14" width="64" height="50" rx="4" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M128 18a4 4 0 0 1 4-4h56a4 4 0 0 1 4 4v8h-64z" fill="#e8553e" stroke="#7a6a62" stroke-width="2.5" stroke-linejoin="round"/>
+  <rect x="164" y="38" width="12" height="11" rx="2" fill="#f5c84c"/>
+  <path d="M138 34h0M150 34h0M162 34h0M174 34h0M186 34h0M138 44h0M150 44h0M162 44h0M174 44h0M186 44h0M138 54h0M150 54h0M162 54h0M174 54h0M186 54h0" fill="none" stroke="#6c7280" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="150" cy="44" r="5" fill="none" stroke="#e8553e" stroke-width="2"/>
+  <!-- 바닥 그림자 -->
+  <ellipse cx="78" cy="188" rx="42" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <ellipse cx="244" cy="188" rx="42" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <!-- 왼쪽 사람: 잡지의 영화 광고를 보여 준다 -->
+  <g transform="translate(78 78)">
+    <path d="M-34 108c0-48 14-78 34-78s34 30 34 78z" fill="#4a82d4"/>
+    <path d="M-8 22h16v12h-16z" fill="#e3a57f"/>
+    <circle cx="0" cy="0" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+    <path d="M-20 -2c0-16 10-22 20-22s20 6 20 22c-6-6-14-9-22-8-8 1-14 4-18 8z" fill="#8a5a3c"/>
+    <circle cx="-7" cy="2" r="2.4" fill="#3a3040"/>
+    <circle cx="8" cy="2" r="2.4" fill="#3a3040"/>
+    <path d="M-5 10q5 5 10 0" fill="none" stroke="#7a6a62" stroke-width="2" stroke-linecap="round"/>
+    <path d="M24 -14c-3 4-4 7-4 9a4 4 0 0 0 8 0c0-2-1-5-4-9z" fill="#79bde8" stroke="#7a6a62" stroke-width="1.5"/>
+    <path d="M24 48l24-6" fill="none" stroke="#3b62a8" stroke-width="11" stroke-linecap="round"/>
+  </g>
+  <path d="M120 96l20-4 20 4v34l-20-4-20 4z" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M140 92v34" fill="none" stroke="#7a6a62" stroke-width="2"/>
+  <rect x="124" y="102" width="12" height="16" rx="1" fill="#6c7280"/>
+  <path d="M127 106l6 4-6 4z" fill="#f5c84c"/>
+  <rect x="144" y="102" width="12" height="16" rx="1" fill="#9b72c9"/>
+  <circle cx="126" cy="122" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <!-- 오른쪽 사람: 셋이 함께 보자고 한다 -->
+  <g transform="translate(244 78)">
+    <path d="M-24 -2c0-22 10-30 24-30s24 8 24 30v24c0 6-6 10-12 10h-24c-6 0-12-4-12-10z" fill="#5e4a6e"/>
+    <path d="M-34 108c0-48 14-78 34-78s34 30 34 78z" fill="#f5c84c"/>
+    <path d="M-8 22h16v12h-16z" fill="#e3a57f"/>
+    <circle cx="0" cy="0" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+    <path d="M-20 -4c2-16 12-22 20-22 10 0 19 6 21 20-10-2-20-8-24-14-4 8-10 13-17 16z" fill="#5e4a6e"/>
+    <path d="M-10 2q3-3 6 0M4 2q3-3 6 0" fill="none" stroke="#3a3040" stroke-width="2" stroke-linecap="round"/>
+    <path d="M-6 10q6 6 12 0z" fill="#b8402f" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M-24 50l-10-24" fill="none" stroke="#f0923a" stroke-width="11" stroke-linecap="round"/>
+    <circle cx="-35" cy="21" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  </g>
+  <!-- 생각 풍선: 세 사람 -->
+  <circle cx="226" cy="48" r="3" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <circle cx="232" cy="38" r="4.5" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <ellipse cx="272" cy="22" rx="38" ry="18" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M248 36c0-7 3-11 7-11s7 4 7 11zM265 36c0-7 3-11 7-11s7 4 7 11zM282 36c0-7 3-11 7-11s7 4 7 11z" fill="#4a82d4"/>
+  <path d="M265 36c0-7 3-11 7-11s7 4 7 11z" fill="#f5c84c"/>
+  <circle cx="255" cy="18" r="5" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.5"/>
+  <circle cx="272" cy="18" r="5" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.5"/>
+  <circle cx="289" cy="18" r="5" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.5"/>
+</svg>

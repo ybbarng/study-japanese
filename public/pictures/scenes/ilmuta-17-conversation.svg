@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200">
+  <!-- 바닥 그림자 -->
+  <ellipse cx="78" cy="188" rx="42" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <ellipse cx="160" cy="188" rx="40" ry="5" fill="#6c7280" fill-opacity="0.45"/>
+  <ellipse cx="244" cy="188" rx="42" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <!-- 카페 탁자와 찻잔 둘 -->
+  <path d="M160 132v54M144 186h32" fill="none" stroke="#a8714a" stroke-width="5" stroke-linecap="round"/>
+  <rect x="122" y="124" width="76" height="10" rx="4" fill="#d29a63" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M132 108h18v10a6 6 0 0 1-6 6h-6a6 6 0 0 1-6-6z" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M170 108h18v10a6 6 0 0 1-6 6h-6a6 6 0 0 1-6-6z" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <!-- 왼쪽 사람: 궁금해서 묻는다 -->
+  <g transform="translate(78 78)">
+    <path d="M-34 108c0-48 14-78 34-78s34 30 34 78z" fill="#3fb0a6"/>
+    <path d="M-8 22h16v12h-16z" fill="#e3a57f"/>
+    <circle cx="0" cy="0" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+    <path d="M-21 2c-2-16 8-26 21-26s23 10 21 26c-4-10-10-14-21-15-10 1-17 5-21 15z" fill="#8a5a3c"/>
+    <path d="M-21 2c-4 8-4 16 0 22M21 2c4 8 4 16 0 22" fill="none" stroke="#8a5a3c" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="-7" cy="2" r="2.4" fill="#3a3040"/>
+    <circle cx="8" cy="2" r="2.4" fill="#3a3040"/>
+    <ellipse cx="0" cy="12" rx="3" ry="3.5" fill="#b8402f"/>
+  </g>
+  <!-- 오른쪽 사람: 휴대폰 속 여자 친구를 자랑한다 -->
+  <g transform="translate(244 78)">
+    <path d="M-34 108c0-48 14-78 34-78s34 30 34 78z" fill="#f0923a"/>
+    <path d="M-8 22h16v12h-16z" fill="#e3a57f"/>
+    <circle cx="0" cy="0" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+    <path d="M-20 -2c0-16 10-22 20-22s20 6 20 22c-6-6-14-9-22-8-8 1-14 4-18 8z" fill="#5e4a6e"/>
+    <path d="M-10 3q3-3 6 0M4 3q3-3 6 0" fill="none" stroke="#3a3040" stroke-width="2" stroke-linecap="round"/>
+    <path d="M-7 10q7 7 14 0z" fill="#b8402f" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+    <circle cx="-12" cy="9" r="3" fill="#f4a0b8"/>
+    <circle cx="12" cy="9" r="3" fill="#f4a0b8"/>
+    <path d="M-24 50l-22-6" fill="none" stroke="#d29a63" stroke-width="11" stroke-linecap="round"/>
+  </g>
+  <rect x="182" y="98" width="18" height="30" rx="3" fill="#6c7280" stroke="#7a6a62" stroke-width="2"/>
+  <rect x="185" y="102" width="12" height="20" rx="1" fill="#f4a0b8"/>
+  <path d="M191 117c-4-3-5-4.5-5-6.5a2.5 2.5 0 0 1 5-.5 2.5 2.5 0 0 1 5 .5c0 2-1 3.5-5 6.5z" fill="#e8553e"/>
+  <circle cx="198" cy="122" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <!-- 생각 풍선: 맛있는 요리 -->
+  <circle cx="226" cy="50" r="3" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <circle cx="218" cy="40" r="4.5" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <ellipse cx="260" cy="26" rx="44" ry="20" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2.5"/>
+  <ellipse cx="256" cy="32" rx="22" ry="6" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M240 31c0-10 7-14 16-14s16 4 16 14z" fill="#f0923a" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M250 22l1 3M258 21v3M264 24l-1 3" fill="none" stroke="#e8553e" stroke-width="2" stroke-linecap="round"/>
+  <path d="M286 12l1.6 4 4 1.6-4 1.6-1.6 4-1.6-4-4-1.6 4-1.6zM230 14l1.2 3 3 1.2-3 1.2-1.2 3-1.2-3-3-1.2 3-1.2z" fill="#f5c84c"/>
+  <path d="M288 38c-4-3-5-4.5-5-6.5a2.5 2.5 0 0 1 5-.5 2.5 2.5 0 0 1 5 .5c0 2-1 3.5-5 6.5z" fill="#e8553e"/>
+  <!-- 말풍선: 어때? -->
+  <path d="M24 12h40a10 10 0 0 1 10 10v12a10 10 0 0 1-10 10H50l-8 9 1-9H24a10 10 0 0 1-10-10V22a10 10 0 0 1 10-10z" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M38 22q0-6 6-6t6 6q0 4-6 6v3" fill="none" stroke="#e8553e" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="44" cy="37" r="2" fill="#e8553e"/>
+</svg>

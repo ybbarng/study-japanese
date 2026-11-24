@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <path d="M10 22c4-12 22-12 26 0" fill="none" stroke="#f0923a" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M36 22l-5-2M36 22l1-5" fill="none" stroke="#f0923a" stroke-width="2.5" stroke-linecap="round"/>
+  <rect x="1.5" y="25.5" width="17" height="27" rx="4" fill="none" stroke="#e8553e" stroke-width="2"/>
+  <rect x="4" y="28" width="12" height="22" rx="2" fill="#f6f2ea" stroke="#7a6a62" stroke-width="1.5"/>
+  <rect x="19" y="28" width="12" height="22" rx="2" fill="#f6f2ea" stroke="#7a6a62" stroke-width="1.5"/>
+  <rect x="34" y="28" width="12" height="22" rx="2" fill="#f5c84c" stroke="#7a6a62" stroke-width="1.5"/>
+  <rect x="49" y="28" width="12" height="22" rx="2" fill="#f6f2ea" stroke="#7a6a62" stroke-width="1.5"/>
+  <path d="M4 30a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4H4zM19 30a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4H19zM34 30a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4H34zM49 30a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4H49z" fill="#e8553e"/>
+  <path d="M8 42h4M23 42h4M38 42h4M53 42h4" fill="none" stroke="#6c7280" stroke-width="2.5" stroke-linecap="round"/>
+</svg>
