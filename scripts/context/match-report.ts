@@ -7,6 +7,7 @@ import {
   lessonNoOfItem,
 } from "@/lib/context/card-sources";
 import { ilmuntaLessonPairs } from "@/lib/context/ilmunta-pairs";
+import { koreanVocab } from "@/lib/context/korean-vocab-server";
 import { contextExtras } from "@/lib/context/lesson-names-server";
 import { prepareReview } from "@/lib/context/review";
 import {
@@ -109,7 +110,16 @@ for (const book of ["ilmuta", "ilmunta"] as const) {
       book === "ilmunta" && no !== null ? ilmuntaLessonPairs(no, dir) : null;
     const extras = contextExtras(book, item, ilmuta, dir);
     const review = useReview ? loadTranscriptReview(book, item, dir) : null;
-    const out = contextTranscript(book, item, t, ilmuta, pairs, extras, review);
+    const out = contextTranscript(
+      book,
+      item,
+      t,
+      ilmuta,
+      pairs,
+      extras,
+      review,
+      koreanVocab(ilmuta),
+    );
     const cards = out.cards ?? {};
     const key = byItem
       ? `${book} ${item}`

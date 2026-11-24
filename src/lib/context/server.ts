@@ -13,6 +13,7 @@ import { contextTranscript } from "./build";
 import { lessonNoOfItem } from "./card-sources";
 import type { Transcript } from "./cues";
 import { ilmuntaLessonPairs } from "./ilmunta-pairs";
+import { koreanVocab } from "./korean-vocab-server";
 import { contextExtras } from "./lesson-names-server";
 import type { TranscriptReview } from "./review";
 import type { TranscriptPair } from "./transcript-pairs";
@@ -73,6 +74,8 @@ export function loadContextTranscript(
     pairs,
     extras,
     review,
+    // 같은 뜻을 두 번 받아 적은 글이 다를 때 어느 쪽이 바른 말인지 볼 낱말장(소책자 뜻·낱말 뜻)
+    koreanVocab(ilmuta),
   );
   // 교재·짝·교정이 바뀐 옛 결과는 버리고, 볼 수 있는 경우(일무따 있음·없음) 둘까지만 둔다
   cache.set(transcript, [

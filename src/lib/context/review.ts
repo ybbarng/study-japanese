@@ -11,7 +11,17 @@ import { normalizeJa } from "./match";
 // ③ promoteSegments: 올린 줄의 글·카드를 자막에 넣는다(거르기 단계에서 빠졌으면 다시 넣는다).
 
 const confidenceSchema = z.enum(["high", "mid", "low"]);
-const kindSchema = z.enum(["japanese", "korean-noise", "name", "other"]);
+/**
+ * japanese·name: 일본어 줄 고침, korean-noise: 한국어를 가나로 적은 줄, other: 헛것·자리말 문형 설명,
+ * korean: 한국어 줄(뜻·강사 설명)의 받아쓰기 오타를 고친 글(출신 → 출시)
+ */
+const kindSchema = z.enum([
+  "japanese",
+  "korean-noise",
+  "name",
+  "other",
+  "korean",
+]);
 
 /** whisper로 소리를 다시 들은 결과. 쓰는 닮음 점수만 확인한다(나머지 필드는 받아 두기만) */
 const reviewAudioSchema = z.object({
@@ -97,6 +107,8 @@ export interface PreparedReview<T extends Segment> {
   candidates: ReviewCandidate[];
   /** 한국어 줄로 돌린 줄(korean-noise의 숨긴 줄, 자리말 문형 설명인 other 포함) */
   korean: number;
+  /** 한국어 줄의 받아쓰기 오타를 고친 줄(kind: korean) */
+  koreanFixed: number;
   /** 헛것이라 뺀 줄(고친 글이 없거나 조각인 other) */
   dropped: number;
   /** 둘로 나눈 줄 */
@@ -136,6 +148,7 @@ export function prepareReview<T extends Segment>(
     segments,
     candidates: [],
     korean: 0,
+    koreanFixed: 0,
     dropped: 0,
     split: 0,
     mismatched: 0,
@@ -151,6 +164,14 @@ export function prepareReview<T extends Segment>(
     }
     used.add(line);
     const corrected = line.corrected?.trim() ?? "";
+    if (line.kind === "korean") {
+      // 한국어 줄의 오타 고침: 고친 글에 한글이 있을 때만 바꾸고, 아니면 원래 줄 그대로
+      if (HANGUL.test(corrected)) {
+        out.koreanFixed++;
+        next.push({ ...seg, text: corrected, lang: "ko" });
+      } else next.push(seg);
+      continue;
+    }
     if (line.kind === "korean-noise") {
       out.korean++;
       if (HANGUL.test(corrected))

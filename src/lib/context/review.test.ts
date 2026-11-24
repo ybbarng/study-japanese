@@ -155,6 +155,31 @@ describe("한국어를 가나로 적은 줄(korean-noise)과 헛것(other)", () 
   });
 });
 
+describe("한국어 줄의 받아쓰기 오타 고침(korean)", () => {
+  const typo = line({
+    start: 20,
+    end: 22,
+    original: "그 게임의 출신은",
+    corrected: "그 게임의 출시는",
+    kind: "korean",
+  });
+
+  it("한국어 줄을 고친 글로 바꾸고 고친 줄로 센다", () => {
+    const out = prepareReview([ko(20, 22, "그 게임의 출신은")], review(typo));
+    expect(out.segments).toEqual([ko(20, 22, "그 게임의 출시는")]);
+    expect(out.koreanFixed).toBe(1);
+    expect(out.candidates).toEqual([]);
+  });
+
+  it("고친 글에 한글이 없으면 원래 줄을 그대로 둔다", () => {
+    const out = prepareReview(
+      [ko(20, 22, "그 게임의 출신은")],
+      review({ ...typo, corrected: "" }),
+    );
+    expect(out.segments).toEqual([ko(20, 22, "그 게임의 출신은")]);
+  });
+});
+
 describe("일본어 + 한국어 뒷말이 섞인 줄(splitAt)", () => {
   const segments = [ja(10, 12, "山のカメラかめらんで")];
   const mixed = { original: "山のカメラかめらんで", corrected: "山のカメラ" };

@@ -1,8 +1,13 @@
-import { loadIlmuta, loadTranscript } from "@/lib/textbook/load";
+import {
+  loadIlmuta,
+  loadTranscript,
+  loadTranscriptReview,
+} from "@/lib/textbook/load";
 import { withoutNoise } from "@/lib/transcript/hallucination";
 import { ilmuntaGlossary } from "./card-sources";
 import { kanaOf } from "./cards";
 import type { Transcript } from "./cues";
+import { prepareReview, type TranscriptReview } from "./review";
 import {
   findRepeatPairs,
   PAIR_MIN_SIMILARITY,
@@ -21,7 +26,10 @@ export function grammarExampleItem(no: number): string {
 }
 
 const NONE: TranscriptPair[] = [];
-const cache = new WeakMap<Transcript, TranscriptPair[]>();
+const cache = new WeakMap<
+  Transcript,
+  { review: TranscriptReview | null; pairs: TranscriptPair[] }
+>();
 
 /**
  * 과의 예문 mp3(문법 예문 `-1`·읽기 글 `-2`) 자막의 일본어 줄. 강의에서 한 번만 들린 줄을
@@ -42,17 +50,23 @@ export function ilmuntaLessonLines(
     );
 }
 
-/** 과의 짝. 자막이 없으면 빈 열(늘 같은 객체라 호출하는 쪽이 캐시 열쇠로 쓸 수 있다) */
+/**
+ * 과의 짝. 자막이 없으면 빈 열(자막·교정 파일이 그대로면 같은 객체라 호출하는 쪽이 캐시 열쇠로 쓸 수 있다).
+ * 그 예문 자막의 교정 파일이 있으면 먼저 반영한다(뜻 줄의 받아쓰기 오타를 고친 줄 등, review.ts)
+ */
 export function ilmuntaLessonPairs(no: number, dir?: string): TranscriptPair[] {
-  const t = loadTranscript("ilmunta", grammarExampleItem(no), dir);
+  const item = grammarExampleItem(no);
+  const t = loadTranscript("ilmunta", item, dir);
   if (!t) return NONE;
+  const review = loadTranscriptReview("ilmunta", item, dir);
   const hit = cache.get(t);
-  if (hit) return hit;
+  if (hit && hit.review === review) return hit.pairs;
   const glossary = ilmuntaGlossary(loadIlmuta(dir)?.lessons ?? null);
-  const pairs = findRepeatPairs(withoutNoise(t.segments), {
+  const segments = prepareReview(t.segments, review).segments;
+  const pairs = findRepeatPairs(withoutNoise(segments), {
     minSimilarity: PAIR_MIN_SIMILARITY,
     toKana: (text) => kanaOf(text, glossary),
   });
-  cache.set(t, pairs);
+  cache.set(t, { review, pairs });
   return pairs;
 }

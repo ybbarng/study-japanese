@@ -80,3 +80,45 @@ describe("교정 파일을 반영한 자막", () => {
     expect(build(null).segments.map((s) => s.start)).not.toContain(15);
   });
 });
+
+describe("카드 뜻과 바로 옆 강사 줄이 낱말 하나만 다를 때", () => {
+  // 예문 mp3에서 받아 적은 뜻(카드)과 강사 줄이 같은 뜻을 따로 받아 적었다
+  const lecture = (ko: string): Transcript => ({
+    book: "ilmunta",
+    item: "L09-02",
+    kind: "lecture",
+    durationSec: 30,
+    segments: [
+      { start: 1, end: 3, text: "この駅で降りる。", lang: "ja" },
+      { start: 4, end: 6, text: ko, lang: "ko" },
+      { start: 7, end: 9, text: "この駅で降りる。", lang: "ja" },
+    ],
+  });
+  const pair = (ko: string) => [
+    { ja: "この駅で降りる。", ko, start: 0, end: 5, score: 1 },
+  ];
+
+  it("일본어에 없는 숫자로 받아 적은 카드 뜻은 강사 줄의 말로 바로잡는다", () => {
+    const out = contextTranscript(
+      "ilmunta",
+      "L09-02",
+      lecture("이번 역에서 내린다."),
+      null,
+      pair("2번 역에서 내린다."),
+    );
+    expect(out.cards?.["0"]?.sentences[0].ko).toBe("이번 역에서 내린다.");
+    expect(out.cards?.["2"]?.sentences[0].ko).toBe("이번 역에서 내린다.");
+  });
+
+  it("카드 뜻이 맞으면 강사 줄을 카드의 말로 바로잡는다", () => {
+    const out = contextTranscript(
+      "ilmunta",
+      "L09-02",
+      lecture("2번 역에서 내린다."),
+      null,
+      pair("이번 역에서 내린다."),
+    );
+    expect(out.cards?.["0"]?.sentences[0].ko).toBe("이번 역에서 내린다.");
+    expect(out.cards?.["1"]?.text).toBe("이번 역에서 내린다.");
+  });
+});

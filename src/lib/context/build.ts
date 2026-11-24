@@ -10,9 +10,18 @@ import {
   lessonNoOfItem,
   looksLikeMeaning,
 } from "./card-sources";
-import { buildCards, type CardSource, kanaOf, reviewedCard } from "./cards";
+import {
+  buildCards,
+  type CardSource,
+  type CueWord,
+  findWords,
+  kanaOf,
+  reviewedCard,
+} from "./cards";
 import { conjugatedReadings } from "./conjugations";
 import type { Transcript } from "./cues";
+import type { KoreanVocab } from "./korean-vocab";
+import { harmonizeMeanings } from "./meaning-lines";
 import {
   fillJamo,
   isKoreanMixed,
@@ -74,6 +83,7 @@ export function contextTranscript(
   pairs: TranscriptPair[] | null,
   extras: LessonExtras | null = null,
   review: TranscriptReview | null = null,
+  vocab: KoreanVocab | null = null,
 ): Transcript {
   const lessons = ilmuta?.lessons ?? null;
   // 교정 파일(review.ts): 한국어를 가나로 적은 줄은 한국어 줄로 돌리거나 숨기고, 헛것은 빼고,
@@ -149,13 +159,45 @@ export function contextTranscript(
     cards,
     source ? reviewPromotions(prepared, source, extras, review?.threshold) : [],
   );
+  // 카드 뜻과 바로 옆 강사 줄이 같은 뜻을 따로 받아 적어 낱말 하나만 다르면 맞는 쪽으로 맞춘다(meaning-lines.ts)
+  const harmonized =
+    source && transcript.kind === "lecture"
+      ? harmonizeMeanings(
+          promoted.segments,
+          promoted.cards,
+          (ja) => meaningWords(ja, source),
+          vocab ?? undefined,
+        )
+      : promoted.cards;
   const result =
     promoted.segments === clean.segments
       ? clean
       : { ...clean, segments: promoted.segments };
-  return Object.keys(promoted.cards).length > 0 || source
-    ? { ...result, cards: promoted.cards }
+  return Object.keys(harmonized).length > 0 || source
+    ? { ...result, cards: harmonized }
     : result;
+}
+
+/**
+ * 뜻을 견줄 때 증거로 쓸 일본어 글 속 낱말: 자리가 확인된 것과, 활용하는 낱말의 한자 앞부분 뒤에 가나가 붙어
+ * 나온 것(磨かせた 속 磨く). 두 오타 후보를 가를 때만 쓰므로 칩보다 너그럽게 찾는다
+ */
+function meaningWords(ja: string, source: CardSource): CueWord[] {
+  const all = [...source.words, ...(source.heardOnlyWords ?? [])];
+  const out = findWords(
+    ja,
+    all,
+    Number.POSITIVE_INFINITY,
+    true,
+    source.inflected,
+  );
+  for (const w of all) {
+    const stem = w.ja.replace(/[ぁ-ゖ]+$/u, "");
+    if (stem === w.ja || !/^[㐀-鿿々]+$/u.test(stem)) continue;
+    const at = ja.indexOf(stem);
+    if (at >= 0 && /[ぁ-ゖ]/u.test(ja[at + stem.length] ?? "")) out.push(w);
+  }
+  return out;
 }
 
 /**
