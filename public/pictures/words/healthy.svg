@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <path d="M14 62c0-12 8-18 18-18s18 6 18 18z" fill="#5fb36f"/>
+  <path d="M46 50l6-10" fill="none" stroke="#3d8a50" stroke-width="7" stroke-linecap="round"/>
+  <path d="M50 42l-2-10" fill="none" stroke="#f3c9a4" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="54" cy="40" r="5" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.5"/>
+  <circle cx="47" cy="29" r="5" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.5"/>
+  <circle cx="30" cy="28" r="12" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M18 26c0-9 6-12 12-12s12 3 12 12c-4-3-8-4-12-4s-8 1-12 4z" fill="#8a5a3c"/>
+  <circle cx="25.5" cy="29" r="1.6" fill="#3a3040"/>
+  <circle cx="34.5" cy="29" r="1.6" fill="#3a3040"/>
+  <path d="M25 34q5 5 10 0z" fill="#b8402f" stroke="#7a6a62" stroke-width="1.2" stroke-linejoin="round"/>
+  <circle cx="21" cy="33" r="2" fill="#f4a0b8"/>
+  <circle cx="39" cy="33" r="2" fill="#f4a0b8"/>
+  <path d="M9 10c-3-4-9-1-6 4l6 6 6-6c3-5-3-8-6-4z" fill="#e8553e"/>
+</svg>
