@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200">
+  <!-- 바닥 그림자 -->
+  <ellipse cx="90" cy="188" rx="42" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <ellipse cx="230" cy="188" rx="42" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <!-- 왼쪽 생각 풍선: 예전 꿈은 선생님(칠판) -->
+  <circle cx="84" cy="56" r="3" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <circle cx="74" cy="46" r="5" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M30 8h76a12 12 0 0 1 12 12v12a12 12 0 0 1-12 12H30a12 12 0 0 1-12-12V20A12 12 0 0 1 30 8z" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2.5"/>
+  <rect x="28" y="14" width="44" height="24" rx="2" fill="#3d8a50" stroke="#a8714a" stroke-width="3"/>
+  <path d="M34 22h16M34 29h24" fill="none" stroke="#f6f2ea" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="92" cy="20" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.5"/>
+  <path d="M82 38c0-8 4-12 10-12s10 4 10 12z" fill="#4a82d4"/>
+  <path d="M64 6l52 36" fill="none" stroke="#a0a6b3" stroke-width="3" stroke-linecap="round"/>
+  <!-- 왼쪽 사람: 어깨를 으쓱 -->
+  <path d="M56 186c0-48 14-78 34-78s34 30 34 78z" fill="#4a82d4"/>
+  <path d="M82 100h16v12H82z" fill="#e3a57f"/>
+  <circle cx="90" cy="80" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M70 78c0-16 10-22 20-22s20 6 20 22c-6-6-14-9-22-8-8 1-14 4-18 8z" fill="#5e4a6e"/>
+  <path d="M80 80h6M94 80h6" fill="none" stroke="#3a3040" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M84 91h12" fill="none" stroke="#7a6a62" stroke-width="2" stroke-linecap="round"/>
+  <path d="M60 126l-14-12 4-12M120 126l14-12-4-12" fill="none" stroke="#3b62a8" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="50" cy="100" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <circle cx="130" cy="100" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <!-- 오른쪽 생각 풍선: 패션 디자이너 -->
+  <circle cx="226" cy="54" r="3" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <circle cx="238" cy="44" r="5" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M220 4h76a12 12 0 0 1 12 12v14a12 12 0 0 1-12 12h-76a12 12 0 0 1-12-12V16a12 12 0 0 1 12-12z" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M248 10h10l-1 4c3 3 3 6 1 9l6 15h-22l6-15c-2-3-2-6 1-9z" fill="#f4a0b8" stroke="#7a6a62" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M270 12l12 22M284 12l-14 22" fill="none" stroke="#a0a6b3" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="268" cy="36" r="3" fill="none" stroke="#e8553e" stroke-width="2"/>
+  <circle cx="286" cy="36" r="3" fill="none" stroke="#e8553e" stroke-width="2"/>
+  <path d="M226 12c4 8 4 18 0 26" fill="none" stroke="#f5c84c" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- 오른쪽 사람: 웃으며 말한다 -->
+  <path d="M196 186c0-48 14-78 34-78s34 30 34 78z" fill="#e8553e"/>
+  <path d="M222 100h16v12h-16z" fill="#e3a57f"/>
+  <path d="M206 78c0-22 10-30 24-30s24 8 24 30v24c0 6-6 10-12 10h-24c-6 0-12-4-12-10z" fill="#8a5a3c"/>
+  <circle cx="230" cy="80" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M210 76c2-16 12-22 20-22 10 0 19 6 21 20-10-2-20-8-24-14-4 8-10 13-17 16z" fill="#8a5a3c"/>
+  <circle cx="222" cy="82" r="2.4" fill="#3a3040"/>
+  <circle cx="237" cy="82" r="2.4" fill="#3a3040"/>
+  <path d="M223 89q6 6 12 0z" fill="#b8402f" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M258 128l12-14" fill="none" stroke="#b8402f" stroke-width="11" stroke-linecap="round"/>
+  <circle cx="272" cy="110" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+</svg>

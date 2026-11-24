@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200">
+  <!-- 바닥 그림자 -->
+  <ellipse cx="70" cy="188" rx="42" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <ellipse cx="160" cy="188" rx="34" ry="5" fill="#6c7280" fill-opacity="0.45"/>
+  <ellipse cx="250" cy="188" rx="42" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <!-- 탁자와 찻잔 -->
+  <path d="M160 142v44M140 186h40" fill="none" stroke="#a8714a" stroke-width="5" stroke-linecap="round"/>
+  <rect x="122" y="134" width="76" height="10" rx="4" fill="#d29a63" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M138 118h16l-2 16h-12z" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M166 118h16l-2 16h-12z" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <!-- 왼쪽 풍선: 여동생·남동생 -->
+  <circle cx="74" cy="52" r="3" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <circle cx="64" cy="42" r="5" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M22 4h72a12 12 0 0 1 12 12v12a12 12 0 0 1-12 12H22a12 12 0 0 1-12-12V16A12 12 0 0 1 22 4z" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M30 22c-2-8 2-12 8-12s10 4 8 12z" fill="#8a5a3c"/>
+  <circle cx="38" cy="20" r="7" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.5"/>
+  <path d="M30 40c0-8 3-12 8-12s8 4 8 12z" fill="#f4a0b8"/>
+  <circle cx="70" cy="21" r="6.5" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.5"/>
+  <path d="M63.5 20c0-5 3-7 6.5-7s6.5 2 6.5 7c-3-2-9-2-13 0z" fill="#8a5a3c"/>
+  <path d="M62 40c0-8 3-12 8-12s8 4 8 12z" fill="#79bde8"/>
+  <!-- 왼쪽 사람 -->
+  <path d="M36 186c0-48 14-78 34-78s34 30 34 78z" fill="#9b72c9"/>
+  <path d="M62 100h16v12H62z" fill="#e3a57f"/>
+  <path d="M46 76c0-22 10-30 24-30s24 8 24 30v24c0 6-6 10-12 10H58c-6 0-12-4-12-10z" fill="#5e4a6e"/>
+  <circle cx="70" cy="78" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M50 74c2-16 12-22 20-22 10 0 19 6 21 20-10-2-20-8-24-14-4 8-10 13-17 16z" fill="#5e4a6e"/>
+  <circle cx="64" cy="80" r="2.4" fill="#3a3040"/>
+  <circle cx="79" cy="80" r="2.4" fill="#3a3040"/>
+  <path d="M65 88q5 4 10 0" fill="none" stroke="#7a6a62" stroke-width="2" stroke-linecap="round"/>
+  <!-- 오른쪽 풍선: 집의 개·고양이·새 -->
+  <circle cx="246" cy="52" r="3" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <circle cx="256" cy="42" r="5" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M206 4h92a12 12 0 0 1 12 12v12a12 12 0 0 1-12 12h-92a12 12 0 0 1-12-12V16a12 12 0 0 1 12-12z" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M208 16l-2-8 7 4zM228 16l2-8-7 4z" fill="#a8714a" stroke="#7a6a62" stroke-width="1.2" stroke-linejoin="round"/>
+  <circle cx="218" cy="22" r="10" fill="#d29a63" stroke="#7a6a62" stroke-width="1.8"/>
+  <circle cx="214" cy="20" r="1.4" fill="#3a3040"/>
+  <circle cx="222" cy="20" r="1.4" fill="#3a3040"/>
+  <ellipse cx="218" cy="25" rx="2" ry="1.4" fill="#3a3040"/>
+  <path d="M242 16l2-9 6 5zM262 16l-2-9-6 5z" fill="#a0a6b3" stroke="#7a6a62" stroke-width="1.2" stroke-linejoin="round"/>
+  <circle cx="252" cy="23" r="10" fill="#a0a6b3" stroke="#7a6a62" stroke-width="1.8"/>
+  <path d="M248 21v2M256 21v2M250 27l2 1 2-1" fill="none" stroke="#3a3040" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="284" cy="22" r="9" fill="#f5c84c" stroke="#7a6a62" stroke-width="1.8"/>
+  <path d="M292 21l6 2-6 2z" fill="#f0923a" stroke="#7a6a62" stroke-width="1" stroke-linejoin="round"/>
+  <circle cx="287" cy="20" r="1.4" fill="#3a3040"/>
+  <!-- 오른쪽 사람 -->
+  <path d="M216 186c0-48 14-78 34-78s34 30 34 78z" fill="#3fb0a6"/>
+  <path d="M242 100h16v12h-16z" fill="#e3a57f"/>
+  <circle cx="250" cy="78" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M230 76c0-16 10-22 20-22s20 6 20 22c-6-6-14-9-22-8-8 1-14 4-18 8z" fill="#8a5a3c"/>
+  <circle cx="242" cy="80" r="2.4" fill="#3a3040"/>
+  <circle cx="257" cy="80" r="2.4" fill="#3a3040"/>
+  <path d="M243 88q6 5 12 0" fill="none" stroke="#7a6a62" stroke-width="2" stroke-linecap="round"/>
+</svg>
