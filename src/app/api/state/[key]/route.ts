@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { rejectUnlessAdmin } from "@/lib/auth/server";
 import { getDb } from "@/lib/store/db";
 import { getState, putState } from "@/lib/store/state";
 
@@ -24,6 +25,8 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ key: string }> },
 ) {
+  const denied = await rejectUnlessAdmin();
+  if (denied) return denied;
   const { key } = await params;
   if (!KEY.test(key))
     return NextResponse.json({ error: "잘못된 키" }, { status: 400 });

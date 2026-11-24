@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { rejectUnlessAdmin } from "@/lib/auth/server";
 import { getDb } from "@/lib/store/db";
 import {
   getWriting,
@@ -30,6 +31,8 @@ export async function GET(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  const denied = await rejectUnlessAdmin();
+  if (denied) return denied;
   const text = await request.text();
   if (text.length > MAX_BYTES)
     return NextResponse.json({ error: "너무 큼" }, { status: 413 });

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { rejectUnlessAdmin } from "@/lib/auth/server";
 import { getDb } from "@/lib/store/db";
 import {
   addListenEvents,
@@ -12,6 +13,8 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const denied = await rejectUnlessAdmin();
+  if (denied) return denied;
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success)
     return NextResponse.json({ error: "형식이 맞지 않음" }, { status: 400 });

@@ -1,12 +1,18 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { requiresAdmin } from "@/lib/auth/access";
 import { readAuthConfig } from "@/lib/auth/config";
+import { isCrossOriginWrite, requestOrigin } from "@/lib/auth/csrf";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth/session";
 
 // 사이트는 누구나 쓴다. 기록 저장·수정·내보내기와 설정만 관리자(암호로 로그인한 사람).
 // 남의 자료(출처별 공개 여부)는 그 자료를 내주는 경로가 직접 판단한다.
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
+  // 다른 출처(같은 상위 도메인의 다른 사이트 포함)에서 보낸 쓰기 요청은 로그인 여부와 상관없이 거절한다
+  if (isCrossOriginWrite(requestOrigin(request.method, request.headers)))
+    return new NextResponse("다른 사이트에서 보낸 요청은 받지 않습니다", {
+      status: 403,
+    });
   if (!requiresAdmin(request.method, pathname)) return NextResponse.next();
 
   const config = readAuthConfig();

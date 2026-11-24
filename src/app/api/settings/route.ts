@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { rejectUnlessAdmin } from "@/lib/auth/server";
 import { readSiteSettings, writeSiteSettings } from "@/lib/sources/settings";
 import { getDb } from "@/lib/store/db";
 
@@ -11,6 +12,8 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
+  const denied = await rejectUnlessAdmin();
+  if (denied) return denied;
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success)
     return NextResponse.json({ error: "형식이 맞지 않음" }, { status: 400 });
