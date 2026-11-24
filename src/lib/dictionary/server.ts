@@ -1,5 +1,6 @@
 import { connection } from "next/server";
-import { visibleBooks } from "@/lib/context/server";
+import { transcriptCues } from "@/lib/context/cues";
+import { loadContextTranscript, visibleBooks } from "@/lib/context/server";
 import { VERBS } from "@/lib/ilmunta/verbs";
 import { WORD_LESSONS } from "@/lib/ilmunta/word-lessons";
 import { ADJECTIVES } from "@/lib/ilmunta/words";
@@ -21,7 +22,7 @@ import {
   dictKey,
   summarize,
 } from "./entries";
-import { findSentenceCue } from "./sentence-cue";
+import { findExampleCue } from "./sentence-cue";
 
 // 사전 화면(서버 컴포넌트)이 쓰는 데이터. 교재 출처를 닫았으면 방문자에게는 드릴 낱말만 보인다.
 
@@ -162,6 +163,10 @@ export async function loadDictWord(id: string): Promise<DictWordData | null> {
         })
       : [{ text: sentence.ja }];
     const transcript = loadTranscript("ilmuta", example.id);
+    // 일무따를 볼 수 있을 때만 여기에 온다(book이 있다). 카드는 자막 API와 같은 짝짓기 결과다
+    const carded = transcript
+      ? loadContextTranscript("ilmuta", example.id, () => true)
+      : null;
     examples.push({
       lesson: lesson.no,
       lessonLabel: lessonLabel(lesson.no),
@@ -170,7 +175,11 @@ export async function loadDictWord(id: string): Promise<DictWordData | null> {
       ko: sentence.ko,
       track: exampleTrack(lesson, example),
       cue: transcript
-        ? findSentenceCue(transcript.segments, sentence.ja)
+        ? findExampleCue(
+            carded ? transcriptCues(carded) : [],
+            transcript.segments,
+            sentence.ja,
+          )
         : null,
       wordCard: example.kind === "words",
       length: Array.from(sentence.ja).length,

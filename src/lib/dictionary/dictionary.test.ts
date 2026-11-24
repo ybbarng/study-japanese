@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
+import type { CueCard } from "@/lib/context/cards";
+import type { ContextCue } from "@/lib/context/cues";
 import { buildDictionary, type DictInput, summarize } from "./entries";
 import { searchDictionary } from "./search";
-import { findSentenceCue } from "./sentence-cue";
+import { findExampleCue, findSentenceCue } from "./sentence-cue";
 
 // 교재 글이 아니라 모양만 같은 지어낸 낱말·문장
 const input: DictInput = {
@@ -144,5 +146,46 @@ describe("findSentenceCue", () => {
         "やまにいきます",
       ),
     ).toBeNull();
+  });
+
+  it("받아 적기가 한 문장을 두 구간으로 나눴으면 이어 붙여 찾는다", () => {
+    const split = [
+      { start: 1, end: 2, text: "あしたはやまに", lang: "ja" as const },
+      { start: 2, end: 4, text: "いきます", lang: "ja" as const },
+    ];
+    expect(findSentenceCue(split, "あしたはやまにいきます。")).toEqual({
+      start: 1,
+      end: 4,
+    });
+  });
+});
+
+describe("findExampleCue", () => {
+  const segments = [
+    { start: 0, end: 2, text: "まったくちがうおと", lang: "ja" as const },
+    { start: 3, end: 5, text: "べつのおと", lang: "ja" as const },
+  ];
+  const carded: ContextCue = {
+    kind: "subtitle",
+    start: 3,
+    end: 5,
+    text: "べつのおと",
+    lang: "ja",
+    card: {
+      whole: true,
+      sentences: [{ ja: "やまにいきます。", ko: "산에 갑니다." }],
+      words: [],
+    } as unknown as CueCard,
+  };
+
+  it("받아 적은 글이 틀려도 서버 카드가 그 문장과 맞춘 구간을 쓴다", () => {
+    expect(findExampleCue([carded], segments, "やまにいきます")).toEqual({
+      start: 3,
+      end: 5,
+    });
+  });
+
+  it("카드가 없으면 받아 적은 글로 찾고, 그것도 없으면 null", () => {
+    expect(findExampleCue([], segments, "やまにいきます")).toBeNull();
   });
 });
