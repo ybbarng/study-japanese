@@ -60,3 +60,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 운영 점검 스크린샷(교재 글이 찍힌다)
+docs/audit/*/
