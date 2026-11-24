@@ -25,6 +25,19 @@ function server(port: number) {
   };
 }
 
+const PHONE = { ...devices["Pixel 7"], baseURL: urlOf(PHONE_PORT) };
+const DESKTOP = {
+  ...devices["Desktop Chrome"],
+  viewport: { width: 1440, height: 900 },
+  baseURL: urlOf(DESKTOP_PORT),
+};
+
+/**
+ * 출처 닫기처럼 서버 전체 설정을 잠시 바꾸는 시험. 다른 시험과 함께 돌면 그동안 방문자 화면이
+ * 403·404를 받아 엉뚱한 시험이 들쭉날쭉 깨진다
+ */
+const SHARED_STATE = /source-toggle\.spec\.ts$/;
+
 export default defineConfig({
   testDir: "e2e",
   outputDir: "test-results/e2e",
@@ -55,16 +68,27 @@ export default defineConfig({
     {
       // 평일엔 안드로이드 Chrome으로 걸으며 쓴다
       name: "android-chrome",
-      use: { ...devices["Pixel 7"], baseURL: urlOf(PHONE_PORT) },
+      testIgnore: SHARED_STATE,
+      use: PHONE,
     },
     {
       // 주말엔 맥·윈도우 PC에 앉아 쓴다(docs/standing-rules.md "PC도 폰과 같은 급으로")
       name: "desktop-chrome",
-      use: {
-        ...devices["Desktop Chrome"],
-        viewport: { width: 1440, height: 900 },
-        baseURL: urlOf(DESKTOP_PORT),
-      },
+      testIgnore: SHARED_STATE,
+      use: DESKTOP,
+    },
+    // 서버 전체 설정을 바꾸는 시험: 같은 서버의 다른 시험이 다 끝난 뒤에 돈다
+    {
+      name: "android-chrome-sources",
+      testMatch: SHARED_STATE,
+      dependencies: ["android-chrome"],
+      use: PHONE,
+    },
+    {
+      name: "desktop-chrome-sources",
+      testMatch: SHARED_STATE,
+      dependencies: ["desktop-chrome"],
+      use: DESKTOP,
     },
   ],
   webServer: [server(PHONE_PORT), server(DESKTOP_PORT)],

@@ -63,34 +63,6 @@ test.describe("로그인", () => {
     });
     expect(write.status()).toBe(200);
   });
-
-  test("관리자가 출처를 닫으면 방문자는 그 자료를 받지 못하고, 다시 열면 받는다", async ({
-    page,
-    browser,
-  }) => {
-    await login(page, "/settings");
-    const visitor = await browser.newContext();
-    try {
-      await page
-        .getByRole("switch", { name: /무작정 따라하기.*공개/ })
-        .first()
-        .click();
-      await expect(
-        page.getByRole("switch", { name: /무작정 따라하기.*공개/ }).first(),
-      ).toHaveText("닫힘");
-      expect((await visitor.request.get(LECTURE_URL)).status()).toBe(403);
-      expect((await page.request.get(LECTURE_URL)).status()).toBe(200);
-
-      await page
-        .getByRole("switch", { name: /무작정 따라하기.*공개/ })
-        .first()
-        .click();
-      await expect(
-        page.getByRole("switch", { name: /무작정 따라하기.*공개/ }).first(),
-      ).toHaveText("공개");
-      expect((await visitor.request.get(LECTURE_URL)).status()).toBe(200);
-    } finally {
-      await visitor.close();
-    }
-  });
 });
+
+// 출처를 닫는 시험은 서버 전체 설정을 바꾸므로 source-toggle.spec.ts로 떼어 다른 시험이 다 끝난 뒤에 돈다
