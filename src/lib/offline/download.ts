@@ -80,33 +80,53 @@ export async function removeFiles(
   for (const url of urls) await cache.delete(url);
 }
 
-interface DownloadOptions {
-  cache: CacheLike;
+interface FetchOptions {
   fetch: FetchLike;
   signal?: AbortSignal;
   onProgress?: (p: Progress) => void;
 }
 
+interface DownloadOptions extends FetchOptions {
+  cache: CacheLike;
+}
+
+/** 넣을 캐시가 같은 파일들(오디오·자막·그림은 캐시가 다르다) */
+export interface CacheGroup {
+  urls: readonly string[];
+  cache: CacheLike;
+}
+
 export async function downloadFiles(
   urls: readonly string[],
-  { cache, fetch, signal, onProgress }: DownloadOptions,
+  { cache, ...options }: DownloadOptions,
 ): Promise<Progress> {
-  const progress: Progress = { done: 0, total: urls.length, bytes: 0 };
+  return downloadGroups([{ urls, cache }], options);
+}
+
+/** 여러 캐시에 나눠 넣을 파일을 차례로 받는다. 진행은 모두 합쳐 센다 */
+export async function downloadGroups(
+  groups: readonly CacheGroup[],
+  { fetch, signal, onProgress }: FetchOptions,
+): Promise<Progress> {
+  const total = groups.reduce((n, g) => n + g.urls.length, 0);
+  const progress: Progress = { done: 0, total, bytes: 0 };
   onProgress?.({ ...progress });
-  for (const url of urls) {
-    throwIfAborted(signal);
-    const hit = await cache.match(url);
-    if (hit) {
-      progress.bytes += await cachedSize(hit);
-    } else {
-      const base = progress.bytes;
-      const size = await fetchIntoCache(url, cache, fetch, signal, (got) =>
-        onProgress?.({ ...progress, bytes: base + got }),
-      );
-      progress.bytes = base + size;
+  for (const { urls, cache } of groups) {
+    for (const url of urls) {
+      throwIfAborted(signal);
+      const hit = await cache.match(url);
+      if (hit) {
+        progress.bytes += await cachedSize(hit);
+      } else {
+        const base = progress.bytes;
+        const size = await fetchIntoCache(url, cache, fetch, signal, (got) =>
+          onProgress?.({ ...progress, bytes: base + got }),
+        );
+        progress.bytes = base + size;
+      }
+      progress.done += 1;
+      onProgress?.({ ...progress });
     }
-    progress.done += 1;
-    onProgress?.({ ...progress });
   }
   return progress;
 }

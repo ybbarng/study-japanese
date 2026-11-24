@@ -1,10 +1,9 @@
 "use client";
 
 import { autoVerdict, packsToFetch } from "./auto";
-import { getConnection, offlineSupported, openCache } from "./browser";
-import { AUDIO_CACHE } from "./cache-names";
-import { inspectFiles } from "./download";
-import { isBusy, queueDownload } from "./manager";
+import { getConnection, offlineSupported } from "./browser";
+import { inspectPack } from "./inspect";
+import { cacheOfKind, isBusy, queueDownload } from "./manager";
 import type { OfflinePack } from "./pack";
 import { useOffline } from "./store";
 
@@ -29,14 +28,14 @@ export async function maybeAutoDownload(now = Date.now()): Promise<void> {
   } catch {
     return;
   }
-  const cache = await openCache(AUDIO_CACHE);
   const skip = new Set<string>();
   for (const p of packs) {
     if (isBusy(p.id)) {
       skip.add(p.id);
       continue;
     }
-    const seen = await inspectFiles(p.audioUrls, cache);
+    // 오디오·자막·그림이 다 있으면 건너뛴다(서버가 자막·그림까지 채운 묶음을 준다)
+    const seen = await inspectPack(p, cacheOfKind);
     if (seen.present === seen.total) skip.add(p.id);
   }
   for (const p of packsToFetch(packs, skip)) queueDownload(p);

@@ -39,7 +39,22 @@ export async function savePages(
     );
     for (const a of staticAssetUrls(html)) assets.add(a);
   }
-  for (const url of assets) {
+  await saveStaticAssets([...assets], { staticCache, fetch, signal });
+}
+
+/**
+ * 빌드 파일 가운데 캐시에 없는 것을 받는다. CSS가 부르는 글꼴 등도 따라 받는다.
+ * 화면 HTML에 적히지 않고 쓸 때 불러오는 덩어리(펼친 재생 화면 등)도 이것으로 담는다.
+ */
+export async function saveStaticAssets(
+  urls: readonly string[],
+  {
+    staticCache,
+    fetch,
+    signal,
+  }: Pick<SavePagesOptions, "staticCache" | "fetch" | "signal">,
+): Promise<void> {
+  for (const url of urls) {
     if (await staticCache.match(url)) continue;
     const response = await safeFetch(url, fetch, signal);
     if (!response.ok) continue; // 빌드가 바뀌어 사라진 파일은 건너뛴다

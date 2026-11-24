@@ -13,8 +13,8 @@ import { AutoPrefetch } from "./auto-prefetch";
 import { usePackStatus } from "./use-pack-status";
 
 /**
- * 강 화면의 "이 강 받아 두기". 강의·예문 mp3와 강 화면을 폰에 받아 두어
- * 지하철·터널에서 통신이 끊겨도 듣게 한다.
+ * 강 화면의 "이 강 받아 두기". 강의·예문 mp3, 강 화면, 자막(카드·확인 문제 소리 구간), 그림을
+ * 폰에 받아 두어 지하철·터널에서 통신이 끊겨도 그 강을 온전히 쓰게 한다. 크기는 받아 둔 것 전부다.
  */
 export function OfflineButton({
   pack,
@@ -36,7 +36,7 @@ export function OfflineButton({
       {view.kind === "none" ? (
         <Row
           title="이 강 받아 두기"
-          note={`통신이 끊겨도 듣게 이 강 오디오 ${pack.audioUrls.length}개를 폰에 받아 둡니다`}
+          note={`통신이 끊겨도 쓰게 이 강 오디오 ${pack.audioUrls.length}개와 화면·자막·그림을 폰에 받아 둡니다`}
           action={
             <Action onClick={() => queueDownload(pack)} primary>
               받기

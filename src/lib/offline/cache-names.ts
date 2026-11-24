@@ -7,3 +7,7 @@ export const AUDIO_CACHE = "sj-audio-v1";
 export const PAGE_CACHE = "sj-pages-v1";
 /** 빌드 파일(/_next/static/*) */
 export const STATIC_CACHE = "sj-static-v1";
+/** 낱말·장면 그림(/pictures/*). sw.js가 받아 둔 것을 먼저 준다 */
+export const PICTURE_CACHE = "sj-pictures-v1";
+/** 받아 둔 강의 자막 API 응답(/api/transcripts/*). sw.js가 네트워크가 끊기면 여기서 준다 */
+export const DATA_CACHE = "sj-data-v1";

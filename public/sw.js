@@ -3,13 +3,22 @@
 // - 화면: 네트워크 먼저, 끊기거나 4초 안에 오지 않으면 받아 둔 화면(강을 받을 때 앱이 함께 넣는다).
 // - 빌드 파일(/_next/static/*): 캐시 먼저(파일 이름에 해시가 있어 바뀌지 않는다).
 // - 그림(/pictures/*): 받아 둔 것을 바로 주고 뒤에서 새로 받아 둔다(그림을 고쳐도 다음에 열 때 바뀐다).
+// - 자막(/api/transcripts/*): 네트워크 먼저. 강을 받을 때 앱이 넣어 둔 것이 있으면 끊기거나 4초 안에
+//   오지 않을 때 그것을 준다(받아 두지 않은 자막은 캐시에 넣지 않는다).
 // KEEP에 없는 캐시는 activate 때 지운다(예전 형태소 분석기 사전 캐시 sj-kuromoji-* 도 이때 지워진다).
 
 const AUDIO_CACHE = "sj-audio-v1"; // 받아 둔 강 오디오. 앱 화면이 넣고 지운다.
 const PAGE_CACHE = "sj-pages-v1";
 const STATIC_CACHE = "sj-static-v1";
 const PICTURE_CACHE = "sj-pictures-v1";
-const KEEP = new Set([AUDIO_CACHE, PAGE_CACHE, STATIC_CACHE, PICTURE_CACHE]);
+const DATA_CACHE = "sj-data-v1"; // 받아 둔 강의 자막 API 응답. 앱 화면이 넣고 지운다.
+const KEEP = new Set([
+  AUDIO_CACHE,
+  PAGE_CACHE,
+  STATIC_CACHE,
+  PICTURE_CACHE,
+  DATA_CACHE,
+]);
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -38,6 +47,10 @@ self.addEventListener("fetch", (event) => {
   }
   if (url.pathname.startsWith("/pictures/")) {
     event.respondWith(staleWhileRevalidate(event, request, PICTURE_CACHE));
+    return;
+  }
+  if (url.pathname.startsWith("/api/transcripts/")) {
+    event.respondWith(networkFirstData(request));
     return;
   }
   if (url.pathname.startsWith("/_next/static/")) {
@@ -133,6 +146,31 @@ async function networkFirstPage(request) {
       return (await cache.match("/")) || offlinePage();
     }
   }
+
+  let timer;
+  const timeout = new Promise((resolve) => {
+    timer = setTimeout(() => resolve(cached), PAGE_TIMEOUT_MS);
+  });
+  try {
+    return await Promise.race([network, timeout]);
+  } catch {
+    return cached;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function networkFirstData(request) {
+  const cache = await caches.open(DATA_CACHE);
+  const cached = await cache.match(request.url);
+  if (!cached) return fetch(request);
+
+  const network = fetch(request).then((response) => {
+    // 받아 둔 자막은 새것으로 바꿔 둔다(출처를 닫아 403이 오면 그대로 둔다)
+    if (response.ok) cache.put(request.url, response.clone());
+    return response;
+  });
+  network.catch(() => {});
 
   let timer;
   const timeout = new Promise((resolve) => {

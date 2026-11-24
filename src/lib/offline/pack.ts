@@ -19,6 +19,33 @@ export interface OfflinePack {
   pageUrl: string;
   /** 강의·예문 mp3 주소(재생 순서) */
   audioUrls: string[];
+  /** 자막 API 주소(자막 카드·확인 문제의 소리 구간). 자막이 있는 트랙만. 서버가 채운다 */
+  dataUrls?: string[];
+  /** 강 화면·자막 카드·낱말 정보 창에 나오는 그림 파일 주소. 서버가 채운다 */
+  pictureUrls?: string[];
+  /**
+   * 서버가 자막·그림까지 채운 묶음이면 true(server-pack.ts). 강 화면이 만든 묶음은 오디오·화면만 알아서,
+   * 받기 전에 서버에 다 채운 묶음을 묻는다(manager.ts)
+   */
+  full?: boolean;
+}
+
+/** 받아 둘 파일의 갈래. 갈래마다 다른 캐시에 넣는다(manager.ts CACHE_OF) */
+export type FileKind = "page" | "audio" | "data" | "picture";
+
+export interface FileGroup {
+  kind: FileKind;
+  urls: string[];
+}
+
+/** 묶음이 받아 두는 파일 전체(강 화면·오디오·자막·그림) */
+export function packFiles(pack: OfflinePack): FileGroup[] {
+  return [
+    { kind: "page", urls: [pack.pageUrl] },
+    { kind: "audio", urls: pack.audioUrls },
+    { kind: "data", urls: pack.dataUrls ?? [] },
+    { kind: "picture", urls: pack.pictureUrls ?? [] },
+  ];
 }
 
 export const BOOK_LABEL: Record<OfflineBook, string> = {
@@ -64,15 +91,18 @@ function unique(list: string[]): string[] {
   return [...new Set(list)];
 }
 
-/** 이 묶음을 지울 때 캐시에서 지울 주소: 남아 있는 다른 묶음이 쓰는 주소는 남긴다 */
-export function urlsToRemove(
+/** 이 묶음을 지울 때 캐시에서 지울 파일(갈래별): 남아 있는 다른 묶음이 쓰는 주소는 남긴다 */
+export function filesToRemove(
   pack: OfflinePack,
   others: readonly OfflinePack[],
-): string[] {
+): FileGroup[] {
   const kept = new Set(
     others
       .filter((o) => o.id !== pack.id)
-      .flatMap((o) => [...o.audioUrls, o.pageUrl]),
+      .flatMap((o) => packFiles(o).flatMap((g) => g.urls)),
   );
-  return [...pack.audioUrls, pack.pageUrl].filter((u) => !kept.has(u));
+  return packFiles(pack).map((g) => ({
+    kind: g.kind,
+    urls: g.urls.filter((u) => !kept.has(u)),
+  }));
 }

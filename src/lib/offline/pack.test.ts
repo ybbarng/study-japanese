@@ -3,10 +3,10 @@ import { fakeLesson } from "@/lib/ilmuta/__fixtures__/lesson";
 import { lessonQueue } from "@/lib/ilmuta/tracks";
 import type { IlmuntaLesson } from "@/lib/textbook/schema";
 import {
+  filesToRemove,
   ilmuntaPack,
   ilmutaPack,
   type OfflinePack,
-  urlsToRemove,
 } from "./pack";
 
 function fakeIlmunta(no: number): IlmuntaLesson {
@@ -76,24 +76,64 @@ describe("일문따 과 묶음", () => {
   });
 });
 
-describe("묶음 지울 때 지울 주소", () => {
-  const pack = (id: string, audioUrls: string[]): OfflinePack => ({
+describe("묶음 지울 때 지울 파일", () => {
+  const pack = (
+    id: string,
+    audioUrls: string[],
+    pictureUrls: string[] = [],
+  ): OfflinePack => ({
     id,
     book: "ilmuta",
     no: 1,
     title: id,
     pageUrl: `/page/${id}`,
     audioUrls,
+    dataUrls: [`/api/transcripts/ilmuta/${id}`],
+    pictureUrls,
+    full: true,
   });
+  const urlsOf = (groups: ReturnType<typeof filesToRemove>) =>
+    Object.fromEntries(groups.map((g) => [g.kind, g.urls]));
 
-  it("다른 묶음이 함께 쓰는 오디오는 남기고 나머지와 강 화면을 지운다", () => {
-    const a = pack("a", ["/media/x.mp3", "/media/shared.mp3"]);
-    const b = pack("b", ["/media/shared.mp3"]);
-    expect(urlsToRemove(a, [a, b])).toEqual(["/media/x.mp3", "/page/a"]);
+  it("다른 묶음이 함께 쓰는 오디오·그림은 남기고 나머지와 강 화면·자막을 지운다", () => {
+    const a = pack(
+      "a",
+      ["/media/x.mp3", "/media/shared.mp3"],
+      ["/pictures/words/m01-cat.svg", "/pictures/words/m01-dog.svg"],
+    );
+    const b = pack("b", ["/media/shared.mp3"], ["/pictures/words/m01-dog.svg"]);
+    expect(urlsOf(filesToRemove(a, [a, b]))).toEqual({
+      page: ["/page/a"],
+      audio: ["/media/x.mp3"],
+      data: ["/api/transcripts/ilmuta/a"],
+      picture: ["/pictures/words/m01-cat.svg"],
+    });
   });
 
   it("다른 묶음이 없으면 모두 지운다", () => {
     const a = pack("a", ["/media/x.mp3"]);
-    expect(urlsToRemove(a, [])).toEqual(["/media/x.mp3", "/page/a"]);
+    expect(urlsOf(filesToRemove(a, []))).toEqual({
+      page: ["/page/a"],
+      audio: ["/media/x.mp3"],
+      data: ["/api/transcripts/ilmuta/a"],
+      picture: [],
+    });
+  });
+
+  it("예전에 받아 자막·그림 목록이 없는 묶음도 지울 수 있다", () => {
+    const old: OfflinePack = {
+      id: "old",
+      book: "ilmuta",
+      no: 2,
+      title: "old",
+      pageUrl: "/ilmuta/2",
+      audioUrls: ["/media/old.mp3"],
+    };
+    expect(urlsOf(filesToRemove(old, []))).toEqual({
+      page: ["/ilmuta/2"],
+      audio: ["/media/old.mp3"],
+      data: [],
+      picture: [],
+    });
   });
 });

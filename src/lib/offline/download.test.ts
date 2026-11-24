@@ -3,6 +3,7 @@ import { FakeCache, fakeServer } from "./__fixtures__/fakes";
 import {
   DownloadError,
   downloadFiles,
+  downloadGroups,
   inspectFiles,
   type Progress,
   removeFiles,
@@ -54,6 +55,26 @@ describe("파일 받기", () => {
     expect(seen[0]).toEqual({ done: 0, total: 2, bytes: 0 });
     expect(seen.filter((p) => p.bytes === 10 && p.done === 1)).toHaveLength(1);
     expect(seen.at(-1)).toEqual({ done: 2, total: 2, bytes: 30 });
+  });
+
+  it("갈래마다 다른 캐시에 넣고 진행은 모두 합쳐 센다", async () => {
+    const audio = new FakeCache();
+    const pictures = new FakeCache();
+    const PIC = "/pictures/words/m01-cat.svg";
+    const server = fakeServer({
+      [A]: { bytes: 300 },
+      [PIC]: { bytes: 2, contentType: "image/svg+xml" },
+    });
+    const result = await downloadGroups(
+      [
+        { urls: [A], cache: audio },
+        { urls: [PIC], cache: pictures },
+      ],
+      { fetch: server.fetch },
+    );
+    expect(result).toEqual({ done: 2, total: 2, bytes: 302 });
+    expect([...audio.entries.keys()]).toEqual([A]);
+    expect([...pictures.entries.keys()]).toEqual([PIC]);
   });
 
   it("로그인 화면으로 넘어간 응답은 캐시에 넣지 않고 로그인 오류로 멈춘다", async () => {
