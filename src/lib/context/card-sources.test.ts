@@ -33,10 +33,39 @@ describe("일무따 카드 재료", () => {
     }),
   ];
 
-  it("그 강의 소책자 문장만 맞출 후보로 둔다", () => {
+  it("그 강의 제목과 소책자 문장만 맞출 후보로 둔다", () => {
+    // 강 제목은 예문 mp3 첫머리(기본 회화 듣기)와 강의에서 읽는다
     expect(ilmutaCardSource(lessons, 2).sentences.map((s) => s.ja)).toEqual([
+      "テスト2。",
       "川",
     ]);
+  });
+
+  it("기본 회화 듣기 mp3는 강 제목 뒤에 회화를 읽는 차례로 맞춘다", () => {
+    const withDialogue = [
+      fakeLesson(3, {
+        examples: [
+          fakeExample("03-1", "dialogue"),
+          fakeExample("03-4-1", "conversationBasic", {
+            sentences: [
+              { ja: "やあ。", ko: "안녕." },
+              { ja: "うん。", ko: "응." },
+            ],
+          }),
+        ],
+      }),
+    ];
+    expect(
+      ilmutaCardSource(withDialogue, 3, "03-1").ordered?.map((s) => s.ja),
+    ).toEqual(["テスト3。", "やあ。", "うん。"]);
+  });
+
+  it("소책자에 글이 없는 예문(연습 문제)과 강의에는 읽는 차례가 없다", () => {
+    const withExercise = [
+      fakeLesson(4, { examples: [fakeExample("04-5", "exercise")] }),
+    ];
+    expect(ilmutaCardSource(withExercise, 4, "04-5").ordered).toBeUndefined();
+    expect(ilmutaCardSource(withExercise, 4, "L04").ordered).toBeUndefined();
   });
 
   it("낱말과 읽는 법은 그 강까지 배운 단어로 단다", () => {

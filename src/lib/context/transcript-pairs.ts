@@ -1,3 +1,4 @@
+import { undoubled, undoubledText } from "./align";
 import { compatible, normalizeJa, similarity } from "./match";
 
 // 일문따 문법 예문 mp3는 "일본어 → 한국어 뜻 → 같은 일본어"를 되풀이해 읽는다.
@@ -56,19 +57,28 @@ type Segment = { start: number; end: number; text: string; lang: "ko" | "ja" };
 /**
  * 자막 구간 열에서 일본어 → 한국어 → 일본어 되풀이를 찾는다.
  * 두 일본어가 기준 이상 닮고 긍정·부정이 같아야 짝으로 본다. 짝을 만든 세 구간은 다시 쓰지 않는다.
+ * 한 번은 한자로, 한 번은 가나로 받아 적기도 해서(果物/くだもの) toKana로 푼 글끼리도 견준다.
+ * 한 줄에 같은 문장을 두 번 받아 적은 것(「AA」)은 한 번으로 본다.
  */
 export function findRepeatPairs(
   segments: Segment[],
   minSimilarity: number = PAIR_MIN_SIMILARITY,
+  toKana: (text: string) => string = (t) => t,
 ): TranscriptPair[] {
   const out: TranscriptPair[] = [];
   let i = 0;
   while (i + 2 < segments.length) {
     const [a, k, b] = [segments[i], segments[i + 1], segments[i + 2]];
     if (a.lang === "ja" && k.lang === "ko" && b.lang === "ja") {
-      const na = normalizeJa(a.text);
-      const nb = normalizeJa(b.text);
-      const score = similarity(na, nb);
+      const na = undoubled(normalizeJa(a.text));
+      const nb = undoubled(normalizeJa(b.text));
+      const score = Math.max(
+        similarity(na, nb),
+        similarity(
+          undoubled(normalizeJa(toKana(a.text))),
+          undoubled(normalizeJa(toKana(b.text))),
+        ),
+      );
       if (
         [...na].length >= MIN_JA_LENGTH &&
         score >= minSimilarity &&
@@ -76,7 +86,7 @@ export function findRepeatPairs(
         k.text.trim() !== ""
       ) {
         out.push({
-          ja: betterTranscription(a.text.trim(), b.text.trim()),
+          ja: betterTranscription(undoubledText(a.text), undoubledText(b.text)),
           ko: k.text.trim(),
           start: a.start,
           end: b.end,

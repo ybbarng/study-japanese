@@ -8,13 +8,16 @@ import {
 } from "@/lib/ilmuta/ruby";
 import { pictureOf } from "@/lib/pictures";
 import type { Sentence } from "@/lib/textbook/schema";
+import { alignInOrder, undoubled } from "./align";
 import {
+  bestCandidate,
   type MatchCandidate,
   matchSegment,
   normalizeJa,
+  type PieceMatch,
   splitSentences,
 } from "./match";
-import { type RepairSegment, repairCards } from "./repair";
+import { type RepairSegment, repairCards, wordSentence } from "./repair";
 
 // 자막의 일본어 구간마다 붙일 "맥락 카드": 맞춘 소책자 문장(정확한 글·읽는 법·뜻)과 구간 속 낱말.
 // 서버가 자막을 내줄 때 만들어 붙인다(화면은 소책자 전체를 받지 않아도 된다).
@@ -75,6 +78,8 @@ export interface CardSource {
   words: CueWord[];
   /** 이 강·과에서 익히는 낱말. 한글 소리나 가나로 적힌 곳을 찾는다(repair.ts). 없으면 찾지 않는다 */
   focus?: CueWord[];
+  /** 예문 mp3가 소책자 문장을 읽는 차례. 있으면 차례로 한 번 더 맞춘다(align.ts) */
+  ordered?: Sentence[];
 }
 
 /** 한 구간에 보일 낱말은 이만큼까지 */
@@ -177,7 +182,12 @@ export function buildCards(
   source: CardSource,
 ): Record<string, CueCard> {
   const toKana = (t: string) => kanaOf(t, source.glossary);
-  const matched = matchCards(segments, source);
+  const direct = matchCards(segments, source);
+  const matched = source.ordered
+    ? alignInOrder(segments, direct, source.ordered, toKana, (sentences) =>
+        sentenceCard(sentences, source),
+      )
+    : direct;
   const cards = source.focus
     ? repairCards(segments, matched, source.focus, toKana)
     : matched;
@@ -190,6 +200,81 @@ export function buildCards(
   );
 }
 
+/**
+ * 줄 전체가 아는 낱말 하나(부호·な 꼬리는 무시)인지 묻는 함수. 낱말 표는 한 번만 만든다.
+ * 낱말 둘 이상이 든 줄(あの人は誰)은 조사가 사라지지 않게 받아쓰기에 낱말 칩만 단다(matchCards).
+ * 한자 낱말의 읽는 법(가나)으로 적힌 줄은 가나 세 글자 이상이거나 이 강·과에서 익히는 낱말일 때만 본다
+ * (두 글자 가나는 같은 소리의 다른 낱말이 많다).
+ */
+export function wordLineMatcher(
+  words: CueWord[],
+  focus: CueWord[] = [],
+): (text: string) => CueWord | null {
+  const focusJa = new Set(focus.map((w) => w.ja));
+  // 표기(한자 낱말은 한자 표기, 가나 낱말은 두 글자 이상)와, 한자 낱말의 읽는 법
+  const forms = new Map<string, CueWord>();
+  const readings = new Map<string, CueWord>();
+  for (const w of words) {
+    const ja = normalizeJa(w.ja.replace(/[～~]/g, ""));
+    if (ja !== "" && (hasKanji(w.ja) || [...ja].length >= 2) && !forms.has(ja))
+      forms.set(ja, w);
+    const reading = w.reading ? normalizeJa(w.reading) : "";
+    if (reading !== "" && reading !== ja && !readings.has(reading))
+      readings.set(reading, w);
+  }
+  return (text) => {
+    const plain = undoubled(normalizeJa(text));
+    if (plain === "") return null;
+    const byForm = forms.get(plain);
+    if (byForm) return byForm;
+    const byReading = readings.get(plain);
+    if (!byReading) return null;
+    // 읽는 법은 세 글자 이상. 이 강·과에서 익히는 낱말이면 두 글자부터 보되, 가타카나로 적힌 줄
+    // (アメ: 雨일 수도 飴일 수도)과 문법 낱말과 소리가 같은 것(なら)은 두 글자로 보지 않는다
+    const n = [...plain].length;
+    const twoOk =
+      n === 2 &&
+      focusJa.has(byReading.ja) &&
+      !/[ァ-ヺ]/u.test(text) &&
+      !GRAMMAR_KANA.has(plain);
+    return n >= 3 || twoOk ? byReading : null;
+  };
+}
+
+/** 두 글자 읽는 법이 같은 문법 낱말(조건·조사 등) */
+const GRAMMAR_KANA = new Set(["なら", "から", "まで", "だけ", "ので", "のに"]);
+
+/** 고른 소책자 문장으로 만든 카드(구간 전체를 맞춘 것으로 본다) */
+function sentenceCard(sentences: Sentence[], source: CardSource): CueCard {
+  const own = new Set(sentences.map((s) => s.ja));
+  return {
+    ...(source.origin === "transcript"
+      ? { origin: "transcript" as const }
+      : {}),
+    sentences: sentences.map((s) => ({
+      ja: s.ja,
+      ko: s.ko,
+      ruby: rubyOf(s, source.glossary),
+    })),
+    whole: true,
+    words: findWords(
+      sentences.map((s) => s.ja).join("　"),
+      source.words,
+    ).filter((w) => !own.has(w.ja)),
+  };
+}
+
+/** 줄 통째를 한 후보와 맞춘 결과(조각 하나짜리). 못 맞추면 null */
+function wholeLineMatch(
+  text: string,
+  candidates: MatchCandidate[],
+  toKana: (t: string) => string,
+): PieceMatch[] | null {
+  const forms = [...new Set([normalizeJa(text), normalizeJa(toKana(text))])];
+  const hit = bestCandidate(forms, candidates);
+  return hit.index >= 0 ? [{ piece: text, ...hit }] : null;
+}
+
 function matchCards(
   segments: RepairSegment[],
   source: CardSource,
@@ -200,9 +285,30 @@ function matchCards(
     forms: candidateForms(s, toKana),
   }));
   const out: Record<string, CueCard> = {};
+  const lineWordOf = wordLineMatcher(source.words, source.focus);
   segments.forEach((seg, i) => {
     if (seg.lang !== "ja" || seg.text.trim() === "") return;
-    const pieces = matchSegment(seg.text, candidates, toKana);
+    // 같은 말을 한 줄에 두 번 받아 적었으면 한 번만 견준다
+    const once = undoubled(normalizeJa(seg.text));
+    const text = once === normalizeJa(seg.text) ? seg.text : once;
+    const split = matchSegment(text, candidates, toKana);
+    // 짧은 문장이 붙은 줄(ええ。…)은 조각으로 나누면 짧은 조각을 못 맞추니 줄 통째로도 견준다
+    const pieces =
+      split.length > 1 && split.some((p) => p.index < 0)
+        ? (wholeLineMatch(text, candidates, toKana) ?? split)
+        : split;
+    if (!pieces.every((p) => p.index >= 0) || pieces.length === 0) {
+      // 줄 전체가 아는 낱말 하나면 낱말 카드로(받아쓰기 대신 교재 낱말의 표기·읽는 법·뜻)
+      const lineWord = lineWordOf(seg.text);
+      if (lineWord) {
+        out[String(i)] = {
+          sentences: [wordSentence(lineWord)],
+          whole: true,
+          words: [],
+        };
+        return;
+      }
+    }
     const matched: Sentence[] = [];
     for (const p of pieces) {
       const s = p.index >= 0 ? sentences[p.index] : null;

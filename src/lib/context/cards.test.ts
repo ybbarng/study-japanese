@@ -5,6 +5,7 @@ import {
   type CardSource,
   candidateForms,
   findWords,
+  wordLineMatcher,
 } from "./cards";
 import { EMOJI } from "./emoji";
 
@@ -27,6 +28,43 @@ const source: CardSource = {
 
 const ja = (text: string) => ({ text, lang: "ja" as const });
 const ko = (text: string) => ({ text, lang: "ko" as const });
+
+describe("낱말 하나만 있는 줄", () => {
+  const words = [
+    { ja: "山", reading: "やま", ko: "산" },
+    { ja: "高い", reading: "たかい", ko: "높다" },
+    { ja: "雨", reading: "あめ", ko: "비" },
+  ];
+  const lineWord = wordLineMatcher(words, [words[2]]);
+
+  it("표기가 낱말 하나면 그 낱말", () => {
+    expect(lineWord("山。")?.ja).toBe("山");
+  });
+
+  it("세 글자 이상 읽는 법으로 적은 줄도 그 낱말", () => {
+    expect(lineWord("たかい")?.ja).toBe("高い");
+  });
+
+  it("두 글자 읽는 법은 익히는 낱말일 때만, 가타카나로 적었으면 보지 않는다", () => {
+    expect(lineWord("あめ")?.ja).toBe("雨");
+    expect(lineWord("アメ")).toBeNull();
+    expect(lineWord("やま")).toBeNull();
+  });
+
+  it("낱말에 조사가 붙은 줄은 낱말 줄이 아니다(조사가 사라지지 않게)", () => {
+    expect(lineWord("山が")).toBeNull();
+  });
+
+  it("낱말 줄은 받아쓰기 대신 낱말 카드(구간 전체)로 보인다", () => {
+    const card = buildCards([ja("たかい")], {
+      sentences: [],
+      glossary: {},
+      words,
+    })["0"];
+    expect(card.whole).toBe(true);
+    expect(card.sentences.map((s) => [s.ja, s.ko])).toEqual([["高い", "높다"]]);
+  });
+});
 
 describe("소책자 문장 카드", () => {
   it("일본어 구간을 맞춘 소책자 문장과 읽는 법·뜻으로 카드를 만든다", () => {
@@ -51,6 +89,12 @@ describe("소책자 문장 카드", () => {
     const card = buildCards([ja("山")], source)["0"];
     expect(card.sentences[0].ruby).toEqual([{ text: "山", reading: "やま" }]);
     expect(card.words).toEqual([]);
+  });
+
+  it("짧은 맞장구가 앞에 붙은 줄도 통째로 맞춰 구간 전체 카드로 만든다", () => {
+    const card = buildCards([ja("うん。今日は山へ行く")], source)["0"];
+    expect(card.whole).toBe(true);
+    expect(card.sentences.map((s) => s.ja)).toEqual(["うん。今日は山へ行く。"]);
   });
 
   it("가나로 받아 적은 구간도 읽는 법으로 맞춘다", () => {
