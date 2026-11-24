@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { wordHref } from "@/components/dictionary/word-href";
 import { toKeyInput } from "@/components/keyboard/key-input";
+import { WordPicture } from "@/components/pictures/word-picture";
 import { Ruby } from "@/components/songs/line-words";
 import { dictKey } from "@/lib/dictionary/entries";
 import { lessonLabel } from "@/lib/ilmuta/labels";
@@ -222,9 +223,20 @@ function WordBody({
   const breakdown = <CharBreakdown text={reading} />;
   return (
     <section aria-label="낱말" className="mt-3 flex flex-col gap-3">
-      <p lang="ja" className="font-ja-serif text-4xl leading-[1.8] text-accent">
-        <Ruby segments={wordRuby(token)} showReading />
-      </p>
+      <div className="flex items-center justify-between gap-3">
+        <p
+          lang="ja"
+          className="font-ja-serif text-4xl leading-[1.8] text-accent"
+        >
+          <Ruby segments={wordRuby(token)} showReading />
+        </p>
+        {/* 그림이 있는 낱말은 뜻을 그림으로도 보인다(창은 누른 뒤에 열리니 뜻을 가릴 일이 없다) */}
+        <WordPicture
+          ja={base}
+          size={64}
+          className="rounded-2xl bg-bg-sunken p-1"
+        />
+      </div>
       {token.gloss ? (
         <p className="text-lg font-medium">{token.gloss}</p>
       ) : null}
