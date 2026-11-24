@@ -90,7 +90,7 @@ describe("소책자 문장 카드", () => {
       words: [{ ja: "傘", reading: "かさ", ko: "우산" }],
     })["0"];
     expect(card.words).toEqual([
-      { ja: "傘", reading: "かさ", ko: "우산", picture: "umbrella" },
+      { ja: "傘", reading: "かさ", ko: "우산", picture: "m01-umbrella" },
     ]);
   });
 

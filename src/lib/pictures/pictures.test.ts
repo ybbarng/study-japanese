@@ -28,8 +28,8 @@ describe("pictureOf", () => {
     expect(EMOJI.傘).toBeDefined();
     expect(pictureOf("傘")).toEqual({
       kind: "svg",
-      id: "umbrella",
-      src: "/pictures/words/umbrella.svg",
+      id: "m01-umbrella",
+      src: "/pictures/words/m01-umbrella.svg",
     });
   });
 

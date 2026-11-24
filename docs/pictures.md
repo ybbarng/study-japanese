@@ -15,7 +15,7 @@
 | 파일 검사 | `src/lib/pictures/check-svg.ts` |
 
 - **범위**는 맡은 묶음 이름이다: `ilmuta-01-15`, `ilmuta-16-30`, `ilmunta-01-10` 처럼. 범위마다 표 파일을 따로 두어 서로 고치는 파일이 겹치지 않게 한다. `index.ts`에는 import 한 줄과 표 이름 한 줄만 더한다.
-- **그림 id**는 뜻을 나타내는 영어 소문자·숫자·붙임표(`umbrella`, `office-worker`, `day-before-yesterday`). 장면 id는 장면 열쇠와 같게 둔다(`ilmuta-03-conversation`).
+- **그림 id**는 범위 접두사 + 뜻을 나타내는 영어 소문자·숫자·붙임표(`m01-umbrella`, `m01-office-worker`). 접두사는 범위마다 하나(`m01-` 일무따 1~15강, `m16-`, `m46-`, `n01-`, `n29-` 등)여서 여러 갈래가 같은 이름을 써도 파일이 겹치지 않는다. 장면 id는 장면 열쇠와 같게 둔다(`ilmuta-03-conversation`).
 - **장면 열쇠**는 `<책>-<강 두 자리>-<장면>`: 책은 `ilmuta`·`ilmunta`, 장면은 `conversation`(회화)·`reading`(읽기 글). `sceneKey()`가 만든다.
 - **낱말 키**는 교재 낱말의 기본형 그대로(`傘`, `かっこいい`). `～する`·`～な`는 뗀 꼴로도 찾으므로 `勉強`, `静か`만 적어도 `勉強する`, `静かな`에 붙는다.
 - **한 낱말에 그림 하나.** 다른 범위 표에 이미 있는 낱말은 다시 넣지 않는다(시험이 막는다). 같은 그림을 여러 낱말이 써도 된다(`学生`·`生徒` → `student`).
@@ -61,13 +61,14 @@
 - 루트 `<svg>`의 `width`·`height`(화면이 크기를 정한다).
 - **모든 도형(path·circle·ellipse·rect·polygon·polyline)에 `fill`을 적는다.** 빠지면 검정으로 채워져 어두운 화면에서 사라진다. 선만이면 `fill="none"`.
 - 팔레트 밖 색(이름 색 `black`·`white` 포함).
+- 보이지 않는 도형: `stroke-width`·`opacity`·`fill-opacity`가 0이거나 0.0…으로 시작하는 값. 쓰지 않는 도형은 지운다.
 
 **교재 글**: 표·설명·주석·커밋에 교재 문장을 옮기지 않는다. 낱말 하나와 그림 id의 짝은 괜찮다. 장면 설명(`label`)은 세션이 쓴 한 문장으로.
 
 ## 본보기 셋
 
-- 물건 `public/pictures/words/umbrella.svg` (傘): 빨간 덮개에 `line` 윤곽, 살은 `redDark`, 손잡이는 `brown` 굵은 선. 덩어리 하나와 굵은 선 두세 개.
-- 사람 `public/pictures/words/singer.svg` (歌手): 둥근 얼굴(`skin` + `line` 윤곽), 머리 `hair`, 옷 `purple`, 눈은 `eye` 곡선, 입 `redDark`. 직업은 들고 있는 물건(마이크)과 기호(음표)로 보인다.
+- 물건 `public/pictures/words/m01-umbrella.svg` (傘): 빨간 덮개에 `line` 윤곽, 살은 `redDark`, 손잡이는 `brown` 굵은 선. 덩어리 하나와 굵은 선 두세 개.
+- 사람 `public/pictures/words/m01-singer.svg` (歌手): 둥근 얼굴(`skin` + `line` 윤곽), 머리 `hair`, 옷 `purple`, 눈은 `eye` 곡선, 입 `redDark`. 직업은 들고 있는 물건(마이크)과 기호(음표)로 보인다.
 - 장면 `public/pictures/scenes/ilmuta-03-conversation.svg` (3강 회화): 두 인물을 좌우에 크게, 가운데 탁자 위 핵심 물건(가방), 왼쪽 인물이 우산을 내밀고 말풍선에 `?`. 뒤 창문으로 실내임을 보인다. 바닥 그림자로 땅을 잡는다.
 
 ## 그린 뒤 확인
