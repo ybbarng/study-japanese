@@ -3,7 +3,11 @@ import type { CueCard } from "@/lib/context/cards";
 import type { ContextCue } from "@/lib/context/cues";
 import { buildDictionary, type DictInput, summarize } from "./entries";
 import { searchDictionary } from "./search";
-import { findExampleCue, findSentenceCue } from "./sentence-cue";
+import {
+  findExampleCue,
+  findExampleCues,
+  findSentenceCue,
+} from "./sentence-cue";
 
 // 교재 글이 아니라 모양만 같은 지어낸 낱말·문장
 const input: DictInput = {
@@ -187,5 +191,83 @@ describe("findExampleCue", () => {
 
   it("카드가 없으면 받아 적은 글로 찾고, 그것도 없으면 null", () => {
     expect(findExampleCue([], segments, "やまにいきます")).toBeNull();
+  });
+});
+
+describe("findExampleCues", () => {
+  // 역할 연습 회화 mp3처럼: 앞 절반은 A의 말만, 뒤 절반은 B의 말만 읽는다
+  const dialogue = [
+    { ja: "やまだ。", speaker: "A" },
+    { ja: "かわだ。", speaker: "B" },
+    { ja: "うみ？", speaker: "A" },
+    { ja: "そらだね。", speaker: "B" },
+    { ja: "はなもきれいだ。", speaker: "A" },
+  ];
+  const ja = (start: number, text: string) => ({
+    start,
+    end: start + 1,
+    text,
+    lang: "ja" as const,
+  });
+  const ko = (start: number, text: string) => ({
+    start,
+    end: start + 1,
+    text,
+    lang: "ko" as const,
+  });
+
+  it("짧은 대답을 한국어로 잘못 받아 적었으면 같은 화자의 앞뒤 문장 사이 줄을 쓴다", () => {
+    const segments = [
+      ja(0, "やまだ"),
+      ko(3, "우미"), // A의 짧은 질문을 한국어로 받아 적었다
+      ja(6, "はなもきれいだ"),
+      ja(20, "かわだ"),
+      ja(23, "そらだね"),
+    ];
+    expect(findExampleCues([], segments, dialogue)[2]).toEqual({
+      start: 3,
+      end: 4,
+    });
+  });
+
+  it("다른 화자의 앞뒤 문장 사이(그 화자가 말하지 않는 빈자리)는 쓰지 않는다", () => {
+    // B의 두 문장 사이(21~23초)는 A가 말할 빈자리라 줄이 없다. A 쪽에도 사이 줄이 없으면 null
+    const segments = [
+      ja(0, "やまだ"),
+      ja(6, "はなもきれいだ"),
+      ja(20, "かわだ"),
+      ja(23, "そらだね"),
+    ];
+    expect(findExampleCues([], segments, dialogue)[2]).toBeNull();
+  });
+
+  it("두 화자가 번갈아 읽는 회화에서는 다른 화자 문장이 잡은 줄을 건너뛴다", () => {
+    const segments = [
+      ja(0, "やまだ"),
+      ja(2, "かわだ"),
+      ko(4, "우미"),
+      ja(6, "そらだね"),
+      ja(8, "はなもきれいだ"),
+    ];
+    expect(findExampleCues([], segments, dialogue)[2]).toEqual({
+      start: 4,
+      end: 5,
+    });
+  });
+
+  it("화자가 없는 문형 예문은 사이 줄이 앞 문장의 뜻 풀이일 수 있어 채우지 않는다", () => {
+    const patterns = dialogue.map(({ ja }) => ({ ja }));
+    const segments = [
+      ja(0, "やまだ"),
+      ko(1.5, "산이다"), // 앞 문장의 뜻 풀이
+      ko(3, "우미"),
+      ja(6, "そらだね"),
+    ];
+    expect(findExampleCues([], segments, patterns)[2]).toBeNull();
+  });
+
+  it("같은 화자의 앞이나 뒤 문장 자리를 모르면 짐작하지 않는다", () => {
+    const segments = [ko(3, "우미"), ja(6, "はなもきれいだ")];
+    expect(findExampleCues([], segments, dialogue)[2]).toBeNull();
   });
 });

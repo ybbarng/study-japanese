@@ -8,7 +8,7 @@ import { KIND_LABEL, lessonLabel } from "@/lib/ilmuta/labels";
 import { exampleTrack } from "@/lib/ilmuta/tracks";
 import type { Track } from "@/lib/player/queue";
 import { loadIlmuta, loadTranscript } from "@/lib/textbook/load";
-import type { Ilmuta } from "@/lib/textbook/schema";
+import type { Example, Ilmuta } from "@/lib/textbook/schema";
 import {
   lessonSentences,
   mergeTextbookAnalysis,
@@ -22,7 +22,7 @@ import {
   dictKey,
   summarize,
 } from "./entries";
-import { findExampleCue } from "./sentence-cue";
+import { findExampleCues } from "./sentence-cue";
 
 // 사전 화면(서버 컴포넌트)이 쓰는 데이터. 교재 출처를 닫았으면 방문자에게는 드릴 낱말만 보인다.
 
@@ -141,6 +141,26 @@ export async function loadDictWord(id: string): Promise<DictWordData | null> {
   const entry = dictionary(book).find((e) => e.id === dictKey(id));
   if (!entry) return null;
   const examples: DictExample[] = [];
+  // 예문 mp3의 문장 자리는 앞뒤 문장을 함께 보고 찾으므로 예문마다 한 번 구한다
+  const cueCache = new Map<string, ({ start: number; end: number } | null)[]>();
+  const cuesOf = (example: Example) => {
+    const hit = cueCache.get(example.id);
+    if (hit) return hit;
+    const transcript = loadTranscript("ilmuta", example.id);
+    // 일무따를 볼 수 있을 때만 여기에 온다(book이 있다). 카드는 자막 API와 같은 짝짓기 결과다
+    const carded = transcript
+      ? loadContextTranscript("ilmuta", example.id, () => true)
+      : null;
+    const found = transcript
+      ? findExampleCues(
+          carded ? transcriptCues(carded) : [],
+          transcript.segments,
+          example.sentences,
+        )
+      : [];
+    cueCache.set(example.id, found);
+    return found;
+  };
   for (const o of entry.occurrences) {
     const lesson = book?.lessons.find((l) => l.no === o.lesson);
     const example = lesson?.examples.find((e) => e.id === o.example);
@@ -162,11 +182,6 @@ export async function loadDictWord(id: string): Promise<DictWordData | null> {
           };
         })
       : [{ text: sentence.ja }];
-    const transcript = loadTranscript("ilmuta", example.id);
-    // 일무따를 볼 수 있을 때만 여기에 온다(book이 있다). 카드는 자막 API와 같은 짝짓기 결과다
-    const carded = transcript
-      ? loadContextTranscript("ilmuta", example.id, () => true)
-      : null;
     examples.push({
       lesson: lesson.no,
       lessonLabel: lessonLabel(lesson.no),
@@ -174,13 +189,7 @@ export async function loadDictWord(id: string): Promise<DictWordData | null> {
       parts,
       ko: sentence.ko,
       track: exampleTrack(lesson, example),
-      cue: transcript
-        ? findExampleCue(
-            carded ? transcriptCues(carded) : [],
-            transcript.segments,
-            sentence.ja,
-          )
-        : null,
+      cue: cuesOf(example)[o.index] ?? null,
       wordCard: example.kind === "words",
       length: Array.from(sentence.ja).length,
     });
