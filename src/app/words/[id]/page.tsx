@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { DrillRecord } from "@/components/dictionary/drill-record";
 import { WordExamples } from "@/components/dictionary/word-examples";
 import { WordPictureSlot } from "@/components/dictionary/word-picture-slot";
+import { WordSound } from "@/components/dictionary/word-sound";
 import { PageFrame, TwoColumn } from "@/components/shell/page-frame";
 import { SourceCredit } from "@/components/sources/source-credit";
 import { loadDictWord } from "@/lib/dictionary/server";
@@ -51,6 +52,11 @@ export default async function WordPage({ params }: Props) {
         </div>
         <WordPictureSlot word={entry.word} />
       </div>
+      <WordSound
+        word={entry.word}
+        reading={entry.readings[0] ?? entry.word}
+        examples={examples}
+      />
       {entry.glosses.length > 0 ? (
         <div className="flex flex-col gap-1">
           <p className="text-2xl font-medium">{entry.glosses[0]}</p>

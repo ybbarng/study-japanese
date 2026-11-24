@@ -123,6 +123,10 @@ export interface DictExample {
   track: Track;
   /** 예문 mp3에서 이 문장이 읽히는 자리(못 찾으면 null, 처음부터 튼다) */
   cue: { start: number; end: number } | null;
+  /** 단어 익히기 카드(낱말 자체를 읽는 구간)인지. 낱말 듣기가 먼저 고른다(word-sound.ts) */
+  wordCard: boolean;
+  /** 문장 글 길이 */
+  length: number;
 }
 
 export interface DictWordData {
@@ -168,6 +172,8 @@ export async function loadDictWord(id: string): Promise<DictWordData | null> {
       cue: transcript
         ? findSentenceCue(transcript.segments, sentence.ja)
         : null,
+      wordCard: example.kind === "words",
+      length: Array.from(sentence.ja).length,
     });
   }
   return { entry: summarize(entry), examples, limited: book === null };

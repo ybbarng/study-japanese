@@ -80,7 +80,7 @@ export function WordExamples({ examples }: { examples: DictExample[] }) {
                 일무따 {ex.lessonLabel}
               </Link>{" "}
               · {ex.kindLabel}
-              {ex.cue ? "" : " · 처음부터 재생"}
+              {ex.cue ? "" : " · 이 문장 자리를 못 찾아 파일 처음부터 재생"}
             </p>
           </div>
         </li>
