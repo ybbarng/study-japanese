@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <path d="M6 62c0-12 6-18 14-18" fill="#9b72c9"/>
+  <path d="M2 62c0-12 8-18 18-18s10 6 10 18z" fill="#9b72c9"/>
+  <circle cx="18" cy="30" r="13" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M5 28c0-10 6-13 13-13s12 4 13 10c-6-2-12-2-18 0-3 1-6 2-8 3z" fill="#8a5a3c"/>
+  <path d="M30 28l4 6-4 1" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M21 29q2-2 4 0" fill="none" stroke="#3a3040" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M24 39q3 1 5-1" fill="none" stroke="#7a6a62" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M38 30q4-3 8 0M38 36q5-1 8 2" fill="none" stroke="#79bde8" stroke-width="2" stroke-linecap="round"/>
+  <path d="M54 62V36" fill="none" stroke="#3d8a50" stroke-width="3" stroke-linecap="round"/>
+  <path d="M54 50c4-4 8-4 8-4s-2 6-8 6z" fill="#5fb36f"/>
+  <circle cx="54" cy="30" r="5" fill="#f5c84c"/>
+  <circle cx="54" cy="22" r="5" fill="#f4a0b8"/>
+  <circle cx="61" cy="29" r="5" fill="#f4a0b8"/>
+  <circle cx="47" cy="29" r="5" fill="#f4a0b8"/>
+  <circle cx="54" cy="36" r="5" fill="#f4a0b8"/>
+  <circle cx="54" cy="29" r="4" fill="#f5c84c"/>
+</svg>
