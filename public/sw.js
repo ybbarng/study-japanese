@@ -143,7 +143,8 @@ async function networkFirstPage(request) {
     try {
       return await network;
     } catch {
-      return (await cache.match("/")) || offlinePage();
+      // 받아 두지 않은 화면을 첫 화면으로 대신 내주지 않는다(주소는 2강인데 첫 화면이 보여 길을 잃었다)
+      return offlinePage(new URL(request.url).pathname);
     }
   }
 
@@ -185,12 +186,32 @@ async function networkFirstData(request) {
   }
 }
 
-function offlinePage() {
+const BOOK_NAME = { ilmuta: "일무따", ilmunta: "일문따" };
+
+/** 끊긴 채 받아 두지 않은 화면을 열 때 보이는 안내. 강 화면이면 몇 강인지 밝힌다 */
+function offlinePage(pathname) {
+  const lesson = /^\/(ilmuta|ilmunta)\/(\d+)\/?$/.exec(pathname);
+  // 일무따는 "3강은", 일문따는 "3과는"
+  const what = lesson
+    ? `${BOOK_NAME[lesson[1]]} ${lesson[2]}${lesson[1] === "ilmuta" ? "강은" : "과는"}`
+    : "";
+  const title = lesson ? `${what} 받아 두지 않았습니다` : "받아 두지 않은 화면";
+  const body = lesson
+    ? `이 강은 받아 두지 않아 통신이 끊긴 지금은 열 수 없습니다. 통신이 되는 곳에서 이 강 화면의 "받기"를 누르면 다음부터는 끊겨도 열립니다.`
+    : "이 화면은 받아 두지 않아 통신이 끊긴 지금은 열 수 없습니다.";
+  const link =
+    "display:block;margin-top:1rem;padding:.9rem 1rem;border-radius:.75rem;text-decoration:none;text-align:center";
   return new Response(
-    `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>오프라인</title></head>
-<body style="background:#0e1220;color:#ece8df;font-family:system-ui,sans-serif;padding:3rem 1.5rem;line-height:1.6">
-<p style="font-size:1.25rem">통신이 끊겼습니다.</p>
-<p style="color:#a9a6b8">이 화면은 받아 두지 않았습니다. 받아 둔 강은 <a style="color:#e8553e" href="/offline">받아 둔 강</a>에서 열 수 있습니다.</p>
+    `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>오프라인</title></head>
+<body style="margin:0;background:#0e1220;color:#ece8df;font-family:system-ui,sans-serif;line-height:1.6">
+<main data-offline-fallback style="max-width:32rem;margin:0 auto;padding:3rem 1rem">
+<p style="color:#a9a6b8;font-size:.875rem;margin:0">통신이 끊겼습니다</p>
+<h1 style="font-size:1.375rem;margin:.25rem 0 1rem">${title}</h1>
+<p style="color:#cfcbd8">${body}</p>
+<a style="${link};background:#e8553e;color:#0e1220;font-weight:600" href="/offline">받아 둔 강 목록</a>
+<a style="${link};border:1px solid #3a3f55;color:#ece8df" href="/">첫 화면</a>
+<button type="button" onclick="location.reload()" style="${link};width:100%;background:none;border:0;color:#a9a6b8;font:inherit;cursor:pointer">다시 시도</button>
+</main>
 </body></html>`,
     { status: 503, headers: { "Content-Type": "text/html; charset=utf-8" } },
   );

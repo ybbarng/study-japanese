@@ -238,6 +238,42 @@ test("받아 둔 일문따 과는 통신이 끊겨도 화면이 열리고 강의
   ).toBeVisible();
 });
 
+test("통신이 끊긴 채 받아 두지 않은 강을 열면 첫 화면 대신 안내가 보이고, 받아 둔 강 목록으로 가면 받아 둔 강이 열린다", async ({
+  page,
+  context,
+}) => {
+  await saveLesson(page, 2);
+  await goOffline(page, context);
+
+  const response = await page.goto("/ilmuta/3");
+  expect(response?.status()).toBe(503);
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: "일무따 3강은 받아 두지 않았습니다",
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("통신이 끊긴 지금은 열 수 없습니다"),
+  ).toBeVisible();
+
+  await page.getByRole("link", { name: "받아 둔 강 목록" }).click();
+  const row = page.getByRole("listitem").filter({ hasText: "テスト2だ。" });
+  await expect(row).toBeVisible();
+
+  // 받아 둔 강은 열리고, 그 강의 글꼴 조각도 받아 두어 끊긴 채로도 글꼴 요청이 실패하지 않는다
+  const failedFonts: string[] = [];
+  page.on("requestfailed", (r) => {
+    if (r.url().endsWith(".woff2")) failedFonts.push(r.url());
+  });
+  await page.goto("/ilmuta/2");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "テスト2だ。" }),
+  ).toBeVisible();
+  await page.evaluate(() => document.fonts.ready);
+  expect(failedFonts).toEqual([]);
+});
+
 test("받아 둔 강 화면에 받은 강과 크기가 보이고, 지우면 강 화면이 다시 받기로 돌아간다", async ({
   page,
 }) => {
