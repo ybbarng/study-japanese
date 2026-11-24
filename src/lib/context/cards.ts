@@ -21,6 +21,7 @@ import {
 import { rubyFromReading } from "./reading-ruby";
 import { type RepairSegment, repairCards, wordSentence } from "./repair";
 import { plainForm } from "./review";
+import { bookGroups } from "./review-book";
 import {
   counterFitsAt,
   inflectedFitsAt,
@@ -394,25 +395,114 @@ function sentenceCard(sentences: Sentence[], source: CardSource): CueCard {
   };
 }
 
+/** 낱말 칩 뜻을 교정 파일이 그 줄에 적은 뜻으로 바꾼다(뜻이 여럿인 낱말의 그 자리 뜻) */
+function withChipMeanings(
+  words: CueWord[],
+  chips: Readonly<Record<string, string>> | null | undefined,
+): CueWord[] {
+  if (!chips) return words;
+  return words.map((w) => (chips[w.ja] ? { ...w, ko: chips[w.ja] } : w));
+}
+
+/** 한국어 뜻을 문장 끝(. ? ! 。)마다 나눈다 */
+function koSentences(ko: string): string[] {
+  return ko
+    .split(/(?<=[.?!。？！])\s*/u)
+    .map((s) => s.trim())
+    .filter((s) => s !== "");
+}
+
+/** 읽는 법을 단 글을 글 속 자리 [start, end)로 자른다. 읽기가 걸린 조각을 가르면 그 읽기는 버린다 */
+function sliceRuby(
+  ruby: RubySegment[],
+  start: number,
+  end: number,
+): RubySegment[] {
+  const out: RubySegment[] = [];
+  let at = 0;
+  for (const seg of ruby) {
+    const from = Math.max(start, at);
+    const to = Math.min(end, at + seg.text.length);
+    if (from < to) {
+      const text = seg.text.slice(from - at, to - at);
+      const cut = text.length !== seg.text.length;
+      out.push(seg.reading && !cut ? { text, reading: seg.reading } : { text });
+    }
+    at += seg.text.length;
+  }
+  return out;
+}
+
 /**
  * 교정 파일로 올린 줄의 카드(review.ts): 고친 글을 문장으로, 교정 파일의 읽는 법·뜻을 단다.
- * 받아 적은 글이므로 낱말 칩은 자리가 확인된 것만 찾는다(word-bounds.ts)
+ * 받아 적은 글이므로 낱말 칩은 자리가 확인된 것만 찾는다(word-bounds.ts).
+ * 소책자가 있는 책이면 고친 글이 소책자 문장과 글자가 같은지 본다(review-book.ts):
+ * - 소책자 항목 통째(여럿이면 항목마다 한 줄)와 같으면 소책자 카드로 보인다(의심 표시 없음)
+ * - 항목 조각과 같으면 "교재 문장과 같은 글"로 보이고(bookText), 항목이 바뀌는 자리(사람이 바뀌는 자리)에서 줄을 나눈다
+ * chips는 낱말 칩 뜻을 그 줄 문맥의 뜻으로 바꾼다(교정 파일의 chips)
  */
 export function reviewedCard(
   text: string,
   reading: string | null | undefined,
   ko: string,
   source: CardSource,
+  chips?: Readonly<Record<string, string>> | null,
 ): CueCard {
-  return {
-    origin: "transcript",
+  const groups =
+    source.origin === "transcript"
+      ? null
+      : bookGroups(text, uniqueSentences(source.sentences));
+  if (groups?.every((g) => g.whole)) {
+    const card = sentenceCard(
+      groups.map((g) => g.sentence),
+      source,
+    );
+    return {
+      ...card,
+      words: withChipMeanings(card.words, chips).map(withPicture),
+    };
+  }
+  const ruby = heardRuby(text, reading, source);
+  const words = withChipMeanings(
+    heardWords(text, source).filter((w) => w.ja !== text),
+    chips,
+  ).map(withPicture);
+  const base = {
+    origin: "transcript" as const,
     reviewed: true,
-    sentences: [{ ja: text, ko, ruby: heardRuby(text, reading, source) }],
     whole: true,
-    words: heardWords(text, source)
-      .filter((w) => w.ja !== text)
-      .map(withPicture),
+    words,
   };
+  if (!groups) return { ...base, sentences: [{ ja: text, ko, ruby }] };
+  // 소책자 항목 조각과 같은 글: 항목마다 줄을 나누고, 뜻은 문장 수가 맞을 때만 같은 자리에서 나눈다
+  const kos = koSentences(ko);
+  const counts = groups.map(
+    (g) => splitSentences(text.slice(g.start, g.end)).length,
+  );
+  const aligned = counts.reduce((a, b) => a + b, 0) === kos.length;
+  if (groups.length > 1 && !aligned)
+    return { ...base, bookText: true, sentences: [{ ja: text, ko, ruby }] };
+  let k = 0;
+  const sentences = groups.map((g, i) => {
+    const part = kos.slice(k, k + counts[i]).join(" ");
+    k += counts[i];
+    if (g.whole)
+      return {
+        ja: g.sentence.ja,
+        ko: g.sentence.ko || part,
+        ruby: rubyOf(g.sentence, source),
+      };
+    // 사이 빈칸은 빼고 자른다(글과 읽는 법 조각이 같은 글이 되게)
+    const slice = text.slice(g.start, g.end);
+    const start = g.start + (slice.length - slice.trimStart().length);
+    const end = g.end - (slice.length - slice.trimEnd().length);
+    return {
+      ja: text.slice(start, end),
+      ko: groups.length === 1 ? ko : part,
+      ruby: sliceRuby(ruby, start, end),
+    };
+  });
+  return { ...base, bookText: true, sentences };
 }
 
 /** 줄 통째를 한 후보와 맞춘 결과(조각 하나짜리). 못 맞추면 null */

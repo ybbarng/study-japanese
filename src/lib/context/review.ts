@@ -71,6 +71,11 @@ const reviewLineObject = z.object({
   japaneseSide: japaneseSideSchema.nullish(),
   /** 한국어 부분의 한국어 글. 없으면 그 부분은 내주지 않는다 */
   koreanPart: z.string().nullish(),
+  /**
+   * 낱말 칩 뜻을 이 줄 문맥의 뜻으로 바꾼다: 칩 낱말(사전형 표기) → 뜻. 뜻이 여럿인 낱말이
+   * 대표 뜻 하나로 카드 뜻과 어긋날 때 적는다
+   */
+  chips: z.record(z.string(), z.string()).nullish(),
 });
 export const reviewLineSchema = z.preprocess(
   withJapaneseSide,

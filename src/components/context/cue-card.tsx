@@ -66,12 +66,16 @@ function NoMeaning() {
 /** 교재와 맞추지 못한 줄을 문맥과 소리로 고쳐 올린 글(교정 파일)임을 작게 알린다 */
 export const REVIEWED_NOTE = "고쳐 받아 적은 글 — 교재와 다를 수 있음";
 
+/** 고쳐 받아 적은 글이 소책자 문장의 조각과 글자가 같을 때(의심 표시 대신) */
+export const BOOK_TEXT_NOTE = "교재 문장과 같은 글";
+
 function TranscriptNote({ cue }: { cue: ContextCue }) {
-  return (
-    <span className="mt-1 block text-xs text-ink-faint">
-      {cue.card?.reviewed ? REVIEWED_NOTE : TRANSCRIPT_NOTE}
-    </span>
-  );
+  const note = cue.card?.bookText
+    ? BOOK_TEXT_NOTE
+    : cue.card?.reviewed
+      ? REVIEWED_NOTE
+      : TRANSCRIPT_NOTE;
+  return <span className="mt-1 block text-xs text-ink-faint">{note}</span>;
 }
 
 /** 한자 위에 읽는 법을 단 일본어 글 */

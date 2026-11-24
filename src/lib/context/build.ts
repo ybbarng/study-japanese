@@ -222,7 +222,13 @@ function reviewPromotions(
         start: c.start,
         end: c.end,
         text,
-        card: reviewedCard(text, c.line.reading, c.line.ko ?? "", source),
+        card: reviewedCard(
+          text,
+          c.line.reading,
+          c.line.ko ?? "",
+          source,
+          c.line.chips,
+        ),
       };
     });
 }

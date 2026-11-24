@@ -55,6 +55,11 @@ export const cueCardSchema = z.object({
    * origin은 transcript이고, 화면은 "고쳐 받아 적은 글"이라고 작게 알린다
    */
   reviewed: z.boolean().optional(),
+  /**
+   * 고친 글(reviewed)이 그 강 소책자 문장의 조각과 글자가 같다(review-book.ts).
+   * 화면은 "교재와 다를 수 있음" 대신 "교재 문장과 같은 글"이라고 알린다
+   */
+  bookText: z.boolean().optional(),
 });
 export type CueCard = z.infer<typeof cueCardSchema>;
 
