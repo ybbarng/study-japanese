@@ -14,6 +14,8 @@ import { verifiedRubySegments } from "./word-bounds";
 //   낱말 표 읽기와 가장 많이 맞는 갈래만 남기고, 그래도 갈리는 덩어리는 비운다.
 // - 숫자는 읽을 수 있는 소리(number-reading.ts)로 빼고 남은 가나를 뒤 한자에 단다(7時: しちじ → 時=じ).
 //   숫자 자체에는 읽기를 달지 않는다.
+// - 서로 다른 한자 둘 이상인 덩어리에 걸린 읽기가 낱말 둘에 걸쳤을 수 있으면(앞 한자가 낱말 표 읽기로 맞고
+//   뒤에 활용 꼬리가 붙음) 둘로 가를 수 있을 때만 나눠 달고, 아니면 비운다(acrossWords).
 // - 문장 읽기가 있으면 낱말 표 읽기로 되돌아가지 않는다. 낱말 표는 활용형을 먼저 잡아 틀리기 쉽다
 //   (はいれます의 入れ를 いれる로). 틀린 읽기를 다느니 안 단다.
 // 문장 읽기가 없을 때만 자리가 확인된 낱말의 읽기를 단다(verifiedRubySegments).
@@ -235,11 +237,19 @@ export function rubyFromReading(
   );
   const out: RubySegment[] = [];
   let k = 0;
+  let at = 0;
   for (const t of tokens) {
+    const start = at;
+    at += t.length;
     if (KANJI_RUN.test(t)) {
       const r = readings[k++];
-      if (r) {
+      const across = r ? acrossWords(text, start, t, r, glossary) : null;
+      if (r && across === null) {
         out.push({ text: t, reading: r });
+        continue;
+      }
+      if (across?.length) {
+        out.push(...across);
         continue;
       }
     }
@@ -249,3 +259,51 @@ export function rubyFromReading(
   }
   return out;
 }
+
+/**
+ * 서로 다른 한자 둘 이상인 덩어리에 읽기 하나가 걸렸을 때, 그 덩어리가 낱말 둘에 걸친 것인지 본다
+ * (가나 없이 붙은 「지금 + 끓다」 같은 곳: 읽기는 맞아도 어느 한자가 어떻게 읽히는지 알 수 없다).
+ * - 덩어리 통째가 낱말 표에 있으면(낱말 하나) null: 덩어리 읽기 그대로.
+ * - 앞부분이 낱말 표의 한자 낱말이고 그 읽기가 덩어리 읽기의 앞과 맞으면 낱말 둘로 갈릴 수 있다.
+ *   뒷부분 읽기도 낱말 표에서 남은 읽기와 맞으면 둘로 나눠 달고, 아니면 어디서 끊을지 몰라 비운다([]).
+ * - 갈릴 증거가 없으면 null(합성어는 덩어리 읽기가 맞다).
+ */
+function acrossWords(
+  text: string,
+  at: number,
+  run: string,
+  reading: string,
+  glossary: Glossary,
+): RubySegment[] | null {
+  const chars = [...run];
+  if (new Set(chars).size < 2) return null;
+  if (run in glossary || runReading(text, at, run, glossary)) return null;
+  // 긴 앞부분부터 본다(앞 낱말이 두 글자일 수도 있다)
+  for (let n = chars.length - 1; n >= 1; n--) {
+    const head = chars.slice(0, n).join("");
+    const headReading = glossary[head] ? normalizeJa(glossary[head]) : "";
+    if (
+      headReading === "" ||
+      headReading.length >= reading.length ||
+      !reading.startsWith(headReading)
+    )
+      continue;
+    const tail = chars.slice(n).join("");
+    const rest = reading.slice(headReading.length);
+    const known =
+      runReading(text, at + head.length, tail, glossary) ?? glossary[tail];
+    if (known && normalizeJa(known) === rest)
+      return [
+        { text: head, reading: headReading },
+        { text: tail, reading: rest },
+      ];
+    // 뒷부분 읽기를 모르면, 뒤에 활용 꼬리처럼 보이는 가나가 붙었을 때만 낱말 둘로 본다(지금+끓い·전부+읽み).
+    // 조사·だ·さん이 붙으면 끝 한자가 붙는 말인 합성어(○○屋に·○○人だ)가 많아 덩어리 읽기를 둔다
+    const next = text[at + run.length] ?? "";
+    return /^[ぁ-ゖ]$/u.test(next) && !PARTICLE_START.test(next) ? [] : null;
+  }
+  return null;
+}
+
+/** 합성어 뒤에 흔히 오는 조사·だ·さん의 첫 글자 */
+const PARTICLE_START = /^[はがをにでとものへやかだじよねなさ]$/u;
