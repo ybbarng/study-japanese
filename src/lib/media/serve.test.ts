@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import type { SiteSettings } from "@/lib/sources/registry";
 import { openDb } from "@/lib/store/db";
 import type { MediaLimits } from "./quota";
-import { serveMedia } from "./serve";
+import { nameForms, serveMedia } from "./serve";
 
 // 실제 파일과 실제 SQLite(메모리)로 내주기·상한을 확인한다.
 const NOW = Date.UTC(2027, 0, 5, 0, 0); // 2027-01-05 09:00 KST
@@ -76,6 +76,48 @@ describe("출처별 공개", () => {
     expect((await get("visitor-b", { admin: false })).status).toBe(200);
     expect((await get("visitor-c", { admin: false })).status).toBe(429); // 방문자 합 3000 > 2500
     expect((await get("me", { admin: true })).status).toBe(200); // 관리자 몫은 따로
+  });
+});
+
+describe("파일 이름의 한글 꼴(NFC·NFD)", () => {
+  // 가짜 폴더 이름. 맥에서 올리면 자모가 풀린 꼴(NFD)로 서버에 남는다
+  const DIR = "소리 강의";
+
+  it("한글이 든 이름은 합친 꼴을 먼저, 자모를 푼 꼴을 다음으로 찾는다", () => {
+    const forms = nameForms(["ilmuta", DIR, "L00.mp3"]);
+    expect(forms.map((f) => f[1])).toEqual([
+      DIR.normalize("NFC"),
+      DIR.normalize("NFD"),
+    ]);
+  });
+
+  it("한글이 없는 이름은 한 번만 찾는다", () => {
+    expect(nameForms(["songs", "lemon.mp3"])).toEqual([["songs", "lemon.mp3"]]);
+  });
+
+  it("서버 폴더 이름이 자모를 푼 꼴이어도 합친 꼴 주소로 받는다", async () => {
+    const mediaDir = mkdtempSync(path.join(tmpdir(), "sj-media-nfd-"));
+    mkdirSync(path.join(mediaDir, "ilmuta", DIR.normalize("NFD")), {
+      recursive: true,
+    });
+    writeFileSync(
+      path.join(mediaDir, "ilmuta", DIR.normalize("NFD"), "L00.mp3"),
+      Buffer.alloc(10, 1),
+    );
+    const res = await serveMedia(
+      new Request("http://localhost/media/ilmuta/x.mp3"),
+      ["ilmuta", DIR.normalize("NFC"), "L00.mp3"],
+      {
+        mediaDir,
+        db: openDb(":memory:"),
+        sessionToken: "me",
+        isAdmin: true,
+        settings: { closedSources: [] },
+        now: NOW,
+        limits: LIMITS,
+      },
+    );
+    expect(res.status).toBe(200);
   });
 });
 

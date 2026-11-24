@@ -28,13 +28,38 @@ export interface ServeDeps {
 // 교재 파일은 바뀌지 않으니 폰이 오래 들고 있게 한다. 공유 캐시(CDN·프록시)에는 남기지 않는다.
 const CACHE_CONTROL = "private, max-age=2592000, immutable";
 
+/**
+ * 파일을 찾아볼 이름 꼴들. 주소는 한글을 합친 꼴(NFC)로 오지만, 맥에서 rsync로 올린 파일 이름은
+ * 자모를 푼 꼴(NFD)로 남는다. 리눅스 서버는 둘을 다른 이름으로 보므로 NFC로 먼저, 없으면 NFD로 찾는다.
+ */
+export function nameForms(segments: readonly string[]): string[][] {
+  const nfc = segments.map((s) => s.normalize("NFC"));
+  const nfd = segments.map((s) => s.normalize("NFD"));
+  return nfc.join("/") === nfd.join("/") ? [nfc] : [nfc, nfd];
+}
+
+/** 이름 꼴마다 찾아 처음 있는 파일의 위치·종류·크기 */
+async function findFile(mediaDir: string, segments: string[]) {
+  for (const form of nameForms(segments)) {
+    const resolved = resolveMediaPath(mediaDir, form);
+    if (!resolved) return null;
+    try {
+      const info = await stat(resolved.absolutePath);
+      if (info.isFile()) return { ...resolved, size: info.size };
+    } catch {
+      // 이 꼴로는 없다. 다음 꼴로 찾는다
+    }
+  }
+  return null;
+}
+
 export async function serveMedia(
   request: Request,
   segments: string[],
   deps: ServeDeps,
 ): Promise<Response> {
-  const resolved = resolveMediaPath(deps.mediaDir, segments);
-  if (!resolved) return new Response("없음", { status: 404 });
+  if (!resolveMediaPath(deps.mediaDir, segments))
+    return new Response("없음", { status: 404 });
   if (!canSeeSource(sourceOfMedia(segments[0]), deps.isAdmin, deps.settings)) {
     return new Response(
       "지금은 공개하지 않는 자료입니다. 원래 자료는 출판사에서 받을 수 있습니다.",
@@ -42,14 +67,9 @@ export async function serveMedia(
     );
   }
 
-  let size: number;
-  try {
-    const info = await stat(resolved.absolutePath);
-    if (!info.isFile()) return new Response("없음", { status: 404 });
-    size = info.size;
-  } catch {
-    return new Response("없음", { status: 404 });
-  }
+  const resolved = await findFile(deps.mediaDir, segments);
+  if (!resolved) return new Response("없음", { status: 404 });
+  const size = resolved.size;
 
   const headers = {
     "Content-Type": resolved.contentType,
