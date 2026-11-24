@@ -6,6 +6,8 @@ import {
   type FixedSegment,
   type Frame,
   fixedCards,
+  pointingWordsOf,
+  sentenceOfPart,
 } from "./fixed-cards";
 
 // 교재 글이 아니라 모양만 같은 가짜 틀·낱말·이름을 쓴다(저장소 규칙)
@@ -170,5 +172,69 @@ describe("드릴 활용형", () => {
       asKana,
     )["0"];
     expect(card).toBeUndefined();
+  });
+});
+
+describe("지시어·의문사만으로 된 줄", () => {
+  it("지시어를 늘어놓은 줄은 낱말마다 뜻을 붙인 카드", () => {
+    const card = fixedCards([ja("これ、それ、あれ")], {}, {}, asKana)["0"];
+    expect(card?.sentences).toEqual([
+      {
+        ja: "これ・それ・あれ",
+        ko: "이것, 그것, 저것",
+        ruby: [{ text: "これ・それ・あれ" }],
+      },
+    ]);
+  });
+
+  it("의문사 하나를 되풀이한 줄은 한 번만", () => {
+    expect(pointingWordsOf("どのくらい?どのくらい?")).toEqual(["どのくらい"]);
+  });
+
+  it("의문사가 아닌 지시어 하나(머뭇거림일 수 있음)나 다른 말이 섞인 줄은 알아보지 않는다", () => {
+    expect(pointingWordsOf("その…")).toBeNull();
+    expect(pointingWordsOf("これは山です")).toBeNull();
+  });
+});
+
+describe("한 문장을 두 줄로 나눠 읽은 반쪽 줄", () => {
+  const sentences = [
+    {
+      ja: "雨が降ったら家で本を読みます。",
+      ko: "비가 오면 집에서 책을 읽어요.",
+    },
+    { ja: "雨が降ったら出かけません。", ko: "비가 오면 나가지 않아요." },
+    { ja: "猫が好きです。", ko: "" },
+  ];
+  const sentenceCard = (s: { ja: string; ko: string }) => ({
+    sentences: [{ ja: s.ja, ko: s.ko, ruby: [{ text: s.ja }] }],
+    whole: true,
+    words: [],
+  });
+
+  it("반쪽 줄에 그 문장 전체와 뜻을 붙인다", () => {
+    const card = fixedCards(
+      [ja("家で本を読みます")],
+      {},
+      { sentences },
+      asKana,
+      sentenceCard,
+    )["0"];
+    expect(card?.sentences[0]?.ko).toBe("비가 오면 집에서 책을 읽어요.");
+    expect(card?.inferred).toBe(true);
+  });
+
+  it("받아쓰기가 한 글자 달라도 그 문장의 일부로 본다", () => {
+    expect(sentenceOfPart("家で本お読みます", sentences, asKana)?.ko).toBe(
+      "비가 오면 집에서 책을 읽어요.",
+    );
+  });
+
+  it("두 문장에 다 들어가는 반쪽(雨が降ったら)은 어느 것인지 몰라 고르지 않는다", () => {
+    expect(sentenceOfPart("雨が降ったら", sentences, asKana)).toBeNull();
+  });
+
+  it("뜻이 없는 문장은 고르지 않는다", () => {
+    expect(sentenceOfPart("猫が好きで", sentences, asKana)).toBeNull();
   });
 });

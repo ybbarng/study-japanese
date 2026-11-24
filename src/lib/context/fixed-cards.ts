@@ -13,6 +13,8 @@ import { betterTranscription } from "./transcript-pairs";
 // ② 그 강의 문형 틀(「うん、～の。」)에 그 강 낱말·등장인물 이름을 채운 꼴: 틀의 가나는 그대로 맞아야 하고,
 //    빈칸의 글은 낱말 읽기와 소리가 닮아야 한다(받아 적기가 이름을 틀리게 적는다).
 // ③ 드릴 낱말의 활용형(食べさせられる): 활용 엔진이 만든 꼴과 읽기가 똑같을 때만.
+// ①' 지시어·의문사만으로 된 줄(「これ、それ、あれ」「どのくらい?」): 정해 둔 뜻으로.
+// ⑤ 한 문장을 두 줄로 나눠 읽은 반쪽 줄: 그 줄이 든 뜻 있는 예문 짝 문장으로(④보다 먼저).
 // ④ 같은 과 예문 mp3 자막에 거의 같은 줄이 있으면(따로 받아 적은 두 글이 같다) 그 글로.
 // 맞춘 글은 받아 적은 글이 아니라 정해 둔 재료로 만든 글이다. ②는 강사가 실제로 한 말과 다를 수 있어
 // 출처를 transcript로 두어 화면이 "교재와 다를 수 있음"을 붙이게 한다.
@@ -47,6 +49,89 @@ const ANSWER_KO: Record<string, string> = {
   ありがとうございます: "감사합니다",
   すみません: "죄송합니다",
 };
+
+/**
+ * 지시어(こそあど)와 의문사의 뜻(세션이 적은 기초 낱말, 교재 글이 아니다). 강사가 이 낱말만 늘어놓거나
+ * (「これ、それ、あれ」) 하나만 말한 줄(「どのくらい?」)을 알아본다. 줄 하나에 낱말 하나면 의문사만 본다
+ * (あの·その 하나는 머뭇거리는 소리일 수 있다).
+ */
+const POINTING_WORDS: Record<string, string> = {
+  これ: "이것",
+  それ: "그것",
+  あれ: "저것",
+  どれ: "어느 것",
+  この: "이",
+  その: "그",
+  あの: "저",
+  どの: "어느",
+  ここ: "여기",
+  そこ: "거기",
+  あそこ: "저기",
+  どこ: "어디",
+  こちら: "이쪽",
+  そちら: "그쪽",
+  あちら: "저쪽",
+  どちら: "어느 쪽",
+  こんな: "이런",
+  そんな: "그런",
+  あんな: "저런",
+  どんな: "어떤",
+  どう: "어떻게",
+  なぜ: "왜",
+  どうして: "왜",
+  いつ: "언제",
+  だれ: "누구",
+  誰: "누구",
+  なに: "무엇",
+  何: "무엇",
+  いくら: "얼마",
+  いくつ: "몇 개",
+  どのくらい: "어느 정도",
+  どのぐらい: "어느 정도",
+};
+const QUESTION_WORDS = new Set([
+  "どれ",
+  "どの",
+  "どこ",
+  "どちら",
+  "どんな",
+  "どう",
+  "なぜ",
+  "どうして",
+  "いつ",
+  "だれ",
+  "誰",
+  "なに",
+  "何",
+  "いくら",
+  "いくつ",
+  "どのくらい",
+  "どのぐらい",
+]);
+
+/**
+ * 줄이 지시어·의문사만으로 빈틈없이 이루어졌으면 그 낱말들(같은 낱말을 되풀이하면 한 번). 아니면 null.
+ * 낱말 하나뿐이면 의문사일 때만.
+ */
+export function pointingWordsOf(text: string): string[] | null {
+  const chars = [...normalizeJa(text).replace(/ー/gu, "")];
+  if (chars.length === 0) return null;
+  // best[i]: i글자까지 낱말로 나눈 것(가장 긴 낱말부터)
+  const best: (string[] | null)[] = [[]];
+  for (let i = 1; i <= chars.length; i++) {
+    best[i] = null;
+    for (let j = Math.max(0, i - 5); j < i && !best[i]; j++) {
+      const piece = chars.slice(j, i).join("");
+      const prev = best[j];
+      if (prev && piece in POINTING_WORDS) best[i] = [...prev, piece];
+    }
+  }
+  const words = best[chars.length];
+  if (!words) return null;
+  const unique = words.filter((w, k) => words.indexOf(w) === k);
+  if (unique.length === 1 && !QUESTION_WORDS.has(unique[0])) return null;
+  return unique;
+}
 
 /** 문장 끝에 붙는 군말(よ·ね) — 활용형을 견줄 때 떼고 본다 */
 const TAIL = /(?:よね|よ|ね|か)$/u;
@@ -301,6 +386,64 @@ export interface FixedSource {
   lessonSkills?: Set<string>;
   /** 같은 과 예문 mp3 자막의 일본어 줄(④, 일문따) */
   echoes?: string[];
+  /**
+   * 뜻이 있는 문장(일문따 예문 짝). 한 문장을 두 줄로 나눠 읽은 줄이 이 가운데 한 문장의 일부면
+   * 그 문장 카드를 붙인다(⑤, 뜻 없는 반쪽 카드 대신)
+   */
+  sentences?: Sentence[];
+}
+
+/** 나눠 읽은 줄로 볼 최소 길이(비교용 글자 수)와, 문장에서 차지할 최소 비율 */
+const PART_MIN_LENGTH = 5;
+const PART_MIN_SHARE = 0.3;
+
+/**
+ * ⑤ 줄이 뜻 있는 문장 하나의 이어진 일부면 그 문장. 한자 표기나 읽기(가나)로 견준다.
+ * 둘 이상의 문장에 들어가면 어느 것인지 몰라 고르지 않는다.
+ */
+export function sentenceOfPart(
+  text: string,
+  sentences: Sentence[],
+  toKana: (t: string) => string,
+): Sentence | null {
+  const plain = normalizeJa(text);
+  const n = [...plain].length;
+  if (n < PART_MIN_LENGTH) return null;
+  const kana = normalizeJa(toKana(text));
+  const hits = new Map<string, Sentence>();
+  for (const s of sentences) {
+    if (!s.ko) continue;
+    const whole = normalizeJa(s.ja);
+    if (n < [...whole].length * PART_MIN_SHARE) continue;
+    const wholeKana = normalizeJa(toKana(s.ja));
+    if (
+      whole.includes(plain) ||
+      wholeKana.includes(kana) ||
+      (compatible(plain, whole) &&
+        Math.max(
+          windowSimilarity(plain, whole),
+          windowSimilarity(kana, wholeKana),
+        ) >= PART_SIMILARITY)
+    )
+      hits.set(whole, s);
+  }
+  return hits.size === 1 ? [...hits.values()][0] : null;
+}
+
+/** 받아쓰기가 조금 달라도(한자·가나 표기, 한두 글자) 나눠 읽은 줄로 볼 닮은 정도 */
+const PART_SIMILARITY = 0.85;
+
+/** part와 같은 길이로 whole을 잘라 본 조각 가운데 가장 닮은 정도 */
+function windowSimilarity(part: string, whole: string): number {
+  const p = [...part];
+  const w = [...whole];
+  if (p.length > w.length) return similarity(part, whole);
+  let best = 0;
+  for (let i = 0; i + p.length <= w.length; i++) {
+    const score = similarity(part, w.slice(i, i + p.length).join(""));
+    if (score > best) best = score;
+  }
+  return best;
 }
 
 /**
@@ -363,6 +506,19 @@ export function fixedCards(
         words: [],
         inferred: true,
       };
+    const pointing = pointingWordsOf(text);
+    if (pointing)
+      return {
+        sentences: [
+          plainSentence(
+            pointing.join("・"),
+            pointing.map((w) => POINTING_WORDS[w]).join(", "),
+          ),
+        ],
+        whole: true,
+        words: [],
+        inferred: true,
+      };
     const line = normalizeJa(toKana(text));
     if (fillers.length > 0)
       for (const { frame, parts } of clauses) {
@@ -411,6 +567,13 @@ export function fixedCards(
           : null;
       if (made) {
         out[String(i)] = made;
+        return;
+      }
+    }
+    if (source.sentences && makeCard) {
+      const whole = sentenceOfPart(seg.text, source.sentences, toKana);
+      if (whole) {
+        out[String(i)] = { ...makeCard(whole), inferred: true };
         return;
       }
     }

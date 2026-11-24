@@ -50,6 +50,15 @@ export const TRANSCRIPT_NOTE = "자막에서 받아 적은 글 — 교재와 다
 /** 교재와 맞추지 못한 일본어 줄에 붙이는 알림 */
 export const UNSURE_NOTE = "받아쓰기 — 정확하지 않을 수 있음";
 
+/** 받아 적은 문장에 뜻을 찾지 못했을 때 비워 두지 않고 알린다(뜻이 빠진 줄 모르고 넘어가지 않게) */
+export const NO_MEANING_NOTE = "뜻을 찾지 못한 문장";
+
+function NoMeaning() {
+  return (
+    <span className="block text-sm text-ink-faint">({NO_MEANING_NOTE})</span>
+  );
+}
+
 function TranscriptNote() {
   return (
     <span className="mt-1 block text-xs text-ink-faint">{TRANSCRIPT_NOTE}</span>
@@ -107,6 +116,8 @@ export function CueHeadline({
               <span className={cn("block text-ink-soft", KO_SIZE[size])}>
                 {s.ko}
               </span>
+            ) : fromTranscript(cue) ? (
+              <NoMeaning />
             ) : null}
           </span>
         ))}
@@ -224,7 +235,11 @@ export function CueExtras({ cue }: { cue: ContextCue }) {
               <p className="font-ja-serif text-xl leading-relaxed text-accent">
                 <Ruby s={s} />
               </p>
-              {s.ko ? <p className="text-ink-soft">{s.ko}</p> : null}
+              {s.ko ? (
+                <p className="text-ink-soft">{s.ko}</p>
+              ) : fromTranscript(cue) ? (
+                <NoMeaning />
+              ) : null}
             </div>
           ))}
           {fromTranscript(cue) ? <TranscriptNote /> : null}

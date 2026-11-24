@@ -18,6 +18,11 @@ describe("강의 되풀이 사이 한국어 줄이 뜻인가", () => {
     );
   });
 
+  it("조사로 끝난 토막은 뜻으로 보지 않는다(말을 이어 가는 중)", () => {
+    expect(looksLikeMeaning("食べさせる", "스루는")).toBe(false);
+    expect(looksLikeMeaning("食べさせる", "먹게 하다")).toBe(true);
+  });
+
   it("일본어보다 훨씬 긴 한국어 줄은 뜻으로 보지 않는다", () => {
     expect(
       looksLikeMeaning(

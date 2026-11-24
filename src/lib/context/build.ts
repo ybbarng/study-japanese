@@ -35,7 +35,8 @@ const GODAN_ENDINGS = [..."うくぐすつぬぶむる"];
 /**
  * 일문따 강의가 스스로 되풀이한 문장(일본어 → 한국어 → 같은 일본어). 두 번 받아 적은 글이 닮았으니
  * 한 번만 들린 것보다 믿을 만하다. 강사가 사이에 하는 말은 뜻이 아니라 설명일 수 있어,
- * 뜻으로 볼 만할 때만(looksLikeMeaning) 뜻으로 쓰고 아니면 비운다.
+ * 뜻으로 볼 만할 때만(looksLikeMeaning) 짝으로 쓴다. 뜻 없는 짝은 뜻 없는 카드가 되어
+ * 활용형·나눠 읽은 문장처럼 뜻이 있는 카드를 가리므로 쓰지 않는다.
  * 그 과 문법 예문 짝(pairs)과 같은 문장이면 예문 짝이 먼저 쓰인다(뜻이 있다).
  */
 function selfPairs(
@@ -46,7 +47,7 @@ function selfPairs(
   return findRepeatPairs(segments, {
     toKana: (t) => kanaOf(t, glossary),
     koIsMeaning: looksLikeMeaning,
-  });
+  }).filter((p) => p.ko !== "");
 }
 
 /**

@@ -7,6 +7,7 @@ import type { IlmutaLesson, Sentence } from "@/lib/textbook/schema";
 import { type CardSource, type CueWord, findWords } from "./cards";
 import { conjugatedForms } from "./conjugations";
 import { normalizeJa } from "./match";
+import { repairMeaning } from "./meaning";
 import type { TranscriptPair } from "./transcript-pairs";
 
 // 자막 하나에 카드를 붙일 재료(맞출 소책자 문장·읽는 법 사전·낱말)를 고른다. 파일을 읽지 않는 순수 함수다.
@@ -137,8 +138,14 @@ function ilmuntaWords(ilmutaLessons: IlmutaLesson[] | null): CueWord[] {
   ];
 }
 
+/**
+ * 낱말 표의 한 글자 한자와 겹치지만 읽기가 다른 높임 동사의 앞부분(下さる·下さい의 下는 した가 아니다).
+ * 앞에서부터 가장 긴 것을 고르므로 이 앞부분이 한 글자 낱말보다 먼저 걸린다.
+ */
+const HONORIFIC_STEMS: Glossary = { 下さ: "くださ" };
+
 function glossaryOf(words: CueWord[]): Glossary {
-  const glossary: Glossary = {};
+  const glossary: Glossary = { ...HONORIFIC_STEMS };
   for (const w of words)
     if (w.reading && hasKanji(w.ja) && !(w.ja in glossary))
       glossary[w.ja] = w.reading;
@@ -203,6 +210,8 @@ const EXPLAINING =
  */
 export function looksLikeMeaning(ja: string, ko: string): boolean {
   if (EXPLAINING.test(ko)) return false;
+  // 조사로 끝난 토막(「수류는」: する를 한국어로 읽으며 말을 이어 감)은 뜻을 옮긴 문장이 아니다
+  if (/[은는을를][\s.,?!]*$/u.test(ko)) return false;
   const syllables = ko.replace(/[^가-힣]/gu, "").length;
   const jaChars = [...normalizeJa(ja)].length;
   return syllables > 0 && syllables <= jaChars * 2 + 4;
@@ -228,8 +237,18 @@ export function ilmuntaCardSource(
       ? []
       : drillWords().filter((w) => WORD_LESSONS[w.ja]?.ilmunta === lessonNo)),
   ];
+  // 받아 적은 뜻의 오타는 그 문장에 든 낱말(자리가 확인된 것)의 뜻으로 바로잡는다
+  const sentences = pairs.map((p) => ({
+    ja: p.ja,
+    ko: p.ko
+      ? repairMeaning(
+          p.ko,
+          findWords(p.ja, words, Number.POSITIVE_INFINITY, true),
+        )
+      : p.ko,
+  }));
   return {
-    sentences: pairs.map((p) => ({ ja: p.ja, ko: p.ko })),
+    sentences,
     origin: "transcript",
     glossary,
     words,
@@ -242,6 +261,7 @@ export function ilmuntaCardSource(
           ? undefined
           : new Set(skillsOfLesson(lessonNo).map((s) => s.key)),
       echoes: extras?.echoes,
+      sentences,
     },
   };
 }
