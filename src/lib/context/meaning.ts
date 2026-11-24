@@ -294,6 +294,8 @@ export function reconcileMeaning(
       if (!typoLike(c.core, l.core)) continue;
       if ((c.n === 2 || l.n === 2) && typoDistance(c.core, l.core) > 1)
         continue;
+      // 소책자의 「나(의) 꺼」를 강사가 줄여 말한 「내꺼」는 오타가 아니다
+      if (c.n === 2 && ct[c.at].includes("(")) continue;
       if (!restMatches(ct, c, lt, l)) continue;
       const winner = pickVariant(c.core, l.core, ctx, cardTrusted);
       if (winner) decided.push({ c, l, winner });

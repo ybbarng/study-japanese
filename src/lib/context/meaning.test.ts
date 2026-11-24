@@ -176,6 +176,16 @@ describe("같은 뜻을 따로 받아 적은 카드 뜻과 강사 줄 맞추기"
     });
   });
 
+  it("소책자의 「(의)」 자리를 강사가 줄여 말한 것(나(의) 꺼 → 내꺼)은 고치지 않는다", () => {
+    // 낱말장에 「나다」가 있으면 「나꺼가」가 바른 말로 보이므로, 규칙이 없으면 강사 줄을 바꿔 버린다
+    const vocab = buildKoreanVocab(["나다"]);
+    const card = "나(의) 꺼가 아니야.";
+    const line = "내꺼가 아니야.";
+    expect(
+      reconcileMeaning(card, line, { ja: "…", words: [], vocab }, true),
+    ).toEqual({ card, line });
+  });
+
   it("강사 줄 머리의 맞장구와 된소리 하나 차이는 같은 말로 본다", () => {
     const out = reconcileMeaning(
       "선물 거가 아니야.",
