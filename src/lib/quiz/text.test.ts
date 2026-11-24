@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  cleanHead,
   meaningCores,
   meaningsOverlap,
   patternPieces,
@@ -46,6 +47,25 @@ describe("patternPieces", () => {
       "ううん",
       "じゃない",
     ]);
+  });
+});
+
+describe("patternPieces 거르기", () => {
+  it("한국어 덧말이 섞인 조각은 보기로 쓰지 않는다", () => {
+    expect(patternPieces("～の(위치)～")).toEqual(["の"]);
+  });
+  it("조사가 아닌 한 글자 조각과 ます·です는 쓰지 않는다", () => {
+    expect(patternPieces("～を～る。")).toEqual(["を"]);
+    expect(patternPieces("～ます。")).toEqual([]);
+  });
+});
+
+describe("cleanHead", () => {
+  it("읽는 법 괄호를 떼고 앞뒤·겹친 / 를 정리한다", () => {
+    expect(cleanHead("～に来ない[こない]。 / / ～をしない。")).toBe(
+      "～に来ない。 / ～をしない。",
+    );
+    expect(cleanHead("/ ~하지 않을래")).toBe("~하지 않을래");
   });
 });
 

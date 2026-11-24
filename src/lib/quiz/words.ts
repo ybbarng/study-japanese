@@ -92,7 +92,8 @@ export function wordQuestions(
           })),
           rng,
         ),
-        explain: `들린 말: ${show(t.word)} = '${t.word.ko}'`,
+        // 정답 낱말·읽는 법·뜻은 아래 다시 보이므로 따로 적지 않는다
+        explain: "",
       };
       return enoughOptions(q) ? q : null;
     },
@@ -115,7 +116,8 @@ export function wordQuestions(
         type: "choice",
         prompt: {
           kind: "word",
-          word: { ja: t.word.ja },
+          // 뜻을 묻는 문제라 읽는 법은 보인다(한자를 못 읽어 뜻을 못 맞히지 않게)
+          word: { ja: t.word.ja, reading: t.word.reading },
           ask: "뜻은?",
         },
         ...arrange(
@@ -123,7 +125,7 @@ export function wordQuestions(
           wrong.map((w) => ({ label: w.ko, note: `'${w.ko}' = ${show(w)}` })),
           rng,
         ),
-        explain: `${show(t.word)} = '${t.word.ko}'`,
+        explain: "",
       };
       return enoughOptions(q) ? q : null;
     },
@@ -172,7 +174,7 @@ export function wordQuestions(
           ],
           rng,
         ),
-        explain: `「${t.word.ja}」 읽는 법: ${r}`,
+        explain: "",
       };
       return enoughOptions(q) ? q : null;
     },

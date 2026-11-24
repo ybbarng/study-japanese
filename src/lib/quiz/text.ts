@@ -45,8 +45,38 @@ export function patternPieces(head: string): string[] {
     .replace(/\[[^\]]*\]/g, "")
     .split(PUNCT)
     .map((s) => s.trim())
-    .filter((s) => s.length > 0);
+    // 일본어 글자가 든 조각만(머리에 한국어 덧말이 섞인 것이 있다)
+    .filter((s) => JAPANESE.test(s) && !HANGUL.test(s))
+    // 한 글자 조각은 조사일 때만(활용 어미 る·ます 조각은 낱말 조각이라 빈칸 보기로 말이 안 된다)
+    .filter((s) => Array.from(s).length > 1 || SINGLE_PARTICLES.has(s))
+    .filter((s) => s !== "ます" && s !== "です");
   return [...new Set(pieces)];
+}
+
+const SINGLE_PARTICLES = new Set([
+  "は",
+  "が",
+  "を",
+  "に",
+  "で",
+  "も",
+  "と",
+  "へ",
+  "の",
+  "か",
+  "や",
+]);
+
+const JAPANESE = /[぀-ヿ一-鿿]/;
+const HANGUL = /[가-힣]/;
+
+/** 화면에 보일 문형 머리·뜻: 읽는 법 괄호를 떼고, 앞뒤와 겹친 / 를 정리한다 */
+export function cleanHead(head: string): string {
+  return head
+    .replace(/\[[^\]]*\]/g, "")
+    .replace(/(\s*\/\s*)+/g, " / ")
+    .replace(/^\s*\/\s*|\s*\/\s*$/g, "")
+    .trim();
 }
 
 /** 글 안에 조각이 몇 번 나오는지 */

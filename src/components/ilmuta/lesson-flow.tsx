@@ -10,6 +10,8 @@ import {
   useState,
 } from "react";
 import { OfflineButton } from "@/components/offline/offline-button";
+import { SectionQuiz } from "@/components/quiz/section-quiz";
+import { QuizSync } from "@/components/quiz/use-quiz-ready";
 import { StickyPanel } from "@/components/shell/page-frame";
 import { WordTapProvider } from "@/components/word-tap/word-tap-provider";
 import { followStep } from "@/lib/ilmuta/follow-step";
@@ -18,6 +20,7 @@ import { currentSection } from "@/lib/ilmuta/sections";
 import type { LessonData } from "@/lib/ilmuta/server-data";
 import { STEP_LABEL, type StepId } from "@/lib/ilmuta/steps";
 import { ilmutaPack } from "@/lib/offline/pack";
+import { isQuizStep } from "@/lib/quiz/build";
 import { LessonAside, LessonPlayerTop } from "./lesson-aside";
 import type { StepProps } from "./lesson-types";
 import { StepConversation } from "./step-conversation";
@@ -233,6 +236,8 @@ export function LessonFlow({
                   </h2>
                 )}
                 <View data={data} listens={listens} />
+                {/* 구역 끝 확인 문제: 읽고 들은 것을 그 자리에서 꺼내 본다 */}
+                {isQuizStep(s) ? <SectionQuiz data={data} step={s} /> : null}
               </section>
             );
           })}
@@ -266,6 +271,7 @@ export function LessonFlow({
         </aside>
       </main>
       {footer}
+      <QuizSync />
     </WordTapProvider>
   );
 }

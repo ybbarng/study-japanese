@@ -69,6 +69,10 @@ export interface OrderQuestion extends QuestionBase {
   answer: string[];
   /** 문장 끝 문장부호(조각으로 내지 않고 끝에 붙여 보인다) */
   tail: string;
+  /** 정답으로 받아 줄 꼴: 술어 앞 마디는 차례를 바꿔도 맞다(order.ts orderShape) */
+  shape: { phrases: string[][]; fixed: string[] };
+  /** 조각 글 → 후리가나를 달 낱말 조각(낱말 분석의 읽는 법) */
+  tileTokens: Record<string, { surface: string; reading?: string }[]>;
 }
 
 export type Question = ChoiceQuestion | OrderQuestion;

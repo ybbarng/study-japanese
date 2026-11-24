@@ -87,6 +87,8 @@ export function conversationQuestions(
         [t.others.filter(near), before.filter(near), t.others],
         (c, chosen) =>
           distinct(t)(c) &&
+          // 문제 위에 보이는 앞 사람 말은 보기로 두지 않는다
+          c.ja !== t.prev?.ja &&
           !chosen.some((x) => x.ja === c.ja || sameSentenceKo(x.ko, c.ko)),
         MAX_OPTIONS - 1,
         rng,
@@ -113,7 +115,8 @@ export function conversationQuestions(
           })),
           rng,
         ),
-        explain: `${t.line.ja} = '${t.line.ko}'`,
+        // 정답 문장과 뜻은 아래 다시 보이므로 따로 적지 않는다
+        explain: "",
       };
       return enoughOptions(q) ? q : null;
     },
@@ -145,7 +148,7 @@ export function conversationQuestions(
           wrong.map((w) => ({ label: w.ko, note: `'${w.ko}' = ${w.ja}` })),
           rng,
         ),
-        explain: `들린 말: ${t.line.ja}`,
+        explain: "",
       };
       return enoughOptions(q) ? q : null;
     },

@@ -1,5 +1,6 @@
 import { connection } from "next/server";
 import { loadContextTranscript, visibleBooks } from "@/lib/context/server";
+import { buildQuizPool, emptyQuizPool, type QuizPool } from "@/lib/quiz/pool";
 import { getDb } from "@/lib/store/db";
 import { summarizeListening } from "@/lib/store/listen";
 import {
@@ -90,6 +91,8 @@ export interface LessonData {
   writing: WritingDoc | null;
   /** 예문 낱말 누르기 자료(content/textbook-analysis, docs/textbook-analysis.md) */
   wordTap: WordTapData;
+  /** 구역 끝 확인 문제의 틀린 보기 재료(지금 강까지 배운 낱말·문형·회화 줄) */
+  quizPool: QuizPool;
 }
 
 export type LessonLoad =
@@ -126,6 +129,7 @@ export async function loadLessonData(no: number): Promise<LessonLoad> {
       wordTap: visible
         ? loadIlmutaWordTap(book.lessons, lesson)
         : emptyWordTap(no),
+      quizPool: visible ? buildQuizPool(book.lessons, no) : emptyQuizPool(),
     },
   };
 }

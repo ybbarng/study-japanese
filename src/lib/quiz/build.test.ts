@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { seededRng } from "@/lib/ilmunta/random";
 import { fakeLesson } from "./__fixtures__/lesson";
 import { sectionQuestions } from "./build";
+import { orderAccepted } from "./order";
 import { blankPiece } from "./patterns";
 import { buildQuizPool, emptyQuizPool } from "./pool";
 import { meaningsOverlap } from "./text";
@@ -129,7 +130,8 @@ describe("문형 구역", () => {
         if (q.type === "order") {
           found = true;
           expect(q.answer.join("") + q.tail).toBe("学校の前に川。");
-          expect(q.tiles).not.toEqual(q.answer);
+          expect(orderAccepted(q.tiles, q.shape)).toBe(false);
+          expect(orderAccepted(q.answer, q.shape)).toBe(true);
           expect(q.tiles.toSorted()).toEqual(q.answer.toSorted());
         }
     expect(found).toBe(true);
