@@ -26,7 +26,6 @@ export const WORDS: WordPictureMap = {
   冷蔵庫: "n29-refrigerator",
   お茶碗: "n29-rice-bowl",
   // 30과
-  あっち: "n29-over-there",
   船: "n29-ship",
   ボーリング: "n29-bowling",
   // 31과

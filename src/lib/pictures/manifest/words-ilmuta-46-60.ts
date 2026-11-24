@@ -46,7 +46,6 @@ export const WORDS: WordPictureMap = {
   箱: "m46-box",
   本棚: "m46-bookshelf",
   鏡: "m46-mirror",
-  トイレ: "m46-toilet",
   兄弟: "m46-brothers",
   寂しい: "m46-lonely",
   動物: "m46-animals",

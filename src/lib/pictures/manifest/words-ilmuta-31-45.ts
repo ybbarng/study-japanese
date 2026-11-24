@@ -74,7 +74,6 @@ export const WORDS: WordPictureMap = {
   // 39강
   さす: "hold-umbrella",
   無くす: "lose-item",
-  大きな: "big",
   火: "fire",
   鍵: "key",
   マンガ: "manga",

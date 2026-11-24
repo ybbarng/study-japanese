@@ -14,7 +14,6 @@ export const WORDS: WordPictureMap = {
   厚い: "m16-thick",
   お茶: "m16-green-tea",
   ジュース: "m16-juice",
-  ノートパソコン: "m16-laptop",
   夏: "m16-summer",
   冬: "m16-winter",
   // 17강
@@ -81,8 +80,6 @@ export const WORDS: WordPictureMap = {
   連絡: "m16-contact",
   今月: "m16-this-month",
   来月: "m16-next-month",
-  母: "m16-mother",
-  父: "m16-father",
   弟: "m16-younger-brother",
   妹: "m16-younger-sister",
   キムチ: "m16-kimchi",
@@ -136,7 +133,6 @@ export const WORDS: WordPictureMap = {
   週末: "m16-weekend",
   海: "m16-sea",
   両親: "m16-parents",
-  鞄: "m16-handbag",
   晩ご飯: "m16-dinner",
   // 28강
   起きる: "m16-get-up",
