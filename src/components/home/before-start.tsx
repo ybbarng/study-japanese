@@ -12,6 +12,10 @@ interface Props {
 
 const FIRST_KANA = LESSONS[0];
 
+/** 미리 보기 카드: 누르면 그 강·레슨으로 간다(둘러보기는 막지 않는다) */
+const PREVIEW_CARD =
+  "block rounded-2xl bg-bg-raised p-4 hover:bg-bg-sunken active:bg-bg-sunken";
+
 /** 2027년 1월 1일 전: 무엇을 하게 될지 미리 보고, 준비만 해 둔다(미리 시작은 권하지 않는다) */
 export function BeforeStart({ daysLeft, lesson0Sec }: Props) {
   return (
@@ -44,23 +48,23 @@ function Countdown({ daysLeft, lesson0Sec }: Props) {
       <section aria-label="첫날 할 것">
         <h2 className="pb-2 text-sm text-ink-faint">첫날 할 것 미리 보기</h2>
         <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-2xl bg-bg-raised p-4">
-            <span className="text-xs text-accent">일무따 0강</span>
+          <Link href="/ilmuta/0" className={PREVIEW_CARD}>
+            <span className="block text-xs text-accent">일무따 0강</span>
             <span className="mt-1 block font-medium">오리엔테이션</span>
             <span className="mt-1 block text-xs text-ink-soft">
               걸으며 듣기
               {lesson0Sec ? ` · ${Math.round(lesson0Sec / 60)}분` : ""}
             </span>
-          </div>
-          <div className="rounded-2xl bg-bg-raised p-4">
-            <span className="text-xs text-accent">가나 첫 레슨</span>
+          </Link>
+          <Link href={`/kana/lesson/${FIRST_KANA.id}`} className={PREVIEW_CARD}>
+            <span className="block text-xs text-accent">가나 첫 레슨</span>
             <span lang="ja" className="mt-1 block font-ja-serif font-medium">
               {FIRST_KANA.glyphs}
             </span>
             <span className="mt-1 block text-xs text-ink-soft">
               며칠 안에 익히고 바로 읽기
             </span>
-          </div>
+          </Link>
         </div>
       </section>
     </>
