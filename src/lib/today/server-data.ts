@@ -1,6 +1,8 @@
 import { connection } from "next/server";
+import { visibleBooks } from "@/lib/context/server";
 import { loadIlmuntaMap } from "@/lib/ilmunta/server-data";
 import { pendingWriting, pickContinue } from "@/lib/ilmuta/continue";
+import { redactIlmutaLesson } from "@/lib/ilmuta/redact";
 import { loadMapData } from "@/lib/ilmuta/server-data";
 import { emptyKanaData, type KanaData, parseKanaData } from "@/lib/kana/state";
 import { KANA_SYNC_KEY } from "@/lib/kana/sync";
@@ -51,6 +53,7 @@ async function loadIlmutaPart(nowMs: number): Promise<HomeData["ilmuta"]> {
   const map = await loadMapData();
   const book = loadIlmuta();
   if (!map || !book) return null;
+  const visible = (await visibleBooks())("ilmuta");
   const progress = map.rows.map((r) => r.progress);
   const pick = pickContinue(progress, nowMs);
   const nextListen = progress.find((p) => !p.lectureDone)?.no ?? null;
@@ -69,7 +72,10 @@ async function loadIlmutaPart(nowMs: number): Promise<HomeData["ilmuta"]> {
       title: r.title,
       ...(r.titleKo ? { titleKo: r.titleKo } : {}),
     })),
-    playable: book.lessons.filter((l) => playNos.has(l.no)),
+    // 교재 출처를 닫았으면(설정) 방문자에게는 소책자 글을 뺀 강을 넘긴다(오디오는 /media가 막는다)
+    playable: book.lessons
+      .filter((l) => playNos.has(l.no))
+      .map((l) => (visible ? l : redactIlmutaLesson(l))),
   };
 }
 
