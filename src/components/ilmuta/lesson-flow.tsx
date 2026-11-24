@@ -1,10 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { type ComponentType, type ReactNode, useEffect, useState } from "react";
+import {
+  type ComponentType,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { OfflineButton } from "@/components/offline/offline-button";
 import { StickyPanel } from "@/components/shell/page-frame";
 import { cn } from "@/lib/cn";
+import { followStep } from "@/lib/ilmuta/follow-step";
 import { lessonLabel, registerLabel } from "@/lib/ilmuta/labels";
 import type { LessonData } from "@/lib/ilmuta/server-data";
 import { STEP_LABEL, type StepId } from "@/lib/ilmuta/steps";
@@ -19,7 +26,11 @@ import { StepPatterns } from "./step-patterns";
 import { StepShadowing } from "./step-shadowing";
 import { StepWords } from "./step-words";
 import { StepWriting } from "./step-writing";
-import { useListenIndex, usePlayerBarVisible } from "./use-player-bridge";
+import {
+  useListenIndex,
+  useNowPlaying,
+  usePlayerBarVisible,
+} from "./use-player-bridge";
 
 const STEP_VIEW: Record<StepId, ComponentType<StepProps>> = {
   lecture: StepLecture,
@@ -77,6 +88,25 @@ export function LessonFlow({ data, steps, initialStep, footer }: Props) {
     window.history.replaceState(null, "", `?step=${s}`);
     window.scrollTo({ top: 0 });
   };
+
+  // 강의가 끝나 대기열이 이 강 예문으로 넘어가면, 소리를 따라 보고 있던 화면도 그 예문 단계로 옮긴다
+  const playingItem = useNowPlaying().item;
+  const lastItem = useRef(playingItem);
+  const stepRef = useRef(step);
+  stepRef.current = step;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: 재생 항목이 바뀔 때만 본다
+  useEffect(() => {
+    const prevItem = lastItem.current;
+    lastItem.current = playingItem;
+    const target = followStep(
+      lesson,
+      steps,
+      stepRef.current,
+      prevItem,
+      playingItem,
+    );
+    if (target) go(target);
+  }, [playingItem]);
 
   return (
     <>

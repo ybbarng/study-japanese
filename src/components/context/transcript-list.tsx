@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 import {
   type ContextCue,
-  cueIndexAt,
   type Transcript,
   transcriptCues,
 } from "@/lib/context/cues";
 import { usePlaybackClock, usePositionOf } from "@/lib/player/clock";
+import { stageView } from "@/lib/player/follow";
 import { usePlayer } from "@/lib/player/store";
 import { CueExtras, CueHeadline } from "./cue-card";
 import { LoopButton } from "./loop-button";
@@ -20,6 +20,13 @@ interface Props {
   item: string;
   /** 이 강의가 재생기에 올라 있지 않을 때 줄을 누르면 먼저 틀 대기열 */
   onStart?: () => void;
+  /**
+   * 일본어 줄에 읽는 법·뜻·낱말을 펼쳐 보일지. 화면의 다른 칸이 지금 하는 말을 크게 보이고 있으면
+   * 끄고(목록은 지금 줄만 강조), 이 목록이 유일한 자막 칸이면 켠다.
+   */
+  expand?: boolean;
+  /** 머리 줄 왼쪽 글(무엇의 자막인지) */
+  title?: ReactNode;
   className?: string;
 }
 
@@ -29,12 +36,16 @@ const HOLD_MS = 4000;
 /**
  * PC 곁칸의 강의 자막 전체. 지금 줄을 강조하고 목록이 그 줄을 따라 굴러간다.
  * 줄을 누르면 그 말부터 다시 듣는다(책에는 없는 것: 못 알아들은 곳으로 바로 돌아가기).
+ * 펼치는 줄은 지금 줄이 아니라 방금 나온 일본어 줄이다. 그 줄은 다음 일본어 줄이 나올 때까지
+ * 펼쳐 둔 채로 두어, 한국어 줄이 1~2초마다 바뀌어도 목록이 접혔다 펴지지 않는다.
  */
 export function TranscriptList({
   transcript,
   book,
   item,
   onStart,
+  expand = true,
+  title = "자막 · 줄을 누르면 그 말부터",
   className,
 }: Props) {
   const cues = useMemo(() => transcriptCues(transcript), [transcript]);
@@ -42,7 +53,9 @@ export function TranscriptList({
   const seekTo = usePlayer((s) => s.seekTo);
   const actions = useCueActions(book, item, cues);
   const loopPause = usePlaybackClock((s) => s.loopPause);
-  const at = pos === null ? -1 : cueIndexAt(cues, pos);
+  const view = pos === null ? null : stageView(cues, pos);
+  const at = view?.at ?? -1;
+  const open = expand && view ? (view.held >= 0 ? view.held : at) : -1;
   const listRef = useRef<HTMLOListElement>(null);
   const heldUntil = useRef(0);
   const [held, setHeld] = useState(false);
@@ -93,9 +106,11 @@ export function TranscriptList({
         className,
       )}
     >
-      <header className="flex items-center justify-between px-4 pt-3 pb-2 text-xs text-ink-faint">
-        <span>자막 · 줄을 누르면 그 말부터</span>
-        {held && at >= 0 ? <span>목록을 보는 중</span> : null}
+      <header className="flex items-center justify-between gap-2 px-4 pt-3 pb-2 text-xs text-ink-faint">
+        <span className="min-w-0 truncate">{title}</span>
+        {held && at >= 0 ? (
+          <span className="shrink-0">목록을 보는 중</span>
+        ) : null}
       </header>
       <ol
         ref={listRef}
@@ -105,12 +120,17 @@ export function TranscriptList({
       >
         {cues.map((cue, i) => {
           const current = i === at;
+          const opened = i === open;
           return (
             <li
               // biome-ignore lint/suspicious/noArrayIndexKey: 같은 시각에 시작하는 줄이 있을 수 있어 차례를 함께 쓴다
               key={`${cue.start}-${i}`}
               data-cue={i}
-              className={cn("rounded-xl", current && "bg-accent-soft")}
+              className={cn(
+                "rounded-xl",
+                current && "bg-accent-soft",
+                opened && !current && "bg-bg-raised",
+              )}
             >
               <button
                 type="button"
@@ -119,16 +139,16 @@ export function TranscriptList({
                 className={cn(
                   "block w-full rounded-xl px-3 py-2 text-left transition-colors",
                   !current && "hover:bg-bg-raised",
-                  current
+                  current || opened
                     ? "text-ink"
                     : i < at
                       ? "text-ink-faint"
                       : "text-ink-soft",
                 )}
               >
-                <CueHeadline cue={cue} size="list" detail={current} />
+                <CueHeadline cue={cue} size="list" detail={opened} />
               </button>
-              {current ? (
+              {opened ? (
                 <div className="px-3 pb-3">
                   <CueExtras cue={cue} />
                   <div className="mt-3 flex items-center gap-3">

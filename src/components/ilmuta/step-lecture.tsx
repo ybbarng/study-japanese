@@ -6,17 +6,48 @@ import { lectureItem, lessonQueue } from "@/lib/ilmuta/tracks";
 import type { StepProps } from "./lesson-types";
 import { OrientationGuide } from "./orientation-guide";
 import { PlayCard } from "./play-card";
+import { useLessonNow } from "./use-lesson-now";
 import { useNowPlaying, usePlay } from "./use-player-bridge";
 
-/** 강의 듣기: 강의 다음에 그 강 예문이 이어지는 대기열. 지금 말의 자막과 이 강의 문형을 함께 */
+/**
+ * 강의 듣기: 강의 다음에 그 강 예문이 이어지는 대기열. 지금 하는 말의 자막과 이 강의 문형을 함께.
+ * 강의가 끝나 예문으로 넘어가면 자막 칸도 그 예문을 따라간다.
+ * PC에서는 가운데 칸 위쪽에 지금 하는 말을 크게 고정하고(강의 재생·자막 전체는 오른쪽 곁칸),
+ * 그 아래에 이 강의 문형을 둔다.
+ */
 export function StepLecture({ data, listens }: StepProps) {
-  const { lesson, transcript } = data;
+  const { lesson } = data;
   const play = usePlay();
   const now = useNowPlaying();
   const item = lectureItem(lesson.no);
   const active = now.item === item;
+  const shown = useLessonNow(data);
   const patterns = examplesOf(lesson, "patterns").flatMap(
     (e) => e.patterns ?? [],
+  );
+
+  const heading = shown.exampleLabel ? (
+    <p className="mb-3 flex items-center gap-2 text-sm">
+      <span className="rounded-full bg-accent px-2 py-0.5 text-xs text-white">
+        지금
+      </span>
+      <span className="text-ink-soft">
+        강의 다음 예문 · {shown.exampleLabel}
+      </span>
+    </p>
+  ) : null;
+  const idle = shown.exampleLabel
+    ? `지금 나오는 것: ${shown.exampleLabel}. 이 예문은 자막이 아직 없습니다.`
+    : undefined;
+  const context = (size: "card" | "stage") => (
+    <LectureContext
+      transcript={shown.transcript}
+      book="ilmuta"
+      item={shown.item}
+      size={size}
+      heading={heading}
+      idle={idle}
+    />
   );
 
   return (
@@ -36,8 +67,12 @@ export function StepLecture({ data, listens }: StepProps) {
           playing={active && now.playing}
           onPress={() => play(lessonQueue(lesson), 0)}
         />
+        {context("card")}
+      </div>
 
-        <LectureContext transcript={transcript} book="ilmuta" item={item} />
+      {/* PC: 가운데 넓은 칸에 지금 하는 말을 크게. 문형을 내려 보는 동안에도 위에 붙어 있다 */}
+      <div className="sticky top-4 z-10 hidden rounded-2xl bg-bg shadow-[0_12px_24px_-12px_var(--bg)] lg:block">
+        {context("stage")}
       </div>
 
       {lesson.no === 0 ? <OrientationGuide /> : null}

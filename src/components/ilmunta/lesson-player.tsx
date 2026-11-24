@@ -50,6 +50,12 @@ export function LessonPlayer({
   ];
   const withTranscript = tracks.filter((t) => transcripts[t.item]);
   const [chosen, setChosen] = useState<string | null>(null);
+  // 재생이 다음 트랙으로 넘어가면(강의 1/5 → 2/5 등) 자막도 지금 소리 나는 트랙을 따라간다
+  const [lastPlaying, setLastPlaying] = useState(playing);
+  if (playing !== lastPlaying) {
+    setLastPlaying(playing);
+    if (playing && transcripts[playing]) setChosen(null);
+  }
   // 고른 강의가 없으면 지금 재생 중인 강의, 그것도 아니면 자막 있는 첫 강의
   const shown =
     chosen ??
@@ -101,6 +107,17 @@ export function LessonPlayer({
   return (
     <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_26rem] lg:gap-10">
       <div className="flex min-w-0 flex-col gap-6">
+        {/* PC: 종이책을 펴 놓고 보는 넓은 칸 위쪽에 지금 하는 말을 크게 붙여 둔다 */}
+        {shown && playing === shown ? (
+          <div className="sticky top-4 z-10 hidden rounded-2xl bg-bg shadow-[0_12px_24px_-12px_var(--bg)] lg:block">
+            <LectureContext
+              transcript={shownTranscript}
+              book="ilmunta"
+              item={shown}
+              size="stage"
+            />
+          </div>
+        ) : null}
         {before}
         <section className="flex flex-col gap-4" aria-label="강의와 예문">
           <button
@@ -208,6 +225,8 @@ export function LessonPlayer({
               book="ilmunta"
               item={shown}
               onStart={startShown}
+              // 재생 중이면 왼쪽 큰 칸이 지금 하는 말을 펼쳐 보이니 목록은 지금 줄만 강조한다
+              expand={playing !== shown}
               className="min-h-0 flex-1"
             />
           ) : (

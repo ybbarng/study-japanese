@@ -6,6 +6,7 @@ import type { LessonData } from "@/lib/ilmuta/server-data";
 import type { StepId } from "@/lib/ilmuta/steps";
 import { lectureItem, lessonQueue } from "@/lib/ilmuta/tracks";
 import { PlayCard } from "./play-card";
+import { useLessonNow } from "./use-lesson-now";
 import { useNowPlaying, usePlay } from "./use-player-bridge";
 import { WritingReference } from "./writing-reference";
 
@@ -24,22 +25,30 @@ export function LessonAside({
 }) {
   if (step === "writing")
     return <WritingReference data={data} layout="panel" />;
-  return <LecturePanel data={data} listens={listens} />;
+  // 강의 단계에서는 가운데 칸이 지금 하는 말을 크게 보이므로 목록은 지금 줄만 강조한다
+  return (
+    <LecturePanel data={data} listens={listens} expand={step !== "lecture"} />
+  );
 }
 
 function LecturePanel({
   data,
   listens,
+  expand,
 }: {
   data: LessonData;
   listens: ListenIndex;
+  expand: boolean;
 }) {
-  const { lesson, transcript } = data;
+  const { lesson } = data;
   const play = usePlay();
   const now = useNowPlaying();
   const item = lectureItem(lesson.no);
   const active = now.item === item;
   const start = () => play(lessonQueue(lesson), 0);
+  // 강의가 끝나 예문이 이어지면 자막 목록도 그 예문의 자막으로
+  const shown = useLessonNow(data);
+  const transcript = shown.transcript;
 
   return (
     <>
@@ -58,9 +67,16 @@ function LecturePanel({
       />
       {transcript ? (
         <TranscriptList
+          key={shown.item}
           transcript={transcript}
           book="ilmuta"
-          item={item}
+          item={shown.item}
+          expand={expand}
+          title={
+            shown.item === item
+              ? undefined
+              : `지금 예문 자막 · ${shown.exampleLabel ?? ""}`
+          }
           // 이 강의가 소리 나고 있지 않으면 틀고(이미 올라 있으면 이어서), 소리가 나면 자막이 그 줄로 옮긴다
           onStart={() => play(lessonQueue(lesson), 0, false)}
           className="min-h-0 flex-1"
