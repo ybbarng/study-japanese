@@ -11,6 +11,7 @@ import {
   transcriptCues,
 } from "@/lib/context/cues";
 import { usePlaybackClock, usePositionOf } from "@/lib/player/clock";
+import { resolveLoopCue } from "@/lib/player/cue-loop";
 import { stageLoops, stageView } from "@/lib/player/follow";
 import {
   CueExtras,
@@ -19,7 +20,7 @@ import {
   tapSentencesOf,
 } from "./cue-card";
 import { LoopButton } from "./loop-button";
-import { useCueActions } from "./use-cue-actions";
+import { recentSeek, useCueActions } from "./use-cue-actions";
 
 interface Props {
   transcript: Transcript | null;
@@ -135,7 +136,11 @@ export function LectureContext({
   // 반복 단추는 지금 들리는 줄을 잡는다(L 키와 같은 규칙). 그래서 지금 줄 바로 아래에 둔다:
   // 지금 줄이 일본어면 큰 글 아래, 한국어 설명 중이면 그 설명 줄 아래.
   // 붙든 일본어 줄과 지금 설명이 함께 보이면 단추를 둘로 나누고 무엇을 반복하는지 적는다(stageLoops)
-  const loops = stageLoops(view);
+  // 지금 말 반복이 잡을 줄이 붙든 일본어 줄 그 자체면 단추를 하나로(같은 구간을 되풀이하는 두 단추는 헷갈린다)
+  const loops = stageLoops(
+    view,
+    resolveLoopCue(cues, pos, { seek: recentSeek() }),
+  );
   const heldLoop =
     held && loops.held ? (
       <LoopButton

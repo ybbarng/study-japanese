@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ContextCue } from "@/lib/context/cues";
+import { resolveLoopCue } from "./cue-loop";
 import {
   followIndexAt,
   needsScroll,
@@ -124,6 +125,10 @@ describe("지금 하는 말 칸", () => {
   });
 });
 
+/** 화면처럼: 지금 말 반복이 잡을 줄을 L 키 규칙으로 고른 뒤 단추를 정한다 */
+const loopsAt = (cues: ContextCue[], pos: number) =>
+  stageLoops(stageView(cues, pos), resolveLoopCue(cues, pos));
+
 describe("지금 칸의 반복 단추", () => {
   it("일본어 줄을 듣는 중이면 그 줄을 잡는 단추 하나다", () => {
     expect(stageLoops(stageView(EXAMPLE_CUES, 3.5))).toEqual({
@@ -133,9 +138,29 @@ describe("지금 칸의 반복 단추", () => {
   });
 
   it("붙든 일본어와 지금 한국어 설명이 함께 보이면 둘을 나눠 무엇을 반복하는지 적는다", () => {
-    expect(stageLoops(stageView(EXAMPLE_CUES, 5))).toEqual({
+    expect(loopsAt(EXAMPLE_CUES, 5.4)).toEqual({
       held: true,
       hereLabel: "지금 말 반복",
+    });
+  });
+
+  it("한국어 설명이 막 시작해 지금 말 반복도 그 일본어 줄을 잡을 때는 단추 하나다", () => {
+    // 4.5초에 시작한 설명을 0.8초 안에 누르면 화면에 보이던 앞 일본어 줄을 잡는다
+    expect(loopsAt(EXAMPLE_CUES, 4.7)).toEqual({
+      held: false,
+      hereLabel: "이 문장 반복",
+    });
+  });
+
+  it("일본어 줄 뒤 말 없는 틈에서는 지금 말 반복이 그 줄을 잡으므로 단추 하나다", () => {
+    const lecture = [
+      cue(0, 2, "설명", "ko"),
+      cue(3, 4, "やまはやまだ", "ja", "やまはやまだ。"),
+      cue(30, 32, "다음 설명", "ko"),
+    ];
+    expect(loopsAt(lecture, 10)).toEqual({
+      held: false,
+      hereLabel: "이 문장 반복",
     });
   });
 
@@ -146,8 +171,8 @@ describe("지금 칸의 반복 단추", () => {
       cue(401.5, 404, "설명 하나", "ko"),
       cue(406, 409, "설명 둘", "ko"),
     ];
-    expect(stageLoops(stageView(lecture, 402)).held).toBe(true);
-    expect(stageLoops(stageView(lecture, 407))).toEqual({
+    expect(loopsAt(lecture, 403).held).toBe(true);
+    expect(loopsAt(lecture, 407)).toEqual({
       held: false,
       hereLabel: "이 문장 반복",
     });

@@ -114,14 +114,19 @@ export function stageView(cues: ContextCue[], pos: number): StageView {
  * 반복하는지 헷갈리므로 둘로 나눈다: 붙든 일본어 줄 반복(그 줄 아래), 지금 말 반복(L 키와 같은 규칙).
  * 붙든 줄은 heldStillFresh 안에서만 보이므로(맞춘 줄 25초·흐린 줄 4초) 일본어 반복이 몇 분 전으로
  * 끌려가지 않는다. 하나만 보일 때는 그 줄을 잡는 "이 문장 반복" 하나다.
+ * 지금 말 반복이 잡을 줄(hereTarget, resolveLoopCue 결과)이 바로 그 붙든 줄이면 두 단추가 같은 구간을
+ * 되풀이하므로 하나만 둔다(지금 말이 비었거나, 일본어 줄이 막 끝나 아직 그 줄을 잡을 때).
  */
-export function stageLoops(v: StageView): {
+export function stageLoops(
+  v: StageView,
+  hereTarget?: number,
+): {
   /** 붙든 일본어 줄 반복 단추를 따로 둘지 */
   held: boolean;
   /** 지금 줄(L 키) 단추의 글 */
   hereLabel: string;
 } {
-  const split = v.held >= 0 && v.held !== v.at;
+  const split = v.held >= 0 && v.held !== v.at && hereTarget !== v.held;
   if (!split) return { held: false, hereLabel: "이 문장 반복" };
   return { held: true, hereLabel: v.at >= 0 ? "지금 말 반복" : "방금 말 반복" };
 }
