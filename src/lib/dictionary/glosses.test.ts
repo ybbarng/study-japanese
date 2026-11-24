@@ -34,6 +34,29 @@ describe("mergeGlosses", () => {
     ]);
   });
 
+  it("뒤 뜻이 앞 뜻 끝 괄호 속 말과 같으면 뺀다", () => {
+    expect(mergeGlosses(["달리다(뛰다)", "뛰다"], 3)).toEqual(["달리다(뛰다)"]);
+  });
+
+  it("괄호 속 말과 「~하다」만 다른 뜻도 같은 뜻으로 본다", () => {
+    expect(mergeGlosses(["잠자다(수면)", "수면하다"], 3)).toEqual([
+      "잠자다(수면)",
+    ]);
+  });
+
+  it("뒤 뜻 끝 괄호 속 말이 앞에 나온 뜻이면 그 괄호를 뗀다", () => {
+    expect(mergeGlosses(["배, 선박(배)"], 3)).toEqual(["배, 선박"]);
+    expect(mergeGlosses(["배", "선박(배)"], 3)).toEqual(["배", "선박"]);
+  });
+
+  it("앞에 붙은 괄호와 쉼표가 든 괄호는 다른 말로 보지 않는다", () => {
+    expect(mergeGlosses(["(바로)옆", "바로"], 3)).toEqual(["(바로)옆", "바로"]);
+    expect(mergeGlosses(["나(남자, 거친 말)", "남자"], 3)).toEqual([
+      "나(남자, 거친 말)",
+      "남자",
+    ]);
+  });
+
   it("괄호뿐인 뜻은 괄호 안 글로 견준다", () => {
     expect(mergeGlosses(["(부드럽게 하는 말)", "(높이는 말)"], 4)).toEqual([
       "(부드럽게 하는 말)",
