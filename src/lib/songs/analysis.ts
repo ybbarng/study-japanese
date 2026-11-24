@@ -56,6 +56,23 @@ export const grammarNoteSchema = z.strictObject({
 });
 export type GrammarNote = z.infer<typeof grammarNoteSchema>;
 
+/** 조각은 앞에서부터 차례로, 서로 겹치지 않게(교재 예문 분석도 같은 규칙을 쓴다) */
+export function refineTokenOrder(
+  line: { tokens: readonly AnalysisToken[] },
+  ctx: z.RefinementCtx,
+) {
+  let end = 0;
+  line.tokens.forEach((t, i) => {
+    if (t.start < end)
+      ctx.addIssue({
+        code: "custom",
+        message: "조각이 앞 조각과 겹치거나 차례가 뒤바뀜",
+        path: ["tokens", i, "start"],
+      });
+    end = Math.max(end, t.start + t.length);
+  });
+}
+
 export const lineAnalysisSchema = z
   .strictObject({
     /** 가사 줄 차례(0부터) */
@@ -69,19 +86,7 @@ export const lineAnalysisSchema = z
     tokens: z.array(analysisTokenSchema).max(MAX_TOKENS_PER_LINE).default([]),
     grammar: z.array(grammarNoteSchema).max(10).optional(),
   })
-  .superRefine((line, ctx) => {
-    // 조각은 앞에서부터 차례로, 서로 겹치지 않게
-    let end = 0;
-    line.tokens.forEach((t, i) => {
-      if (t.start < end)
-        ctx.addIssue({
-          code: "custom",
-          message: "조각이 앞 조각과 겹치거나 차례가 뒤바뀜",
-          path: ["tokens", i, "start"],
-        });
-      end = Math.max(end, t.start + t.length);
-    });
-  });
+  .superRefine(refineTokenOrder);
 export type LineAnalysis = z.infer<typeof lineAnalysisSchema>;
 
 export const songAnalysisSchema = z
