@@ -18,6 +18,7 @@
     "textbook:build": "tsx scripts/textbook/build.ts",
     "transcribe": "tsx scripts/transcribe/run.ts",
     "transcribe:verify": "tsx scripts/transcribe/verify.ts",
+    "transcribe:retry": "tsx scripts/transcribe/retranscribe.ts",
     "ilmunta:word-lessons": "tsx scripts/ilmunta/word-lessons.ts",
     "context:report": "tsx scripts/context/match-report.ts",
     "songs:pull": "tsx scripts/songs/pull.ts",
