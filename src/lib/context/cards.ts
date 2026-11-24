@@ -14,6 +14,7 @@ import {
   normalizeJa,
   splitSentences,
 } from "./match";
+import { type RepairSegment, repairCards } from "./repair";
 
 // 자막의 일본어 구간마다 붙일 "맥락 카드": 맞춘 소책자 문장(정확한 글·읽는 법·뜻)과 구간 속 낱말.
 // 서버가 자막을 내줄 때 만들어 붙인다(화면은 소책자 전체를 받지 않아도 된다).
@@ -53,6 +54,10 @@ export const cueCardSchema = z.object({
   whole: z.boolean(),
   /** 구간 속에서 찾은 아는 낱말(읽는 법·뜻) */
   words: z.array(cueWordSchema),
+  /** 받아 적은 글 대신 보일 글(한글로 적힌 일본어에 표기를 덧붙인 글, 되풀이 중 나은 받아쓰기) */
+  text: z.string().optional(),
+  /** 바로 맞추지 못하고 앞뒤 맥락·소리로 찾은 카드(repair.ts) */
+  inferred: z.boolean().optional(),
 });
 export type CueCard = z.infer<typeof cueCardSchema>;
 
@@ -66,6 +71,8 @@ export interface CardSource {
   glossary: Glossary;
   /** 낱말 카드로 띄울 낱말 */
   words: CueWord[];
+  /** 이 강·과에서 익히는 낱말. 한글 소리나 가나로 적힌 곳을 찾는다(repair.ts). 없으면 찾지 않는다 */
+  focus?: CueWord[];
 }
 
 /** 한 구간에 보일 낱말은 이만큼까지 */
@@ -123,7 +130,11 @@ function wordWorthShowing(w: CueWord): boolean {
 }
 
 /** 글 속에서 앞에서부터 가장 긴 낱말을 찾는다(겹치는 짧은 낱말은 건너뛴다) */
-export function findWords(text: string, words: CueWord[]): CueWord[] {
+export function findWords(
+  text: string,
+  words: CueWord[],
+  max: number = MAX_WORDS,
+): CueWord[] {
   const byFirst = new Map<string, CueWord[]>();
   for (const w of words) {
     if (!wordWorthShowing(w)) continue;
@@ -136,7 +147,7 @@ export function findWords(text: string, words: CueWord[]): CueWord[] {
   const out: CueWord[] = [];
   const seen = new Set<string>();
   let i = 0;
-  while (i < text.length && out.length < MAX_WORDS) {
+  while (i < text.length && out.length < max) {
     const hit = byFirst.get(text[i])?.find((w) => text.startsWith(w.ja, i));
     if (hit) {
       if (!seen.has(hit.ja)) out.push(hit);
@@ -155,10 +166,21 @@ function withEmoji(w: CueWord): CueWord {
 
 /**
  * 자막 구간마다 카드를 만든다. 열쇠는 원래 segments의 차례(문자열).
- * 일본어 구간만 보고, 맞춘 문장도 낱말도 없으면 카드를 두지 않는다(화면은 자막만 보인다).
+ * 일본어 구간을 소책자 문장과 맞춘 뒤, 맞추지 못한 곳은 앞뒤 맥락과 소리로 한 번 더 살핀다(repair.ts).
+ * 맞춘 문장도 낱말도 없으면 카드를 두지 않는다(화면은 자막만 보인다).
  */
 export function buildCards(
-  segments: { text: string; lang: "ko" | "ja" }[],
+  segments: RepairSegment[],
+  source: CardSource,
+): Record<string, CueCard> {
+  const toKana = (t: string) => kanaOf(t, source.glossary);
+  const matched = matchCards(segments, source);
+  if (!source.focus) return matched;
+  return repairCards(segments, matched, source.focus, toKana);
+}
+
+function matchCards(
+  segments: RepairSegment[],
   source: CardSource,
 ): Record<string, CueCard> {
   const sentences = uniqueSentences(source.sentences);

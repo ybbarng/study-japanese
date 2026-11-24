@@ -31,8 +31,16 @@ type Tally = {
   /** 서로 다른 낱말 수와 그중 그림 문자가 붙은 수 */
   distinct: Set<string>;
   distinctEmoji: Set<string>;
+  /** 앞뒤 맥락·소리로 채운 일본어 구간(repair.ts) */
+  inferred: number;
+  /** 한국어 줄이 통째로 낱말 카드가 된 수, 표기를 덧붙인 수 */
+  koWhole: number;
+  koAnnotated: number;
 };
 const blank = (): Tally => ({
+  inferred: 0,
+  koWhole: 0,
+  koAnnotated: 0,
   files: 0,
   ja: 0,
   sentence: 0,
@@ -66,6 +74,7 @@ for (const book of ["ilmuta", "ilmunta"] as const) {
         : ilmuntaCardSource(
             ilmuta.lessons,
             no === null ? [] : ilmuntaLessonPairs(no, dir),
+            no,
           );
     if (!source) continue;
     const cards = buildCards(t.segments, source);
@@ -74,9 +83,15 @@ for (const book of ["ilmuta", "ilmunta"] as const) {
     const tally = tallies[key];
     tally.files++;
     t.segments.forEach((s, i) => {
-      if (s.lang !== "ja") return;
-      tally.ja++;
       const card = cards[String(i)];
+      if (s.lang === "ko") {
+        // 한국어 줄 속 한글 소리 일본어를 찾아 낱말 카드로 바꿨거나 표기를 덧붙인 줄
+        if (card?.whole) tally.koWhole++;
+        else if (card?.text) tally.koAnnotated++;
+        return;
+      }
+      tally.ja++;
+      if (card?.inferred) tally.inferred++;
       if (card?.sentences.length) tally.sentence++;
       if (card?.whole) tally.whole++;
       if (card?.words.length) tally.word++;
@@ -95,7 +110,7 @@ for (const book of ["ilmuta", "ilmunta"] as const) {
 const pct = (n: number, d: number) =>
   d === 0 ? "-" : `${Math.round((n / d) * 100)}%`;
 console.log(
-  "묶음\t파일\t일본어 구간\t문장 맞춤\t구간 전체 맞춤\t낱말 있음\t그림 붙은 칩\t그림 붙은 낱말(서로 다른)",
+  "묶음\t파일\t일본어 구간\t문장 맞춤\t구간 전체 맞춤\t낱말 있음\t그림 붙은 칩\t그림 붙은 낱말(서로 다른)\t맥락으로 채움\t받아쓰기로 남음\t한국어 줄→낱말\t한국어 줄 표기 덧붙임",
 );
 for (const [key, t] of Object.entries(tallies))
   console.log(
@@ -108,5 +123,9 @@ for (const [key, t] of Object.entries(tallies))
       `${t.word} (${pct(t.word, t.ja)})`,
       `${t.emojiChips}/${t.chips} (${pct(t.emojiChips, t.chips)})`,
       `${t.distinctEmoji.size}/${t.distinct.size} (${pct(t.distinctEmoji.size, t.distinct.size)})`,
+      `${t.inferred} (${pct(t.inferred, t.ja)})`,
+      `${t.ja - t.whole} (${pct(t.ja - t.whole, t.ja)})`,
+      t.koWhole,
+      t.koAnnotated,
     ].join("\t"),
   );

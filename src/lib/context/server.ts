@@ -68,7 +68,7 @@ export function loadContextTranscript(
       ? ilmuta && no !== null
         ? ilmutaCardSource(ilmuta.lessons, no)
         : null
-      : ilmuntaCardSource(ilmuta?.lessons ?? null, pairs ?? []);
+      : ilmuntaCardSource(ilmuta?.lessons ?? null, pairs ?? [], no);
   const withCards: Transcript = source
     ? { ...clean, cards: buildCards(clean.segments, source) }
     : clean;

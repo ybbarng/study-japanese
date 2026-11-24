@@ -1,8 +1,9 @@
 import { VERBS } from "@/lib/ilmunta/verbs";
+import { WORD_LESSONS } from "@/lib/ilmunta/word-lessons";
 import { ADJECTIVES } from "@/lib/ilmunta/words";
 import { buildGlossary, type Glossary, hasKanji } from "@/lib/ilmuta/ruby";
 import type { IlmutaLesson, Sentence } from "@/lib/textbook/schema";
-import type { CardSource, CueWord } from "./cards";
+import { type CardSource, type CueWord, findWords } from "./cards";
 import type { TranscriptPair } from "./transcript-pairs";
 
 // 자막 하나에 카드를 붙일 재료(맞출 소책자 문장·읽는 법 사전·낱말)를 고른다. 파일을 읽지 않는 순수 함수다.
@@ -59,6 +60,12 @@ export function ilmutaCardSource(
       : [],
     glossary: buildGlossary(lessons, no),
     words: ilmutaWords(lessons, no),
+    // 한글 소리로 찾을 낱말은 그 강에서 익히는 것만(많으면 한국어 말과 잘못 닮는다)
+    focus: lesson
+      ? wordsOfLesson(lesson)
+          .map(toCueWord)
+          .filter((w): w is CueWord => w !== null)
+      : [],
   };
 }
 
@@ -79,6 +86,7 @@ function drillWords(): CueWord[] {
 export function ilmuntaCardSource(
   ilmutaLessons: IlmutaLesson[] | null,
   pairs: TranscriptPair[] = [],
+  lessonNo: number | null = null,
 ): CardSource {
   const fromIlmuta = ilmutaLessons
     ? ilmutaWords(ilmutaLessons, Number.POSITIVE_INFINITY)
@@ -88,10 +96,22 @@ export function ilmuntaCardSource(
   for (const w of words)
     if (w.reading && hasKanji(w.ja) && !(w.ja in glossary))
       glossary[w.ja] = w.reading;
+  // 한글 소리로 찾을 낱말: 그 과 예문 짝에 나오는 낱말과, 교재 색인상 그 과에서 처음 나오는 드릴 낱말
+  const focus = [
+    ...findWords(
+      pairs.map((p) => p.ja).join("　"),
+      words,
+      Number.POSITIVE_INFINITY,
+    ),
+    ...(lessonNo === null
+      ? []
+      : drillWords().filter((w) => WORD_LESSONS[w.ja]?.ilmunta === lessonNo)),
+  ];
   return {
     sentences: pairs.map((p) => ({ ja: p.ja, ko: p.ko })),
     origin: "transcript",
     glossary,
     words,
+    focus,
   };
 }
