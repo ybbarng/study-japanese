@@ -50,6 +50,11 @@ export const cueCardSchema = z.object({
    * 흐린 받아쓰기보다 조금 진하게 "받아 적은 글 · 뜻 없음"으로 보인다
    */
   noBookText: z.boolean().optional(),
+  /**
+   * 교재와 맞추지 못한 줄을 Claude가 문맥으로 고치고 소리로 확인한 글(교정 파일, review.ts).
+   * origin은 transcript이고, 화면은 "고쳐 받아 적은 글"이라고 작게 알린다
+   */
+  reviewed: z.boolean().optional(),
 });
 export type CueCard = z.infer<typeof cueCardSchema>;
 

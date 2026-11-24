@@ -18,6 +18,7 @@ import {
   type PieceMatch,
   splitSentences,
 } from "./match";
+import { rubyFromReading } from "./reading-ruby";
 import { type RepairSegment, repairCards, wordSentence } from "./repair";
 import {
   counterFitsAt,
@@ -367,6 +368,29 @@ function sentenceCard(sentences: Sentence[], source: CardSource): CueCard {
     words: wordsIn(sentences.map((s) => s.ja).join("　"), source).filter(
       (w) => !own.has(w.ja),
     ),
+  };
+}
+
+/**
+ * 교정 파일로 올린 줄의 카드(review.ts): 고친 글을 문장으로, 교정 파일의 읽는 법·뜻을 단다.
+ * 받아 적은 글이므로 낱말 칩은 자리가 확인된 것만 찾는다(word-bounds.ts)
+ */
+export function reviewedCard(
+  text: string,
+  reading: string | null | undefined,
+  ko: string,
+  source: CardSource,
+): CueCard {
+  return {
+    origin: "transcript",
+    reviewed: true,
+    sentences: [
+      { ja: text, ko, ruby: rubyFromReading(text, reading, source.glossary) },
+    ],
+    whole: true,
+    words: heardWords(text, source)
+      .filter((w) => w.ja !== text)
+      .map(withPicture),
   };
 }
 

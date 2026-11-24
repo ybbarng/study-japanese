@@ -1,0 +1,83 @@
+# 자막 교정 파일
+
+교재와 맞추지 못한 자막 일본어 줄은 화면에 흐리게 "받아쓰기 — 정확하지 않을 수 있음"으로 보인다. Claude가 그 줄을 앞뒤 문맥으로 고치고 whisper로 소리를 다시 들어 확인한 결과를 **교정 파일**에 적으면, 서버가 자막을 내줄 때 반영한다. 이 문서는 교정 파일을 만드는 갈래가 지킬 꼴과, 서버가 어떤 줄을 어떻게 내주는지를 정한다.
+
+- 자리: `content/transcripts-review/<book>/<item>.json` (git 밖, 교재에서 나온 글이라 서버에는 rsync로 옮긴다)
+- 꼴의 정본(zod 스키마): `src/lib/context/review.ts`의 `transcriptReviewSchema`
+- 반영 코드: `src/lib/context/review.ts`(판정), `src/lib/context/build.ts`(`contextTranscript`)
+- 숫자 확인: `CONTENT_DIR=<content 폴더> pnpm context:report -- --items`의 "교정으로 올린 줄", "교정으로 한국어로 돌린 줄" 열. `--no-review`를 붙이면 교정 없이 센다(전후 비교)
+
+## 꼴
+
+```jsonc
+{
+  "book": "ilmuta",          // 자막 파일과 같아야 한다
+  "item": "L03",             // 자막 파일과 같아야 한다
+  "method": "…",             // 자유 글(어떻게 만들었나)
+  "threshold": 0.85,         // 소리 확인의 닮음 기준(없으면 0.85)
+  "lines": [
+    {
+      "start": 43, "end": 43.82,      // 지문: 원래 자막 구간의 시각
+      "original": "…",                // 지문: 원래 자막 구간의 글(한 글자도 바꾸지 않고)
+      "corrected": "…",               // 고친 글. korean-noise면 한국어 글(없으면 "")
+      "reading": "…",                 // corrected의 읽는 법(히라가나, 부호 없이)
+      "ko": "…",                      // corrected의 뜻
+      "confidence": "high",           // high | mid | low
+      "kind": "japanese",             // japanese | name | korean-noise | other
+      "audioVerified": true,          // whisper로 다시 들어 corrected가 맞다고 확인했나
+      "audio": {
+        "simPlain": 1,                // prompt 없이 다시 받아 적은 글이 corrected와 닮은 정도(0~1)
+        "simOriginal": 0.5,           // 원래 받아 적은 글이 corrected와 닮은 정도(0~1)
+        "spellingOnly": false         // 소리는 같고 표기만 고쳤나
+      },
+      "splitAt": 44.1,                // (선택) 일본어 + 한국어 뒷말이 섞인 줄의 일본어 부분이 끝나는 시각
+      "tailKo": "…",                  // (선택) splitAt 뒤 한국어 부분의 한국어 글
+      "why": "…", "listenNote": "…"   // 자유 글(사람이 읽는 까닭). 서버는 쓰지 않는다
+    }
+  ]
+}
+```
+
+- 모르는 필드(`index`, `file`, `audio.prompted` 등)는 넣어도 된다. 서버는 위 필드만 확인한다.
+- `index`는 믿지 않는다. 줄은 **지문(`start`·`end`·`original`)**으로 자막 구간을 찾는다. 셋 중 하나라도 다르면 그 줄은 쓰지 않는다. 자막을 다시 받아 적으면 옛 교정은 저절로 무시된다.
+- 교재 글과 같은 줄만 고친다. 이미 소책자 문장과 맞은 줄은 교정해도 소책자 글이 이긴다.
+
+## 서버가 내주는 방식
+
+| 줄 | 내주는 모습 |
+|---|---|
+| `kind: korean-noise` | 일본어 줄로 내주지 않는다. `corrected`에 한글이 있으면 그 글을 한국어 줄로, 없으면 숨긴다 |
+| `kind: other` (헛것, 자리말 문형 등) | 내주지 않는다 |
+| 정상 카드로 올릴 줄(아래 기준) | 교재 카드와 같은 크기로 고친 글·읽는 법·뜻·낱말 칩을 보이고, "고쳐 받아 적은 글 — 교재와 다를 수 있음"을 작게 붙인다 |
+| 그 밖의 `japanese`·`name` 줄 | 원래 글 그대로 흐린 받아쓰기 |
+| `splitAt`이 있는 줄 | 일본어 부분(`start`~`splitAt`, 글은 `corrected`)과 한국어 부분(`splitAt`~`end`, 글은 `tailKo`, 없으면 내주지 않음)으로 나눈다. 일본어 부분도 아래 기준으로 올릴지 정한다 |
+| `splitAt`이 없는 섞인 줄 | 흐린 받아쓰기 그대로 |
+
+교정 파일과 상관없이, 앞 줄과 글이 같은 0.3초 미만 구간(세 글자 이상)은 꼬리 조각으로 보고 뺀다(`src/lib/transcript/hallucination.ts` `tailEchoIndexes`).
+
+### 정상 카드로 올리는 기준
+
+다음을 **모두** 지켜야 한다(`promotable`).
+
+1. `kind`가 `japanese`나 `name`
+2. `confidence`가 `high`
+3. `audioVerified`가 `true` (소리 확인에 실패한 줄은 무엇이든 흐림 그대로)
+4. `corrected`에 일본어 글자가 있고 한글이 없다
+5. 읽는 법(`reading`, 없으면 `corrected`)이 가나 4글자 이상
+6. 긍정·부정 대답 낱말(はい·いいえ·うん·ううん·ええ·いや 등)만 있는 줄이 아니다
+7. 그리고 둘 중 하나
+   - (a) `corrected`가 그 강·과의 교재 낱말이나 등장인물 이름과 정확히 같다(부호·공백만 빼고 견준다. 가나 종류는 같아야 한다)
+   - (b) prompt 없는 whisper도 원래 글보다 `corrected`에 가까워졌다: `audio.simPlain > audio.simOriginal`. 표기만 고친 줄(`spellingOnly: true`)은 소리가 원래와 같으므로 `simPlain`이 `threshold` 이상이면 된다
+
+카드 세부:
+
+- 읽는 법은 `reading`을 한자 덩어리마다 나눠 단다. 가나 부분이 닻이 되고, 가나 없이 붙은 한자 덩어리는 낱말 표에 읽기가 있을 때만 가른다(`src/lib/context/reading-ruby.ts`). 가를 수 없으면 자리가 확인된 낱말의 읽기만 단다.
+- 낱말 칩은 받아 적은 글과 같은 엄격한 확인을 거친다(`src/lib/context/word-bounds.ts`).
+- 뜻은 `ko`를 그대로 쓴다. 비면 "뜻을 찾지 못한 문장"이 보인다.
+
+## 만드는 갈래가 지킬 것
+
+- `original`은 자막 파일의 글을 그대로 옮긴다(부호·빈칸 포함). 시각도 자막 파일의 값 그대로 둔다.
+- 확신이 없으면 `mid`·`low`로 둔다. 흐린 받아쓰기로 남는 편이 틀린 글을 정답처럼 보이는 것보다 낫다.
+- 한국어 뒷말이 섞인 줄은 일본어 부분이 끝나는 시각을 소리로 확인했을 때만 `splitAt`을 적는다.
+- 교재 글·자막 글은 저장소(코드·테스트·문서·커밋)에 옮기지 않는다(docs/standing-rules.md).

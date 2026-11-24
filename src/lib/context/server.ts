@@ -2,13 +2,19 @@ import { isAdminRequest } from "@/lib/auth/server";
 import { canSeeSource, sourceOfBook } from "@/lib/sources/registry";
 import { readSiteSettings } from "@/lib/sources/settings";
 import { getDb } from "@/lib/store/db";
-import { contentDir, loadIlmuta, loadTranscript } from "@/lib/textbook/load";
+import {
+  contentDir,
+  loadIlmuta,
+  loadTranscript,
+  loadTranscriptReview,
+} from "@/lib/textbook/load";
 import type { Ilmuta } from "@/lib/textbook/schema";
 import { contextTranscript } from "./build";
 import { lessonNoOfItem } from "./card-sources";
 import type { Transcript } from "./cues";
 import { ilmuntaLessonPairs } from "./ilmunta-pairs";
 import { contextExtras } from "./lesson-names-server";
+import type { TranscriptReview } from "./review";
 import type { TranscriptPair } from "./transcript-pairs";
 
 // 서버에서 자막을 읽어 맥락 카드를 붙인다. 자막 API와 강·과 화면이 함께 쓴다.
@@ -25,6 +31,7 @@ export async function visibleBooks(): Promise<(book: string) => boolean> {
 type Entry = {
   ilmuta: Ilmuta | null;
   pairs: TranscriptPair[] | null;
+  review: TranscriptReview | null;
   result: Transcript;
 };
 const cache = new WeakMap<Transcript, Entry[]>();
@@ -47,8 +54,12 @@ export function loadContextTranscript(
   // 일문따는 그 과 문법 예문 자막에서 찾은 짝을 문장으로 쓴다
   const pairs =
     book === "ilmunta" && no !== null ? ilmuntaLessonPairs(no, dir) : null;
+  // Claude가 고친 자막 줄(교정 파일). 지문이 맞는 줄만 쓴다(review.ts)
+  const review = loadTranscriptReview(book, item, dir);
   const entries = cache.get(transcript) ?? [];
-  const hit = entries.find((e) => e.ilmuta === ilmuta && e.pairs === pairs);
+  const hit = entries.find(
+    (e) => e.ilmuta === ilmuta && e.pairs === pairs && e.review === review,
+  );
   if (hit) return hit.result;
 
   // 잡음 줄(기호만, 제작진 표기, 영문)과 한국어 말을 받아 적은 가타카나 줄은 내주지 않는다
@@ -61,13 +72,16 @@ export function loadContextTranscript(
     ilmuta,
     pairs,
     extras,
+    review,
   );
-  // 교재·짝이 바뀐 옛 결과는 버리고, 볼 수 있는 경우(일무따 있음·없음) 둘까지만 둔다
+  // 교재·짝·교정이 바뀐 옛 결과는 버리고, 볼 수 있는 경우(일무따 있음·없음) 둘까지만 둔다
   cache.set(transcript, [
     ...entries
-      .filter((e) => e.ilmuta === null && e.pairs === pairs)
+      .filter(
+        (e) => e.ilmuta === null && e.pairs === pairs && e.review === review,
+      )
       .slice(0, ilmuta ? 1 : 0),
-    { ilmuta, pairs, result: withCards },
+    { ilmuta, pairs, review, result: withCards },
   ]);
   return withCards;
 }

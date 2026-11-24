@@ -8,7 +8,13 @@ import {
 } from "@/lib/context/card-sources";
 import { ilmuntaLessonPairs } from "@/lib/context/ilmunta-pairs";
 import { contextExtras } from "@/lib/context/lesson-names-server";
-import { contentDir, loadIlmuta, readJson } from "@/lib/textbook/load";
+import { prepareReview } from "@/lib/context/review";
+import {
+  contentDir,
+  loadIlmuta,
+  loadTranscriptReview,
+  readJson,
+} from "@/lib/textbook/load";
 
 // 강의·예문 자막의 일본어 구간이 소책자 문장·낱말과 얼마나 맞았는지 숫자로만 보인다.
 // 서버가 내주는 것과 같은 길(contextTranscript: 잡음·한국어 말 가타카나 줄 거르기 → 카드)로 센다.
@@ -18,11 +24,14 @@ import { contentDir, loadIlmuta, readJson } from "@/lib/textbook/load";
 //   `CONTENT_DIR=<content 폴더> pnpm context:report -- --no-text` 소책자에 원문이 없는 오디오만
 //                                                               (일문따 -2, 일무따 -5·-6 묶음별)
 //   `TRANSCRIPTS=transcripts-next ...`                          다른 자막 폴더(다시 받아 적은 것)를 센다
+//   `... -- --no-review`                                        교정 파일(transcripts-review)을 쓰지 않고 센다
+//                                                               (교정 전후를 견줄 때)
 
 const dir = contentDir();
 const folder = process.env.TRANSCRIPTS ?? "transcripts";
 const byItem = process.argv.includes("--items");
 const noTextOnly = process.argv.includes("--no-text");
+const useReview = !process.argv.includes("--no-review");
 
 /** --no-text 묶음 이름: 일문따 `-2`, 일무따 `-5`·`-6` */
 function noTextGroup(book: string, item: string): string | null {
@@ -56,6 +65,9 @@ type Tally = {
   /** 한국어 줄이 통째로 낱말 카드가 된 수, 표기를 덧붙인 수 */
   koWhole: number;
   koAnnotated: number;
+  /** 교정 파일로 정상 카드에 올린 일본어 구간, 한국어 줄로 돌리거나 숨긴 구간(review.ts) */
+  reviewed: number;
+  reviewKorean: number;
 };
 const blank = (): Tally => ({
   files: 0,
@@ -72,6 +84,8 @@ const blank = (): Tally => ({
   heard: 0,
   koWhole: 0,
   koAnnotated: 0,
+  reviewed: 0,
+  reviewKorean: 0,
 });
 const tallies: Record<string, Tally> = {};
 
@@ -94,7 +108,8 @@ for (const book of ["ilmuta", "ilmunta"] as const) {
     const pairs =
       book === "ilmunta" && no !== null ? ilmuntaLessonPairs(no, dir) : null;
     const extras = contextExtras(book, item, ilmuta, dir);
-    const out = contextTranscript(book, item, t, ilmuta, pairs, extras);
+    const review = useReview ? loadTranscriptReview(book, item, dir) : null;
+    const out = contextTranscript(book, item, t, ilmuta, pairs, extras, review);
     const cards = out.cards ?? {};
     const key = byItem
       ? `${book} ${item}`
@@ -105,6 +120,7 @@ for (const book of ["ilmuta", "ilmunta"] as const) {
     const tally = tallies[key];
     tally.files++;
     tally.rawJa += t.segments.filter((s) => s.lang === "ja").length;
+    tally.reviewKorean += prepareReview(t.segments, review).korean;
     out.segments.forEach((s, i) => {
       const card = cards[String(i)];
       if (s.lang === "ko") {
@@ -114,6 +130,7 @@ for (const book of ["ilmuta", "ilmunta"] as const) {
       }
       tally.ja++;
       if (card?.inferred) tally.inferred++;
+      if (card?.reviewed) tally.reviewed++;
       if (card?.sentences.length) tally.sentence++;
       if (card?.whole) tally.whole++;
       else if (card?.noBookText) tally.heard++;
@@ -133,7 +150,7 @@ for (const book of ["ilmuta", "ilmunta"] as const) {
 const pct = (n: number, d: number) =>
   d === 0 ? "-" : `${Math.round((n / d) * 100)}%`;
 console.log(
-  "묶음\t파일\t일본어 구간(원래→내줌)\t문장 맞춤\t구간 전체 맞춤\t낱말 있음\t그림 붙은 칩\t그림 붙은 낱말(서로 다른)\t맥락으로 채움\t받아쓰기로 남음\t그중 받아 적은 글(뜻 없음)\t흐림\t한국어 줄→낱말\t한국어 줄 표기 덧붙임",
+  "묶음\t파일\t일본어 구간(원래→내줌)\t문장 맞춤\t구간 전체 맞춤\t낱말 있음\t그림 붙은 칩\t그림 붙은 낱말(서로 다른)\t맥락으로 채움\t받아쓰기로 남음\t그중 받아 적은 글(뜻 없음)\t흐림\t한국어 줄→낱말\t한국어 줄 표기 덧붙임\t교정으로 올린 줄\t교정으로 한국어로 돌린 줄(숨김 포함)",
 );
 for (const [key, t] of Object.entries(tallies))
   console.log(
@@ -152,5 +169,7 @@ for (const [key, t] of Object.entries(tallies))
       `${t.ja - t.whole - t.heard} (${pct(t.ja - t.whole - t.heard, t.ja)})`,
       t.koWhole,
       t.koAnnotated,
+      `${t.reviewed} (${pct(t.reviewed, t.ja)})`,
+      t.reviewKorean,
     ].join("\t"),
   );

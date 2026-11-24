@@ -63,9 +63,14 @@ function NoMeaning() {
   );
 }
 
-function TranscriptNote() {
+/** 교재와 맞추지 못한 줄을 문맥과 소리로 고쳐 올린 글(교정 파일)임을 작게 알린다 */
+export const REVIEWED_NOTE = "고쳐 받아 적은 글 — 교재와 다를 수 있음";
+
+function TranscriptNote({ cue }: { cue: ContextCue }) {
   return (
-    <span className="mt-1 block text-xs text-ink-faint">{TRANSCRIPT_NOTE}</span>
+    <span className="mt-1 block text-xs text-ink-faint">
+      {cue.card?.reviewed ? REVIEWED_NOTE : TRANSCRIPT_NOTE}
+    </span>
   );
 }
 
@@ -125,7 +130,7 @@ export function CueHeadline({
             ) : null}
           </span>
         ))}
-        {fromTranscript(cue) ? <TranscriptNote /> : null}
+        {fromTranscript(cue) ? <TranscriptNote cue={cue} /> : null}
       </span>
     );
   // 교재와 맞추지 못한 일본어 줄은 받아쓰기라 틀릴 수 있다: 작고 흐리게, 지금 줄이면 알림을 붙인다.
@@ -224,7 +229,7 @@ export function CueExtras({ cue }: { cue: ContextCue }) {
               ) : null}
             </div>
           ))}
-          {fromTranscript(cue) ? <TranscriptNote /> : null}
+          {fromTranscript(cue) ? <TranscriptNote cue={cue} /> : null}
         </div>
       ) : null}
       <CueChipList words={card.words} />

@@ -41,6 +41,12 @@ rsync -av media/kana/ byb.kr:data/study-ja/media/kana/
 rsync -av content/textbook/ byb.kr:data/study-ja/content/textbook/
 ```
 
+Claude가 고친 자막 줄(교정 파일, docs/transcript-review.md)은 자막 API가 요청 때마다 읽으므로 올리면 바로 반영된다(재배포 필요 없음).
+
+```bash
+rsync -av content/transcripts-review/ byb.kr:data/study-ja/content/transcripts-review/
+```
+
 ## 노래 넣기 (관리자)
 
 1. 노래 파일(mp3·m4a)을 영문 이름으로 서버에 둔다. `songs/`는 출처 목록에 없는 폴더라 로그인한 사람만 받는다.

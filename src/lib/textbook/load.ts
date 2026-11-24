@@ -2,6 +2,10 @@ import { readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import type { z } from "zod";
 import { type Transcript, transcriptSchema } from "@/lib/context/card-schema";
+import {
+  type TranscriptReview,
+  transcriptReviewSchema,
+} from "@/lib/context/review";
 import { type Ilmuta, ilmutaSchema } from "./schema";
 
 // 교재 JSON은 이미지에 넣지 않고 실행할 때 CONTENT_DIR(기본 <cwd>/content)에서 읽는다.
@@ -52,6 +56,29 @@ export function loadTranscript(
       path.join(dir, "transcripts", book, `${item}.json`),
       transcriptSchema,
     );
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Claude가 고친 자막 줄(`transcripts-review/<book>/<item>.json`, docs/transcript-review.md).
+ * 없거나 깨졌거나 책·항목이 다르면 조용히 null(교정 없이 자막만 내준다)
+ */
+export function loadTranscriptReview(
+  book: string,
+  item: string,
+  dir: string = contentDir(),
+): TranscriptReview | null {
+  if (!TRANSCRIPT_BOOKS.has(book) || !ITEM.test(item)) return null;
+  try {
+    const review = readJson(
+      path.join(dir, "transcripts-review", book, `${item}.json`),
+      transcriptReviewSchema,
+    );
+    return review && review.book === book && review.item === item
+      ? review
+      : null;
   } catch {
     return null;
   }
