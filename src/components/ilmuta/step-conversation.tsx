@@ -7,6 +7,7 @@ import {
 } from "@/components/context/use-follow";
 import { ScenePicture } from "@/components/pictures/scene-picture";
 import { WordPicture } from "@/components/pictures/word-picture";
+import { useWordTap } from "@/components/word-tap/word-tap-provider";
 import { cn } from "@/lib/cn";
 import {
   conversationScripts,
@@ -15,6 +16,7 @@ import {
 } from "@/lib/ilmuta/conversation";
 import { exampleTrack } from "@/lib/ilmuta/tracks";
 import type { Example, Sentence } from "@/lib/textbook/schema";
+import { speakerReading } from "@/lib/word-tap/speaker";
 import type { StepProps } from "./lesson-types";
 import { PlayCard } from "./play-card";
 import { RubyText } from "./ruby-text";
@@ -77,12 +79,11 @@ export function StepConversation({ data, listens }: StepProps) {
                     )}
                   >
                     {s.speaker ? (
-                      <span
-                        lang="ja"
-                        className="mb-1 px-2 text-xs text-ink-faint"
-                      >
-                        {s.speaker}
-                      </span>
+                      <SpeakerTag
+                        speaker={s.speaker}
+                        sentences={script.sentences}
+                        showReading={display.reading}
+                      />
                     ) : null}
                     <div
                       className={cn(
@@ -132,6 +133,33 @@ export function StepConversation({ data, listens }: StepProps) {
         </section>
       ) : null}
     </div>
+  );
+}
+
+/** 말하는 사람 이름표. 대사 안에서 그 이름을 부른 낱말 분석이 있으면 읽는 법을 단다 */
+function SpeakerTag({
+  speaker,
+  sentences,
+  showReading,
+}: {
+  speaker: string;
+  sentences: Sentence[];
+  showReading: boolean;
+}) {
+  const tap = useWordTap();
+  const reading = tap
+    ? speakerReading(
+        speaker,
+        sentences.map((s) => tap.tokensOf(s.ja)),
+      )
+    : null;
+  return (
+    <RubyText
+      text={speaker}
+      reading={reading ?? undefined}
+      showReading={showReading}
+      className="mb-1 px-2 text-xs leading-loose text-ink-faint [&_rt]:text-[0.7em]"
+    />
   );
 }
 
