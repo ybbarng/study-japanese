@@ -25,11 +25,13 @@ export const LONG_LECTURE_CUES = [
 /**
  * 0강 강의: 실제 0강처럼 일본어가 드물다. 첫머리에 짝 없는 일본어 줄 하나가 나온 뒤
  * 한국어 설명만 오래 이어진다(지금 칸이 그 일본어 줄을 오래 붙들지 않는지 본다).
+ * 그 줄은 실제 강의의 일본어 줄처럼 한자를 섞는다. 앞뒤가 한국어이고 교재 낱말로 설명되지 않는
+ * 가나만의 줄은 강사의 한국어 말을 받아 적은 것으로 보고 서버가 거른다(misheard.ts koreanKanaIndexes).
  */
 export const TALK_LECTURE = { no: 0, seconds: 80 } as const;
 export const TALK_LECTURE_CUES = [
   { start: 0, end: 4, text: "시험 오리엔테이션 첫 줄입니다.", lang: "ko" },
-  { start: 5, end: 7, text: "テストのおと。", lang: "ja" },
+  { start: 5, end: 7, text: "テストの音。", lang: "ja" },
   ...Array.from({ length: 18 }, (_, i) => ({
     start: 8 + i * 4,
     end: 11.5 + i * 4,
@@ -62,15 +64,16 @@ export const FOLLOW_EXAMPLE_CUES = [
 /**
  * 일문따 2과: 문법 예문(02-1) 자막이 "일본어 → 뜻 → 같은 일본어"를 되풀이하고, 첫 강의(L02-01) 자막의
  * 일본어 줄이 그 문장이라 서버가 받아 적은 글 출처 카드를 붙인다. 강의는 자리를 옮겨 볼 수 있게 길게 둔다.
+ * 실제 예문처럼 한자를 섞는다(가나만이고 교재 낱말로 설명되지 않으면 한국어 말로 보고 걸러진다).
  */
 export const ILMUNTA_PAIR_LESSON = { no: 2, seconds: 20 } as const;
 export const ILMUNTA_PAIR = {
-  ja: "テストのれいぶんです。",
+  ja: "テストの例文です。",
   ko: "시험 예문입니다.",
 } as const;
 export const ILMUNTA_LECTURE_CUES = [
   { start: 0, end: 4, text: "시험 문법 강의 첫 줄입니다.", lang: "ko" },
-  { start: 6, end: 12, text: "テストのれいぶんです", lang: "ja" },
+  { start: 6, end: 12, text: "テストの例文です", lang: "ja" },
   { start: 14, end: 18, text: "시험 문법 강의 셋째 줄입니다.", lang: "ko" },
 ] as const;
 const ILMUNTA_EXAMPLE_CUES = [
