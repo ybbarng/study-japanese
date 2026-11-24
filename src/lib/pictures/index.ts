@@ -4,6 +4,7 @@ import { SCENES as ILMUTA_16_30_SCENES } from "./manifest/scenes-ilmuta-16-30";
 import { SCENES as ILMUTA_31_45_SCENES } from "./manifest/scenes-ilmuta-31-45";
 import { SCENES as ILMUTA_46_60_SCENES } from "./manifest/scenes-ilmuta-46-60";
 import { WORDS as ILMUNTA_01_28_WORDS } from "./manifest/words-ilmunta-01-28";
+import { WORDS as ILMUNTA_29_56_WORDS } from "./manifest/words-ilmunta-29-56";
 import { WORDS as ILMUTA_01_15_WORDS } from "./manifest/words-ilmuta-01-15";
 import { WORDS as ILMUTA_16_30_WORDS } from "./manifest/words-ilmuta-16-30";
 import { WORDS as ILMUTA_31_45_WORDS } from "./manifest/words-ilmuta-31-45";
@@ -28,6 +29,7 @@ export const WORD_MANIFESTS: Readonly<Record<string, WordPictureMap>> = {
   "ilmuta-31-45": ILMUTA_31_45_WORDS,
   "ilmuta-46-60": ILMUTA_46_60_WORDS,
   "ilmunta-01-28": ILMUNTA_01_28_WORDS,
+  "ilmunta-29-56": ILMUNTA_29_56_WORDS,
 };
 
 /** 범위 이름 → 장면 그림 표 */

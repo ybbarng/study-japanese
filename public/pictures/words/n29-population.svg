@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <circle cx="12" cy="12" r="5" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.4"/>
+  <circle cx="32" cy="12" r="5" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.4"/>
+  <circle cx="52" cy="12" r="5" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.4"/>
+  <circle cx="22" cy="32" r="5" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.4"/>
+  <circle cx="42" cy="32" r="5" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.4"/>
+  <circle cx="12" cy="50" r="5" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.4"/>
+  <circle cx="32" cy="50" r="5" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.4"/>
+  <circle cx="52" cy="50" r="5" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.4"/>
+  <path d="M5 26c0-5 3-8 7-8s7 3 7 8zM25 26c0-5 3-8 7-8s7 3 7 8zM45 26c0-5 3-8 7-8s7 3 7 8z" fill="#4a82d4"/>
+  <path d="M15 46c0-5 3-8 7-8s7 3 7 8zM35 46c0-5 3-8 7-8s7 3 7 8z" fill="#e8553e"/>
+  <path d="M5 64c0-5 3-8 7-8s7 3 7 8zM25 64c0-5 3-8 7-8s7 3 7 8zM45 64c0-5 3-8 7-8s7 3 7 8z" fill="#5fb36f"/>
+</svg>
