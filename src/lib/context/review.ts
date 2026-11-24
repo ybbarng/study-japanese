@@ -39,10 +39,20 @@ export const reviewLineSchema = z.object({
   /** whisper로 소리를 다시 들어 corrected가 맞다고 확인했는지 */
   audioVerified: z.boolean().nullish(),
   audio: reviewAudioSchema.nullish(),
-  /** 일본어 + 한국어 뒷말이 섞인 줄: 일본어 부분이 끝나는 시각(초). start < splitAt < end */
+  /**
+   * 일본어 + 한국어 뒷말이 섞인 줄: 일본어 부분이 끝나는 시각(초, 파일 처음부터). start < splitAt < end.
+   * corrected는 일본어 부분만 적는다
+   */
   splitAt: z.number().nullish(),
   /** splitAt 뒤 한국어 부분의 한국어 글. 없으면 그 부분은 내주지 않는다 */
   tailKo: z.string().nullish(),
+  /**
+   * 한국어 앞말 + 일본어가 섞인 줄: 일본어 부분이 시작하는 시각(초, 파일 처음부터). start < japaneseStartAt < end.
+   * corrected는 일본어 부분만 적는다. splitAt과 함께 쓰면 일본어 부분은 japaneseStartAt~splitAt
+   */
+  japaneseStartAt: z.number().nullish(),
+  /** japaneseStartAt 앞 한국어 부분의 한국어 글. 없으면 그 부분은 내주지 않는다 */
+  headKo: z.string().nullish(),
 });
 export type ReviewLine = z.infer<typeof reviewLineSchema>;
 
@@ -87,11 +97,15 @@ const sameTime = (a: number, b: number) => Math.abs(a - b) < SAME_TIME;
 const HANGUL = /[가-힣]/u;
 const JAPANESE = /[ぁ-ゖァ-ヺ㐀-鿿豈-﫿々]/u;
 
+/**
+ * 지문이 맞나: 시각은 정확히, 글은 부호·빈칸을 빼고 견준다(옮겨 적다 끝의 「。」를 빠뜨린 줄이 실제로 있었다).
+ * 시각이 소수 둘째 자리까지 같고 글자도 같으면 같은 구간이다
+ */
 function fits(seg: Segment, line: ReviewLine): boolean {
   return (
     sameTime(seg.start, line.start) &&
     sameTime(seg.end, line.end) &&
-    seg.text === line.original
+    plainForm(seg.text) === plainForm(line.original)
   );
 }
 
@@ -132,22 +146,32 @@ export function prepareReview<T extends Segment>(
       out.dropped++;
       continue;
     }
-    const splitAt = line.splitAt;
+    // 섞인 줄: 한국어가 앞이면 japaneseStartAt, 한국어 뒷말이 붙었으면 splitAt으로 일본어 부분을 가른다
+    const inside = (t: number | null | undefined): t is number =>
+      typeof t === "number" && t > seg.start && t < seg.end;
+    const jaStart = inside(line.japaneseStartAt) ? line.japaneseStartAt : null;
+    const jaEnd = inside(line.splitAt) ? line.splitAt : null;
     if (
-      typeof splitAt === "number" &&
-      splitAt > seg.start &&
-      splitAt < seg.end
+      (jaStart !== null || jaEnd !== null) &&
+      (jaStart ?? seg.start) < (jaEnd ?? seg.end)
     ) {
       out.split++;
+      const head = line.headKo?.trim() ?? "";
+      if (jaStart !== null && head)
+        next.push({ ...seg, end: jaStart, text: head, lang: "ko" });
+      const start = jaStart ?? seg.start;
+      const end = jaEnd ?? seg.end;
       next.push({
         ...seg,
-        end: splitAt,
+        start,
+        end,
         text: corrected || seg.text,
         lang: "ja",
       });
       const tail = line.tailKo?.trim() ?? "";
-      if (tail) next.push({ ...seg, start: splitAt, text: tail, lang: "ko" });
-      out.candidates.push({ start: seg.start, end: splitAt, line });
+      if (jaEnd !== null && tail)
+        next.push({ ...seg, start: jaEnd, text: tail, lang: "ko" });
+      out.candidates.push({ start, end, line });
       continue;
     }
     next.push(seg);

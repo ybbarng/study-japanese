@@ -7,6 +7,8 @@ import {
   LONG_LECTURE,
   LONG_LECTURE_BOOKLET,
   LONG_LECTURE_CUES,
+  REVIEW_NOISE_LINE,
+  REVIEWED_LINE,
   TALK_LECTURE,
   TALK_LECTURE_CUES,
 } from "./fixtures/textbook";
@@ -79,6 +81,33 @@ test("일문따 강의에서 예문 자막 짝과 맞춘 줄은 뜻 카드와 �
       .locator("visible=true")
       .first(),
   ).toBeVisible();
+});
+
+test("교정 파일이 있으면 그 줄이 고쳐 받아 적은 글 표시와 함께 정상 카드로 뜨고, 한국어를 가나로 적은 줄은 일본어로 뜨지 않는다", async ({
+  page,
+}) => {
+  await login(page, `/ilmunta/${ILMUNTA_PAIR_LESSON.no}`);
+  await page.getByRole("button", { name: /처음부터 듣기|이어서 듣기/ }).click();
+  await expect.poll(() => audioIsPlaying(page)).toBe(true);
+  const now = page
+    .getByRole("region", { name: "지금 하는 말" })
+    .locator("visible=true");
+
+  await seekAudio(page, REVIEWED_LINE.start + 1);
+  await expect(now.getByText(REVIEWED_LINE.ko, { exact: true })).toBeVisible();
+  await expect(
+    now.getByText("고쳐 받아 적은 글 — 교재와 다를 수 있음"),
+  ).toBeVisible();
+  await expect(now.getByText(REVIEWED_LINE.original)).toHaveCount(0);
+  await expect(now.getByText("받아쓰기 — 정확하지 않을 수 있음")).toHaveCount(
+    0,
+  );
+
+  await seekAudio(page, REVIEW_NOISE_LINE.start + 1);
+  await expect(
+    now.getByText(REVIEW_NOISE_LINE.korean, { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText(REVIEW_NOISE_LINE.original)).toHaveCount(0);
 });
 
 test("일문따 읽기 글의 받아 적은 줄은 뜻 없음 표시와 낱말 칩이 뜨고, 칩을 누르면 낱말 정보 창이 열린다", async ({

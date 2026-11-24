@@ -64,6 +64,15 @@ describe("교정 줄 맞추기(지문)", () => {
     expect(out.mismatched).toBe(1);
   });
 
+  it("원래 글을 옮기며 부호만 빠뜨렸으면 같은 구간으로 본다", () => {
+    const out = prepareReview(
+      [ja(10, 12, "山野カメラ。")],
+      review(line({ original: "山野カメラ" })),
+    );
+    expect(out.mismatched).toBe(0);
+    expect(out.candidates).toHaveLength(1);
+  });
+
   it("시각이 다르면 쓰지 않는다", () => {
     const out = prepareReview(segments, review(line({ start: 10.2 })));
     expect(out.candidates).toEqual([]);
@@ -170,6 +179,47 @@ describe("일본어 + 한국어 뒷말이 섞인 줄(splitAt)", () => {
     );
     expect(out.segments).toEqual(segments);
     expect(out.split).toBe(0);
+  });
+});
+
+describe("한국어 앞말 + 일본어가 섞인 줄(japaneseStartAt)", () => {
+  const segments = [ja(10, 12, "かめらは山のカメラ")];
+  const mixed = { original: "かめらは山のカメラ", corrected: "山のカメラ" };
+
+  it("일본어 시작 시각과 한국어 글이 있으면 한국어 줄과 일본어 줄로 나눈다", () => {
+    const out = prepareReview(
+      segments,
+      review(line({ ...mixed, japaneseStartAt: 10.8, headKo: "카메라는" })),
+    );
+    expect(out.segments).toEqual([
+      ko(10, 10.8, "카메라는"),
+      ja(10.8, 12, "山のカメラ"),
+    ]);
+    expect(out.candidates.map((c) => [c.start, c.end])).toEqual([[10.8, 12]]);
+  });
+
+  it("한국어 글이 없으면 일본어 부분만 내준다", () => {
+    const out = prepareReview(
+      segments,
+      review(line({ ...mixed, japaneseStartAt: 10.8 })),
+    );
+    expect(out.segments).toEqual([ja(10.8, 12, "山のカメラ")]);
+  });
+
+  it("splitAt과 함께 쓰면 일본어 부분은 그 사이다", () => {
+    const out = prepareReview(
+      segments,
+      review(line({ ...mixed, japaneseStartAt: 10.5, splitAt: 11.5 })),
+    );
+    expect(out.segments).toEqual([ja(10.5, 11.5, "山のカメラ")]);
+  });
+
+  it("시작이 끝보다 늦으면 나누지 않는다", () => {
+    const out = prepareReview(
+      segments,
+      review(line({ ...mixed, japaneseStartAt: 11.5, splitAt: 10.5 })),
+    );
+    expect(out.segments).toEqual(segments);
   });
 });
 

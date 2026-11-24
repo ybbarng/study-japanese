@@ -66,16 +66,83 @@ export const FOLLOW_EXAMPLE_CUES = [
  * 일본어 줄이 그 문장이라 서버가 받아 적은 글 출처 카드를 붙인다. 강의는 자리를 옮겨 볼 수 있게 길게 둔다.
  * 실제 예문처럼 한자를 섞는다(가나만이고 교재 낱말로 설명되지 않으면 한국어 말로 보고 걸러진다).
  */
-export const ILMUNTA_PAIR_LESSON = { no: 2, seconds: 20 } as const;
+export const ILMUNTA_PAIR_LESSON = { no: 2, seconds: 40 } as const;
 export const ILMUNTA_PAIR = {
   ja: "テストの例文です。",
   ko: "시험 예문입니다.",
 } as const;
+
+/**
+ * 교정 파일(docs/transcript-review.md) 시험: 같은 강의 뒤쪽의 잘못 받아 적은 일본어 줄을 Claude가 고쳐
+ * 소리로 확인했다(정상 카드로 올라간다). 그다음 줄은 한국어 말을 가나로 적은 줄이라 한국어 글로 돌린다
+ */
+export const REVIEWED_LINE = {
+  start: 22,
+  end: 26,
+  original: "テストの朝ご飯を食べるう",
+  corrected: "テストの朝ご飯を食べる。",
+  reading: "てすとのあさごはんをたべる",
+  ko: "시험 아침밥을 먹는다.",
+} as const;
+export const REVIEW_NOISE_LINE = {
+  start: 28,
+  end: 31,
+  original: "名は無二だよ",
+  korean: "시험 한국어 설명입니다.",
+} as const;
+
 export const ILMUNTA_LECTURE_CUES = [
   { start: 0, end: 4, text: "시험 문법 강의 첫 줄입니다.", lang: "ko" },
   { start: 6, end: 12, text: "テストの例文です", lang: "ja" },
   { start: 14, end: 18, text: "시험 문법 강의 셋째 줄입니다.", lang: "ko" },
+  { start: 19, end: 21, text: "시험 문법 강의 넷째 줄입니다.", lang: "ko" },
+  {
+    start: REVIEWED_LINE.start,
+    end: REVIEWED_LINE.end,
+    text: REVIEWED_LINE.original,
+    lang: "ja",
+  },
+  {
+    start: REVIEW_NOISE_LINE.start,
+    end: REVIEW_NOISE_LINE.end,
+    text: REVIEW_NOISE_LINE.original,
+    lang: "ja",
+  },
+  { start: 33, end: 37, text: "시험 문법 강의 끝 줄입니다.", lang: "ko" },
 ] as const;
+
+/** 위 두 줄의 교정 파일(content/transcripts-review/ilmunta/L02-01.json) */
+const ILMUNTA_LECTURE_REVIEW = {
+  method: "e2e 가짜 교정",
+  threshold: 0.85,
+  lines: [
+    {
+      start: REVIEWED_LINE.start,
+      end: REVIEWED_LINE.end,
+      original: REVIEWED_LINE.original,
+      corrected: REVIEWED_LINE.corrected,
+      reading: REVIEWED_LINE.reading,
+      ko: REVIEWED_LINE.ko,
+      confidence: "high",
+      kind: "japanese",
+      audioVerified: true,
+      audio: { simPlain: 0.95, simOriginal: 0.7, spellingOnly: false },
+      why: "가짜 까닭",
+    },
+    {
+      start: REVIEW_NOISE_LINE.start,
+      end: REVIEW_NOISE_LINE.end,
+      original: REVIEW_NOISE_LINE.original,
+      corrected: REVIEW_NOISE_LINE.korean,
+      reading: "",
+      ko: "",
+      confidence: "high",
+      kind: "korean-noise",
+      audioVerified: false,
+      audio: null,
+    },
+  ],
+};
 /**
  * 일문따 읽기 글(-2): 소책자에 원문이 없어 받아 적은 줄에 낱말 칩만 붙는다.
  * 食べる는 드릴 낱말(세션이 고른 기초 동사)이라 활용한 꼴(食べました)로도 칩이 된다
@@ -321,6 +388,22 @@ export function writeFakeTextbook(contentDir: string, mediaDir: string) {
       path.join(contentDir, "transcripts", "ilmunta", `${item}.json`),
       JSON.stringify({ book: "ilmunta", item, kind, durationSec, segments }),
     );
+  mkdirSync(path.join(contentDir, "transcripts-review", "ilmunta"), {
+    recursive: true,
+  });
+  writeFileSync(
+    path.join(
+      contentDir,
+      "transcripts-review",
+      "ilmunta",
+      `${pairLecture}.json`,
+    ),
+    JSON.stringify({
+      book: "ilmunta",
+      item: pairLecture,
+      ...ILMUNTA_LECTURE_REVIEW,
+    }),
+  );
 
   const mp3 = silentMp3(AUDIO_SECONDS);
   const longMp3 = silentMp3(LONG_LECTURE.seconds);
