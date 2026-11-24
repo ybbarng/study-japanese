@@ -305,6 +305,7 @@ async function retryFile(
         prompted: cached.prompted[segKey(s)] ?? null,
         plain: cached.plain[segKey(s)] ?? null,
         durationSec: s.end - s.start,
+        mixedSpeech: job.kind === "lecture",
       },
       makesWhole,
       toKana,

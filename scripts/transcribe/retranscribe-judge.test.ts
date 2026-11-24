@@ -121,6 +121,33 @@ describe("judge", () => {
     expect(result).toEqual({ change: false, reason: "not-better" });
   });
 
+  it("keeps a line whose original has Hangul (Korean speech whisper would translate)", () => {
+    const result = judge(
+      {
+        original: "で대답합니다",
+        prompted: "で答えます",
+        plain: "で答えます",
+        durationSec: 1.5,
+      },
+      never,
+      plainKana,
+    );
+    expect(result).toEqual({ change: false, reason: "no-safe-option" });
+  });
+
+  it("in a lecture, does not change a line just because both new decodes agree", () => {
+    const decodes = {
+      original: "そうえんにかく",
+      prompted: "公園にいく",
+      plain: "公園にいく",
+      durationSec: 1.5,
+    };
+    expect(judge({ ...decodes, mixedSpeech: true }, never, plainKana)).toEqual({
+      change: false,
+      reason: "not-better",
+    });
+  });
+
   it("keeps the original when the new decodes disagree with each other", () => {
     const result = judge(
       {

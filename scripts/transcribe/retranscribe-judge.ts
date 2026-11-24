@@ -9,7 +9,7 @@
  *    prompt에 넣은 문장을 소리 없이 베껴 쓴 것을 막으려고, 새 글이 다른 받아쓰기(plain 또는 원래)와도
  *    어느 정도 닮아야 한다(소리가 뒷받침한다).
  * ② agreed: 맞춤은 없지만 prompted·plain 두 받아쓰기가 글자까지 같고, 원래 글만 동떨어졌다
- *    (가타카나투성이 글은 한국어를 잘못 들은 것이라 받지 않는다).
+ *    (가타카나투성이 글은 한국어를 잘못 들은 것이라 받지 않는다). 강의에서는 쓰지 않는다.
  * ③ kanji: 읽기는 원래와 같고, 두 받아쓰기가 똑같이 한자를 더 써서 적었다(표기만 고친다).
  * 어느 쪽이든 먼저 안전 검사(환각 문구·되풀이·한글 섞임·길이)를 통과해야 한다.
  */
@@ -20,6 +20,7 @@ import { isNoiseLine, isSuspectText } from "@/lib/transcript/hallucination";
 const JA_CHAR = /[ぁ-ゖァ-ヺ\p{Script=Han}]/u;
 /** 일본어 받아쓰기에 섞이면 잘못 들은 것: 한글·로마자 */
 const FOREIGN = /[가-힣ㄱ-ㅎㅏ-ㅣA-Za-zＡ-Ｚａ-ｚ]/gu;
+const HANGUL = /[가-힣]/u;
 
 function foreignCount(s: string): number {
   return s.match(FOREIGN)?.length ?? 0;
@@ -57,6 +58,12 @@ export type Decodes = {
   plain: string | null;
   /** 구간 길이(초) */
   durationSec: number;
+  /**
+   * 강의처럼 한국어 설명 사이에 일본어가 끼는 오디오. 한국어 말소리를 일본어로 잘못 받은 줄은
+   * 두 받아쓰기가 똑같이 엉터리가 되거나 일본어로 번역되므로 agreed를 쓰지 않는다
+   * (일문따 강의 표본 25개 중 6개가 엉터리로 바뀌었다. 한자가 있어도 지어낸 한자였다)
+   */
+  mixedSpeech?: boolean;
 };
 
 export type Judged =
@@ -72,6 +79,8 @@ export function isSafeReplacement(
 ): boolean {
   const t = text.trim();
   if (t === "" || !JA_CHAR.test(t)) return false;
+  // 원래 글에 한글이 있으면 그 자리에서 한국어로 말한 것이다. 일본어로 고정해 받으면 whisper가 번역해 버린다
+  if (HANGUL.test(original)) return false;
   if (isNoiseLine(t) || isSuspectText(t)) return false;
   if (foreignCount(t) > foreignCount(original)) return false;
   const n = [...normalizeJa(toKana(t))].length;
@@ -125,7 +134,8 @@ export function judge(
     if (
       agree &&
       toOriginal <= 1 - AGREE_MARGIN &&
-      katakanaShare(d.prompted) <= MAX_KATAKANA_SHARE
+      katakanaShare(d.prompted) <= MAX_KATAKANA_SHARE &&
+      !d.mixedSpeech
     )
       return { change: true, kind: "agreed", text: d.prompted.trim() };
     // 읽기는 원래와 같고 두 받아쓰기가 똑같이 한자로 적었으면(とくいな → 得意な) 표기만 고친다
