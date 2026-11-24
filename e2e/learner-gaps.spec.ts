@@ -66,8 +66,9 @@ test("활용을 다루지 않는 5과 끝 확인 문제는 이 과 쓰임(が를
   await expect(quiz.getByText("1 / 3")).toBeAttached();
 
   // 쓰임 문제 둘: 한국어는 '~을 좋아하다'지만 일본어는 が. を를 고르면 정답 が와 까닭을 보인다
+  // 틀린 문제는 끝에 한 번 더 붙으므로 전체 수는 늘어난다(1 / 3 → 2 / 4 → 3 / 5)
   for (const n of [1, 2]) {
-    await expect(quiz.getByText(`${n} / 3`)).toBeAttached();
+    await expect(quiz.getByText(`${n} / ${n + 2}`)).toBeAttached();
     await expect(quiz.getByText("빈칸에 알맞은 조사는?")).toBeVisible();
     await quiz
       .locator("ul li button")
@@ -81,7 +82,7 @@ test("활용을 다루지 않는 5과 끝 확인 문제는 이 과 쓰임(が를
   }
 
   // 셋째는 이 과 낱말 문제
-  await expect(quiz.getByText("3 / 3")).toBeAttached();
+  await expect(quiz.getByText("3 / 5")).toBeAttached();
   const right = await rightLabel(quiz);
   const labels = await quiz.locator("ul li button").allInnerTexts();
   const wrong = labels.findIndex(
