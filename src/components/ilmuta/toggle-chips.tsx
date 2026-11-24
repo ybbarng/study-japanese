@@ -6,7 +6,7 @@ export interface Toggle {
   id: string;
   label: string;
   on: boolean;
-  /** 꺼졌을 때 취소선(보이기 스위치). "가리기"처럼 켜면 숨기는 스위치는 false */
+  /** 보이기 스위치라 꺼지면 "숨김"을 붙인다. "가리기"처럼 켜면 숨기는 스위치는 false */
   strike?: boolean;
 }
 
@@ -30,13 +30,15 @@ export function ToggleChips({
             "rounded-full border px-4 py-2 text-sm",
             t.on
               ? "border-accent bg-accent-soft text-accent"
-              : cn(
-                  "border-line text-ink-faint",
-                  t.strike !== false && "line-through",
-                ),
+              : "border-dashed border-line text-ink-faint",
           )}
         >
-          {t.label}
+          {/* 켜짐·꺼짐을 색만이 아니라 글로도: 켜면 ✓, 보이기 스위치를 끄면 "숨김"(취소선은 꺼진 줄 알아보기 어려웠다) */}
+          {t.on
+            ? `✓ ${t.label}`
+            : t.strike !== false
+              ? `${t.label} 숨김`
+              : t.label}
         </button>
       ))}
     </div>
