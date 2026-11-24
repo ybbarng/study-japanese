@@ -43,7 +43,10 @@ export function ChoiceView({
       <p className="text-sm text-ink-soft">{p.ask}</p>
       <div className="mt-3">
         {p.kind === "word" ? (
-          <p className="font-ja-serif text-4xl lg:text-5xl">
+          <p
+            data-quiz-word={p.word.ja}
+            className="font-ja-serif text-4xl lg:text-5xl"
+          >
             {renderJa(p.word.ja, {
               reading:
                 p.word.reading ?? (answered ? q.reveal?.reading : undefined),
@@ -67,7 +70,10 @@ export function ChoiceView({
               </button>
             ) : null}
             {showText || answered ? (
-              <p className="font-ja-serif text-2xl lg:text-3xl">
+              <p
+                data-quiz-word={p.fallback.ja}
+                className="font-ja-serif text-2xl lg:text-3xl"
+              >
                 {renderJa(p.fallback.ja, {
                   reading: p.fallback.reading,
                   ruby: true,

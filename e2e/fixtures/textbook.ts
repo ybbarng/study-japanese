@@ -63,6 +63,41 @@ const ILMUNTA_EXAMPLE_CUES = [
   { start: 2, end: 2.8, text: ILMUNTA_PAIR.ja, lang: "ja" },
 ] as const;
 
+/**
+ * 2강은 구역 끝 확인 문제를 시험하려고 낱말·문형을 여럿 둔다(다른 강은 낱말이 하나뿐이라 보기를 못 만들어
+ * 문제가 나오지 않는다). 단어 예문(02-2)의 가짜 자막은 낱말마다 일본어 줄이 하나씩이라 소리 구간이 생긴다.
+ */
+export const QUIZ_LESSON = 2;
+export const QUIZ_WORDS = [
+  { ja: "川", ko: "강", reading: "かわ" },
+  { ja: "空", ko: "하늘", reading: "そら" },
+  { ja: "花", ko: "꽃", reading: "はな" },
+  { ja: "海", ko: "바다", reading: "うみ" },
+  { ja: "ねこ", ko: "고양이" },
+] as const;
+const QUIZ_PATTERNS = {
+  patterns: [
+    { no: 1, ja: "～は～だ。", ko: "~는 ~이다." },
+    { no: 2, ja: "～も～だ。", ko: "~도 ~이다." },
+    { no: 3, ja: "～の前に[まえに]", ko: "~전에" },
+  ],
+  sentences: [
+    { ja: "川は空だ。", ko: "강은 하늘이다.", pattern: 1 },
+    { ja: "海は空だ。", ko: "바다는 하늘이다.", pattern: 1 },
+    { ja: "花も花だ。", ko: "꽃도 꽃이다.", pattern: 2 },
+    { ja: "ねこもねこだ。", ko: "고양이도 고양이다.", pattern: 2 },
+    { ja: "川の前に花。", ko: "강 앞에 꽃.", pattern: 3 },
+    // 다른 강과 같이 가나 첫 읽기에 골리는 문장(kana-bridge·desktop-keys 시험이 강마다 하나씩 본다)
+    { ja: "山のうえ。", ko: "산 위.", pattern: 1 },
+  ],
+};
+const QUIZ_WORD_CUES = QUIZ_WORDS.map((w, i) => ({
+  start: i * 0.5,
+  end: i * 0.5 + 0.4,
+  text: w.ja,
+  lang: "ja",
+}));
+
 const ILMUTA_LESSONS = [0, 1, 2, 3];
 const ILMUNTA_LESSONS = [1, 2];
 
@@ -104,16 +139,25 @@ function ilmutaLesson(no: number) {
               ],
             }),
             example(`${n}-2`, "words", {
-              sentences: [{ ja: "山", ko: "산", reading: "やま" }],
+              sentences:
+                no === QUIZ_LESSON
+                  ? QUIZ_WORDS
+                  : [{ ja: "山", ko: "산", reading: "やま" }],
             }),
-            example(`${n}-3`, "patterns", {
-              patterns: [{ no: 1, ja: "～は～だ。", ko: "~는 ~이다." }],
-              sentences: [
-                { ja: "山は山だ。", ko: "산은 산이다.", pattern: 1 },
-                // 히라가나 기본 글자와 후리가나만으로 읽히는 문장(가나 첫 읽기에 골린다)
-                { ja: "山のうえ。", ko: "산 위.", pattern: 1 },
-              ],
-            }),
+            example(
+              `${n}-3`,
+              "patterns",
+              no === QUIZ_LESSON
+                ? QUIZ_PATTERNS
+                : {
+                    patterns: [{ no: 1, ja: "～は～だ。", ko: "~는 ~이다." }],
+                    sentences: [
+                      { ja: "山は山だ。", ko: "산은 산이다.", pattern: 1 },
+                      // 히라가나 기본 글자와 후리가나만으로 읽히는 문장(가나 첫 읽기에 골린다)
+                      { ja: "山のうえ。", ko: "산 위.", pattern: 1 },
+                    ],
+                  },
+            ),
           ],
   };
 }
@@ -188,6 +232,18 @@ export function writeFakeTextbook(contentDir: string, mediaDir: string) {
       kind: "example",
       durationSec: FOLLOW_EXAMPLE.seconds,
       segments: FOLLOW_EXAMPLE_CUES,
+    }),
+  );
+
+  const quizWords = `${nn(QUIZ_LESSON)}-2`;
+  writeFileSync(
+    path.join(contentDir, "transcripts", "ilmuta", `${quizWords}.json`),
+    JSON.stringify({
+      book: "ilmuta",
+      item: quizWords,
+      kind: "example",
+      durationSec: AUDIO_SECONDS,
+      segments: QUIZ_WORD_CUES,
     }),
   );
 
