@@ -85,6 +85,16 @@ describe("받아 적은 글 속 낱말 자리 확인", () => {
     expect(fits("この方が先生だ", "方")).toBe(false);
   });
 
+  it("읽기가 여럿인 한 글자 間(あいだ·ま)도 달지 않는다", () => {
+    expect(fits("駅に間に合う", "間")).toBe(false);
+  });
+
+  it("표기가 같고 읽기가 다른 동사(入れ: いれ·はいれ, 空く: あく·すく)는 달지 않는다", () => {
+    expect(fits("箱に入れます", "入れます")).toBe(false);
+    expect(fits("席が空く", "空く")).toBe(false);
+    expect(fits("窓が開いた", "開いた")).toBe(false);
+  });
+
   it("何는 を·が 앞에서만 그 낱말(なに)로 본다", () => {
     expect(fits("何を買う", "何")).toBe(true);
     expect(fits("何の本", "何")).toBe(false);
@@ -123,6 +133,22 @@ describe("자리가 확인된 낱말에만 다는 읽는 법", () => {
   it("이름처럼 붙은 한자에는 읽는 법을 달지 않는다", () => {
     expect(verifiedRubySegments("花子が来た", glossary)).toEqual([
       { text: "花子が来た" },
+    ]);
+  });
+
+  it("동사 연용형 바로 뒤 한자 낱말은 합성어 뒷부분이라 첫소리가 탁해질 수 있으니 읽기를 달지 않는다", () => {
+    // 置き+時計(とけい → どけい). 한 글자 낱말(考え方)은 원래 규칙으로 빠지고, 두 글자 이상도 뺀다
+    expect(verifiedRubySegments("置き時計を買う", { 時計: "とけい" })).toEqual([
+      { text: "置き時計を買う" },
+    ]);
+    // 조사 뒤, 히라가나 셋 이상 뒤(行くとき)는 그대로 단다
+    expect(verifiedRubySegments("私の時計", { 時計: "とけい" })).toEqual([
+      { text: "私の" },
+      { text: "時計", reading: "とけい" },
+    ]);
+    expect(verifiedRubySegments("行くとき電話", { 電話: "でんわ" })).toEqual([
+      { text: "行くとき" },
+      { text: "電話", reading: "でんわ" },
     ]);
   });
 

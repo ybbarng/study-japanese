@@ -25,9 +25,15 @@ const DIGIT = /[0-9０-９]/u;
 const AFTER_NOUN = /^(?:[はがをにでともへやかよねだじの]|まで)/u;
 const KATAKANA_ONLY = /^[ァ-ヺー]+$/u;
 /**
- * 앞뒤 글자만으로 읽기·뜻을 가를 수 없는 한 글자 한자 낱말: 方는 분(かた)일 수도, 쪽(ほう: 食べた方がいい)일 수도 있다
+ * 앞뒤 글자만으로 읽기·뜻을 가를 수 없는 한 글자 한자 낱말: 方는 분(かた)일 수도, 쪽(ほう: 食べた方がいい)일 수도 있다.
+ * 間는 사이(あいだ)일 수도, 間に合う의 ま일 수도 있다
  */
-const AMBIGUOUS_SINGLE = new Set(["方"]);
+const AMBIGUOUS_SINGLE = new Set(["方", "間"]);
+/**
+ * 표기가 같고 읽기가 다른 동사의 활용한 꼴: 入れ〜(入れる いれる·入る의 가능형 はいれる),
+ * 空〜(空く あく·すく), 開〜(開く あく·ひらく). 이 자리로 시작하는 낱말은 읽기를 가를 수 없다
+ */
+const AMBIGUOUS_VERB = /^(?:入れ|[空開][いかきくけこっ])/u;
 const HIRAGANA = /[ぁ-ゖ]/u;
 /**
  * 히라가나 낱말 바로 앞에 와도 되는 히라가나(조사·て형 끝). 그 밖의 히라가나 뒤면 다른 말의 일부일 수 있다
@@ -134,6 +140,7 @@ export function wordFitsAt(
     );
   if (!hasKanji(form)) return hiraganaStartFits(before);
   if (AMBIGUOUS_SINGLE.has(form)) return false;
+  if (AMBIGUOUS_VERB.test(form)) return false;
   // 何는 を·が 앞에서만 なに로 확실하다(何の·何で·何です는 なん)
   if (form === "何" && !/^[をが]/u.test(text.slice(at + 1))) return false;
   const single = [...form].length === 1;
@@ -157,7 +164,20 @@ export function wordFitsAt(
 }
 
 /**
+ * text의 at 바로 앞이 동사 연용형(한자 + 히라가나 1~2자, 끝은 어간 끝 가나)인가: 置き時計·呼び出し電話처럼
+ * 뒤 낱말이 합성어 뒷부분이 되어 첫소리가 탁해질 수 있다(とけい → どけい).
+ * 히라가나가 셋 이상이면 연용형보다 다른 말일 때가 많아(来るとき) 보지 않는다
+ */
+function afterVerbStem(text: string, at: number): boolean {
+  if (!STEM_END.test(text[at - 1] ?? "")) return false;
+  let start = at - 1;
+  while (start > 0 && HIRAGANA.test(text[start - 1])) start--;
+  return at - start <= 2 && isKanji(text[start - 1]);
+}
+
+/**
  * rubySegments(ruby.ts)와 같되, 자리가 확인된 낱말에만 읽는 법을 단다(앞에서부터 가장 긴 확인된 낱말).
+ * 동사 연용형 바로 뒤 한자 낱말(置き時計)은 첫소리가 탁해질 수 있어 읽기를 달지 않는다.
  */
 export function verifiedRubySegments(
   text: string,
@@ -182,7 +202,10 @@ export function verifiedRubySegments(
     const hit = byFirst
       .get(text[i])
       ?.find((k) => text.startsWith(k, i) && wordFitsAt(text, i, k, compounds));
-    if (hit) {
+    if (hit && isKanji(hit[0]) && afterVerbStem(text, i)) {
+      pushPlain(hit);
+      i += hit.length;
+    } else if (hit) {
       for (const seg of splitOkurigana(hit, glossary[hit])) {
         if (seg.reading) out.push(seg);
         else pushPlain(seg.text);
