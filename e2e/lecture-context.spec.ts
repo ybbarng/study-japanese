@@ -101,7 +101,8 @@ test("긴 한국어 설명 뒤에는 오래된 일본어 줄이 지금 칸에 �
 
   // 한국어 설명이 40초 넘게 이어진 뒤: 그 일본어 줄은 내려가고 지금 설명 줄이 보인다
   const talk = TALK_LECTURE_CUES[12];
-  await seekAudio(page, talk.start + 0.5);
+  // 줄 시작 0.8초 안에 누르면 화면에 보이던 앞 줄을 잡으니(의도한 규칙) 그보다 뒤로 옮긴다
+  await seekAudio(page, talk.start + 1.5);
   await expect(now.getByText(talk.text).first()).toBeVisible();
   await expect(now.getByText(old.text)).toHaveCount(0);
 
