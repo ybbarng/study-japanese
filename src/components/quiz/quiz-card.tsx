@@ -80,6 +80,7 @@ export function QuizCard({
   onRestart,
   clip,
   renderJa,
+  missedNote = "틀린 문제는 기록해 두었다가 나중에 다시 냅니다.",
 }: {
   title: string;
   questions: Question[];
@@ -87,6 +88,8 @@ export function QuizCard({
   onRestart: () => void;
   clip?: ClipControl;
   renderJa: RenderJa;
+  /** 틀린 문제가 있을 때 끝 화면에 보일 안내(기록하지 않는 문제는 다르게 적는다) */
+  missedNote?: string;
 }) {
   const [queue, setQueue] = useState(questions);
   const [index, setIndex] = useState(0);
@@ -225,9 +228,7 @@ export function QuizCard({
             {questions.length}문제 중 <b className="text-accent">{firstTry}</b>
             개를 한 번에 맞혔어요
             {firstTry < questions.length ? (
-              <span className="block text-sm text-ink-soft">
-                틀린 문제는 기록해 두었다가 나중에 다시 냅니다.
-              </span>
+              <span className="block text-sm text-ink-soft">{missedNote}</span>
             ) : null}
           </p>
           <button
