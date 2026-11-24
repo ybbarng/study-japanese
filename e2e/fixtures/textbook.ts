@@ -76,6 +76,18 @@ export const ILMUNTA_LECTURE_CUES = [
   { start: 6, end: 12, text: "テストの例文です", lang: "ja" },
   { start: 14, end: 18, text: "시험 문법 강의 셋째 줄입니다.", lang: "ko" },
 ] as const;
+/**
+ * 일문따 읽기 글(-2): 소책자에 원문이 없어 받아 적은 줄에 낱말 칩만 붙는다.
+ * 食べる는 드릴 낱말(세션이 고른 기초 동사)이라 활용한 꼴(食べました)로도 칩이 된다
+ */
+export const ILMUNTA_READING = {
+  line: "朝はパンを食べました",
+  chip: "食べる",
+  gloss: "먹다",
+} as const;
+const ILMUNTA_READING_CUES = [
+  { start: 0.2, end: 2.8, text: ILMUNTA_READING.line, lang: "ja" },
+] as const;
 const ILMUNTA_EXAMPLE_CUES = [
   { start: 0, end: 0.8, text: ILMUNTA_PAIR.ja, lang: "ja" },
   { start: 1, end: 1.8, text: ILMUNTA_PAIR.ko, lang: "ko" },
@@ -210,6 +222,17 @@ function ilmuntaLesson(no: number) {
         kind: "grammarExamples",
         sentences: [],
       },
+      ...(no === ILMUNTA_PAIR_LESSON.no
+        ? [
+            {
+              id: `${n}-2`,
+              file: `예문 mp3/${n}-2.mp3`,
+              durationSec: AUDIO_SECONDS,
+              kind: "reading",
+              sentences: [],
+            },
+          ]
+        : []),
     ],
   };
 }
@@ -292,6 +315,7 @@ export function writeFakeTextbook(contentDir: string, mediaDir: string) {
   for (const [item, kind, durationSec, segments] of [
     [pairLecture, "lecture", ILMUNTA_PAIR_LESSON.seconds, ILMUNTA_LECTURE_CUES],
     [`${pn}-1`, "example", AUDIO_SECONDS, ILMUNTA_EXAMPLE_CUES],
+    [`${pn}-2`, "example", AUDIO_SECONDS, ILMUNTA_READING_CUES],
   ] as const)
     writeFileSync(
       path.join(contentDir, "transcripts", "ilmunta", `${item}.json`),

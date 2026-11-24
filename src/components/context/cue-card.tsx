@@ -1,7 +1,8 @@
 import { PictureMark } from "@/components/pictures/picture-mark";
+import { CueChipList } from "@/components/word-tap/cue-chip-list";
 import { CueWordTaps } from "@/components/word-tap/cue-word-taps";
 import { cn } from "@/lib/cn";
-import type { CueSentence, CueWord } from "@/lib/context/cards";
+import type { CueSentence } from "@/lib/context/cards";
 import { type ContextCue, cueText, cueUnsure } from "@/lib/context/cues";
 
 // 자막 구간 하나를 그리는 조각. 소책자 문장과 구간 전체를 맞췄으면 받아 적은 글 대신 정확한 소책자 글을
@@ -49,6 +50,9 @@ export const TRANSCRIPT_NOTE = "자막에서 받아 적은 글 — 교재와 다
 
 /** 교재와 맞추지 못한 일본어 줄에 붙이는 알림 */
 export const UNSURE_NOTE = "받아쓰기 — 정확하지 않을 수 있음";
+
+/** 소책자에 원문이 없는 오디오의 받아 적은 줄(낱말 칩만 있고 문장 뜻은 없다) */
+export const HEARD_NOTE = "받아 적은 글 · 뜻 없음";
 
 /** 받아 적은 문장에 뜻을 찾지 못했을 때 비워 두지 않고 알린다(뜻이 빠진 줄 모르고 넘어가지 않게) */
 export const NO_MEANING_NOTE = "뜻을 찾지 못한 문장";
@@ -124,23 +128,31 @@ export function CueHeadline({
         {fromTranscript(cue) ? <TranscriptNote /> : null}
       </span>
     );
-  // 교재와 맞추지 못한 일본어 줄은 받아쓰기라 틀릴 수 있다: 작고 흐리게, 지금 줄이면 알림을 붙인다
-  if (cueUnsure(cue))
+  // 교재와 맞추지 못한 일본어 줄은 받아쓰기라 틀릴 수 있다: 작고 흐리게, 지금 줄이면 알림을 붙인다.
+  // 원문이 없는 오디오에서 일본어로 볼 만한 줄(noBookText)은 잡음과 갈리게 조금 진하게, 뜻이 없다고 알린다
+  if (cueUnsure(cue)) {
+    const heard = !!cue.card?.noBookText;
     return (
       <span className="block">
         <span
           lang="ja"
-          className={cn("block leading-relaxed text-ink-faint", KO_SIZE[size])}
+          data-cue-heard={heard ? "" : undefined}
+          className={cn(
+            "block leading-relaxed",
+            heard ? "font-ja-serif text-ink-soft" : "text-ink-faint",
+            KO_SIZE[size],
+          )}
         >
           {cueText(cue)}
         </span>
         {detail ? (
           <span className="mt-1 block text-xs text-ink-faint">
-            {UNSURE_NOTE}
+            {heard ? HEARD_NOTE : UNSURE_NOTE}
           </span>
         ) : null}
       </span>
     );
+  }
   return (
     <span
       lang={cue.lang}
@@ -152,36 +164,6 @@ export function CueHeadline({
     >
       {cueText(cue)}
     </span>
-  );
-}
-
-function Words({ words }: { words: CueWord[] }) {
-  if (words.length === 0) return null;
-  return (
-    <ul aria-label="이 말의 낱말" className="mt-3 flex flex-wrap gap-2">
-      {words.map((w) => (
-        <li
-          key={w.ja}
-          className="rounded-xl bg-bg-raised px-3 py-1.5 text-sm leading-tight"
-        >
-          <PictureMark
-            picture={w.picture}
-            emoji={w.emoji}
-            size={w.picture ? 28 : 20}
-            className="mr-1.5 -my-1"
-          />
-          <span lang="ja" className="font-ja-serif text-base text-ink">
-            {w.ja}
-          </span>
-          {w.reading ? (
-            <span lang="ja" className="ml-1.5 text-ink-soft">
-              {w.reading}
-            </span>
-          ) : null}
-          <span className="ml-1.5 text-ink-soft">{w.ko}</span>
-        </li>
-      ))}
-    </ul>
   );
 }
 
@@ -245,7 +227,7 @@ export function CueExtras({ cue }: { cue: ContextCue }) {
           {fromTranscript(cue) ? <TranscriptNote /> : null}
         </div>
       ) : null}
-      <Words words={card.words} />
+      <CueChipList words={card.words} />
     </div>
   );
 }

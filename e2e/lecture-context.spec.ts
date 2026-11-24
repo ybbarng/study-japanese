@@ -3,6 +3,7 @@ import {
   ILMUNTA_LECTURE_CUES,
   ILMUNTA_PAIR,
   ILMUNTA_PAIR_LESSON,
+  ILMUNTA_READING,
   LONG_LECTURE,
   LONG_LECTURE_BOOKLET,
   LONG_LECTURE_CUES,
@@ -78,6 +79,36 @@ test("일문따 강의에서 예문 자막 짝과 맞춘 줄은 뜻 카드와 �
       .locator("visible=true")
       .first(),
   ).toBeVisible();
+});
+
+test("일문따 읽기 글의 받아 적은 줄은 뜻 없음 표시와 낱말 칩이 뜨고, 칩을 누르면 낱말 정보 창이 열린다", async ({
+  page,
+  isMobile,
+}) => {
+  // 자막 목록을 고르는 칸은 PC 오른쪽 곁칸에만 있다
+  test.skip(isMobile, "PC 곁칸의 자막 목록으로 본다");
+  await login(page, `/ilmunta/${ILMUNTA_PAIR_LESSON.no}`);
+  const aside = page.getByRole("complementary", { name: "강의 자막" });
+  await aside.getByRole("button", { name: "읽기 예문" }).click();
+  await aside
+    .getByRole("button", { name: ILMUNTA_READING.line, exact: false })
+    .first()
+    .click();
+  await expect.poll(() => audioIsPlaying(page)).toBe(true);
+  await expect(aside.getByText("받아 적은 글 · 뜻 없음").first()).toBeVisible();
+
+  const chip = aside
+    .locator("[data-word-chip]")
+    .filter({ hasText: ILMUNTA_READING.chip })
+    .first();
+  await chip.click();
+  const dialog = page.locator("[data-word-panel]");
+  await expect(dialog).toBeVisible();
+  await expect(
+    dialog.getByText(ILMUNTA_READING.gloss, { exact: true }),
+  ).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
 });
 
 test("긴 한국어 설명 뒤에는 오래된 일본어 줄이 지금 칸에 남지 않고, 이 문장 반복도 그 줄로 가지 않는다", async ({

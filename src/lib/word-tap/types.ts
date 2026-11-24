@@ -9,7 +9,8 @@ export interface WordTapSentence {
 }
 
 export interface WordTapData {
-  book: "ilmuta";
+  /** 일문따는 분석 파일이 없어 낱말 칩만 누른다(analyses는 비어 있다) */
+  book: "ilmuta" | "ilmunta";
   lessonNo: number;
   /** 문장 글 → 낱말 분석. 화면은 보이는 문장 글로 찾는다(분석이 없는 문장은 글만 보인다) */
   analyses: Record<string, WordTapSentence>;
@@ -17,6 +18,9 @@ export interface WordTapData {
   learned: LearnedIndex;
 }
 
-export function emptyWordTap(lessonNo: number): WordTapData {
-  return { book: "ilmuta", lessonNo, analyses: {}, learned: {} };
+export function emptyWordTap(
+  lessonNo: number,
+  book: WordTapData["book"] = "ilmuta",
+): WordTapData {
+  return { book, lessonNo, analyses: {}, learned: {} };
 }

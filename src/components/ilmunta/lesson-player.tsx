@@ -5,11 +5,13 @@ import { LectureContext } from "@/components/context/lecture-context";
 import { TranscriptList } from "@/components/context/transcript-list";
 import { InlinePlayer } from "@/components/player/inline-player";
 import { StickyPanel } from "@/components/shell/page-frame";
+import { WordTapProvider } from "@/components/word-tap/word-tap-provider";
 import { cn } from "@/lib/cn";
 import type { Transcript } from "@/lib/context/cues";
 import { lessonTracks } from "@/lib/ilmunta/tracks";
 import { currentTrack, usePlayer } from "@/lib/player/store";
 import type { IlmuntaLesson } from "@/lib/textbook/schema";
+import { emptyWordTap } from "@/lib/word-tap/types";
 
 function formatDuration(sec: number): string {
   const m = Math.floor(sec / 60);
@@ -39,6 +41,7 @@ export function LessonPlayer({
   after?: ReactNode;
 }) {
   const tracks = useMemo(() => lessonTracks(lesson), [lesson]);
+  const wordTap = useMemo(() => emptyWordTap(lesson.no, "ilmunta"), [lesson]);
   const playing = usePlayer((s) => {
     const t = currentTrack(s);
     return t?.book === "ilmunta" && s.wantPlaying ? t.item : null;
@@ -117,152 +120,155 @@ export function LessonPlayer({
     ) : null;
 
   return (
-    <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_26rem] lg:gap-10">
-      <div className="flex min-w-0 flex-col gap-6">
-        {/* 폰: 재생기를 화면 위에 붙인다(내려 읽으면 한 줄로 접힌다). PC는 오른쪽 칸 맨 위 */}
-        <div className="contents lg:hidden">
-          <InlinePlayer
-            variant="top"
-            idle={idle}
-            collapsedChildren={
-              shown && loaded === shown ? (
+    // 낱말 칩을 누르면 낱말 정보 창이 열린다(일문따는 분석 파일이 없어 칩 단위로만)
+    <WordTapProvider data={wordTap}>
+      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_26rem] lg:gap-10">
+        <div className="flex min-w-0 flex-col gap-6">
+          {/* 폰: 재생기를 화면 위에 붙인다(내려 읽으면 한 줄로 접힌다). PC는 오른쪽 칸 맨 위 */}
+          <div className="contents lg:hidden">
+            <InlinePlayer
+              variant="top"
+              idle={idle}
+              collapsedChildren={
+                shown && loaded === shown ? (
+                  <LectureContext
+                    key={`lines-${shown}`}
+                    transcript={shownTranscript}
+                    book="ilmunta"
+                    item={shown}
+                    lines
+                    className="mt-1.5"
+                  />
+                ) : null
+              }
+            >
+              {shown && loaded === shown ? (
                 <LectureContext
-                  key={`lines-${shown}`}
+                  key={shown}
                   transcript={shownTranscript}
                   book="ilmunta"
                   item={shown}
-                  lines
-                  className="mt-1.5"
+                  compact
+                  className="mt-2"
                 />
-              ) : null
-            }
-          >
+              ) : null}
+            </InlinePlayer>
+          </div>
+          {before}
+          <section className="flex flex-col gap-4" aria-label="강의와 예문">
+            <button
+              type="button"
+              onClick={() => playQueue(tracks, firstUnheard)}
+              className="rounded-2xl bg-accent px-5 py-4 text-left text-white active:opacity-90 lg:hover:brightness-110"
+            >
+              <span className="block text-lg font-bold">
+                {firstUnheard > 0 ? "이어서 듣기" : "처음부터 듣기"}
+              </span>
+              <span className="text-sm opacity-80">
+                강의 {lesson.lectures.length}개 → 예문 {lesson.examples.length}
+                개를 차례로
+              </span>
+            </button>
+
+            <ol className="flex flex-col overflow-hidden rounded-2xl bg-bg-raised">
+              {tracks.map((t, i) => {
+                const isPlaying = playing === t.item;
+                return (
+                  <li
+                    key={t.item}
+                    className="border-b border-line last:border-b-0"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // 지금 올라 있는 트랙을 다시 누르면 멈추거나 이어서 듣는다(처음으로 돌리지 않게)
+                        const st = usePlayer.getState();
+                        if (currentTrack(st)?.item === t.item)
+                          st.setPlaying(!st.wantPlaying);
+                        else playQueue(tracks, i);
+                        if (transcripts[t.item]) setChosen(t.item);
+                      }}
+                      className={cn(
+                        "flex w-full items-center gap-3 px-4 py-3 text-left active:bg-bg-sunken lg:hover:bg-bg-sunken",
+                        isPlaying && "bg-accent-soft",
+                      )}
+                      aria-current={isPlaying ? "true" : undefined}
+                    >
+                      <span
+                        className={cn(
+                          "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm",
+                          isPlaying
+                            ? "bg-accent text-white"
+                            : "bg-bg-sunken text-ink-soft",
+                        )}
+                        aria-hidden
+                      >
+                        {isPlaying ? "❚❚" : "▶"}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate">
+                          {t.title}
+                          {isPlaying ? (
+                            <span className="ml-2 text-xs text-accent">
+                              재생 중
+                            </span>
+                          ) : null}
+                        </span>
+                        <span className="text-xs text-ink-faint">
+                          {formatDuration(durations[i] ?? 0)}
+                          {transcripts[t.item] ? " · 자막" : ""}
+                        </span>
+                      </span>
+                      {heardSet.has(t.item) ? (
+                        <span className="text-sm text-good">
+                          <span aria-hidden>✓</span>
+                          <span className="sr-only">끝까지 들음</span>
+                        </span>
+                      ) : null}
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+          {after}
+        </div>
+
+        <aside aria-label="강의 자막" className="hidden lg:block">
+          <StickyPanel className="max-h-[calc(100dvh-4rem)]">
+            <InlinePlayer variant="panel" idle={idle} />
             {shown && loaded === shown ? (
               <LectureContext
-                key={shown}
+                key={`ctx-${shown}`}
                 transcript={shownTranscript}
                 book="ilmunta"
                 item={shown}
-                compact
-                className="mt-2"
+                className="shrink-0"
               />
             ) : null}
-          </InlinePlayer>
-        </div>
-        {before}
-        <section className="flex flex-col gap-4" aria-label="강의와 예문">
-          <button
-            type="button"
-            onClick={() => playQueue(tracks, firstUnheard)}
-            className="rounded-2xl bg-accent px-5 py-4 text-left text-white active:opacity-90 lg:hover:brightness-110"
-          >
-            <span className="block text-lg font-bold">
-              {firstUnheard > 0 ? "이어서 듣기" : "처음부터 듣기"}
-            </span>
-            <span className="text-sm opacity-80">
-              강의 {lesson.lectures.length}개 → 예문 {lesson.examples.length}
-              개를 차례로
-            </span>
-          </button>
-
-          <ol className="flex flex-col overflow-hidden rounded-2xl bg-bg-raised">
-            {tracks.map((t, i) => {
-              const isPlaying = playing === t.item;
-              return (
-                <li
-                  key={t.item}
-                  className="border-b border-line last:border-b-0"
-                >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      // 지금 올라 있는 트랙을 다시 누르면 멈추거나 이어서 듣는다(처음으로 돌리지 않게)
-                      const st = usePlayer.getState();
-                      if (currentTrack(st)?.item === t.item)
-                        st.setPlaying(!st.wantPlaying);
-                      else playQueue(tracks, i);
-                      if (transcripts[t.item]) setChosen(t.item);
-                    }}
-                    className={cn(
-                      "flex w-full items-center gap-3 px-4 py-3 text-left active:bg-bg-sunken lg:hover:bg-bg-sunken",
-                      isPlaying && "bg-accent-soft",
-                    )}
-                    aria-current={isPlaying ? "true" : undefined}
-                  >
-                    <span
-                      className={cn(
-                        "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm",
-                        isPlaying
-                          ? "bg-accent text-white"
-                          : "bg-bg-sunken text-ink-soft",
-                      )}
-                      aria-hidden
-                    >
-                      {isPlaying ? "❚❚" : "▶"}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate">
-                        {t.title}
-                        {isPlaying ? (
-                          <span className="ml-2 text-xs text-accent">
-                            재생 중
-                          </span>
-                        ) : null}
-                      </span>
-                      <span className="text-xs text-ink-faint">
-                        {formatDuration(durations[i] ?? 0)}
-                        {transcripts[t.item] ? " · 자막" : ""}
-                      </span>
-                    </span>
-                    {heardSet.has(t.item) ? (
-                      <span className="text-sm text-good">
-                        <span aria-hidden>✓</span>
-                        <span className="sr-only">끝까지 들음</span>
-                      </span>
-                    ) : null}
-                  </button>
-                </li>
-              );
-            })}
-          </ol>
-        </section>
-        {after}
+            <div className="flex items-baseline justify-between gap-3">
+              <h2 className="font-medium">자막 읽기</h2>
+              {chooser}
+            </div>
+            {shown && shownTranscript ? (
+              <TranscriptList
+                transcript={shownTranscript}
+                book="ilmunta"
+                item={shown}
+                onStart={startShown}
+                // 이 강의가 재생기에 올라 있으면 위 칸이 지금 하는 말을 펼쳐 보이니 목록은 지금 줄만 강조한다
+                expand={loaded !== shown}
+                className="min-h-40 flex-1"
+              />
+            ) : (
+              <p className="rounded-2xl border border-dashed border-line p-4 text-sm text-ink-faint">
+                이 과 강의 자막은 아직 없습니다. 자막이 생기면 여기에 강의 말
+                전체가 흐르고, 줄을 눌러 그 말부터 다시 들을 수 있습니다.
+              </p>
+            )}
+          </StickyPanel>
+        </aside>
       </div>
-
-      <aside aria-label="강의 자막" className="hidden lg:block">
-        <StickyPanel className="max-h-[calc(100dvh-4rem)]">
-          <InlinePlayer variant="panel" idle={idle} />
-          {shown && loaded === shown ? (
-            <LectureContext
-              key={`ctx-${shown}`}
-              transcript={shownTranscript}
-              book="ilmunta"
-              item={shown}
-              className="shrink-0"
-            />
-          ) : null}
-          <div className="flex items-baseline justify-between gap-3">
-            <h2 className="font-medium">자막 읽기</h2>
-            {chooser}
-          </div>
-          {shown && shownTranscript ? (
-            <TranscriptList
-              transcript={shownTranscript}
-              book="ilmunta"
-              item={shown}
-              onStart={startShown}
-              // 이 강의가 재생기에 올라 있으면 위 칸이 지금 하는 말을 펼쳐 보이니 목록은 지금 줄만 강조한다
-              expand={loaded !== shown}
-              className="min-h-40 flex-1"
-            />
-          ) : (
-            <p className="rounded-2xl border border-dashed border-line p-4 text-sm text-ink-faint">
-              이 과 강의 자막은 아직 없습니다. 자막이 생기면 여기에 강의 말
-              전체가 흐르고, 줄을 눌러 그 말부터 다시 들을 수 있습니다.
-            </p>
-          )}
-        </StickyPanel>
-      </aside>
-    </div>
+    </WordTapProvider>
   );
 }

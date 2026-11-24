@@ -23,6 +23,8 @@ import { WordPanel } from "./word-panel";
 export interface Selected {
   ja: string;
   index: number;
+  /** 분석 문장 대신 낱말 칩 묶음을 눌렀으면 그 조각(chip-tokens.ts). ja는 칩 열쇠다 */
+  chips?: TapToken[];
 }
 
 interface WordTapValue {
@@ -57,7 +59,9 @@ export function WordTapProvider({
   children: ReactNode;
 }) {
   const kanaDone = useKanaDone();
-  const mode = charHelpMode(data.lessonNo, kanaDone);
+  // 일문따(2분기)는 가나를 다 익힌 뒤라 글자 도움을 접어 둔다
+  const mode =
+    data.book === "ilmuta" ? charHelpMode(data.lessonNo, kanaDone) : "tap";
   const [selected, setSelected] = useState<Selected | null>(null);
   // 창을 닫으면 누른 조각으로 초점을 돌려준다(키보드로 이어 읽게)
   const trigger = useRef<HTMLElement | null>(null);
@@ -81,7 +85,7 @@ export function WordTapProvider({
     () => ({ data, mode, selected, tokensOf, select, close }),
     [data, mode, selected, tokensOf, select, close],
   );
-  const tokens = selected ? tokensOf(selected.ja) : null;
+  const tokens = selected ? (selected.chips ?? tokensOf(selected.ja)) : null;
   return (
     <WordTapContext.Provider value={value}>
       {children}
@@ -94,7 +98,7 @@ export function WordTapProvider({
           learned={data.learned}
           lessonNo={data.lessonNo}
           mode={mode}
-          onMove={(index) => setSelected({ ja: selected.ja, index })}
+          onMove={(index) => setSelected({ ...selected, index })}
           onClose={close}
         />
       ) : null}
