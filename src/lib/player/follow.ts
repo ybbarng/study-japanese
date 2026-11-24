@@ -1,4 +1,4 @@
-import { type ContextCue, cueIndexAt } from "@/lib/context/cues";
+import { type ContextCue, cueIndexAt, cueUnsure } from "@/lib/context/cues";
 import { normalizeJa } from "@/lib/context/match";
 
 // 화면이 소리를 따라가게 하는 순수 함수들. 재생 위치(초)와 자막 큐만 보고 정한다(DOM은 모른다).
@@ -58,9 +58,39 @@ export interface StageView {
   next: number;
   /**
    * 크게 붙들어 둘 일본어 줄. 지금 줄이 일본어면 그 줄, 한국어 설명 중이면 방금 나온 일본어 줄을
-   * 다음 일본어 줄이 나올 때까지 남겨 읽을 시간을 준다. 아직 일본어가 없었으면 -1.
+   * 남겨 읽을 시간을 준다. 다만 오래 붙들지는 않는다(heldStillFresh). 붙들 줄이 없으면 -1.
    */
   held: number;
+}
+
+/** 교재와 맞춘 일본어 줄을 끝난 뒤 이만큼까지 붙든다 */
+export const HOLD_MAX_SEC = 25;
+/** 그 뒤로 한국어 줄이 이만큼 지나가면 놓는다(설명이 다른 이야기로 넘어갔다) */
+export const HOLD_MAX_LINES = 6;
+/**
+ * 교재와 맞추지 못한 흐린 받아쓰기 줄은 끝난 뒤 이만큼만 남긴다. 틀린 글일 수 있어
+ * 오래 큰 글씨로 둘 까닭이 없고, 붙든 채 "이 문장 반복"·"다시 듣기"가 몇 분 전으로 끌려가던 일을 막는다
+ */
+export const HOLD_UNSURE_SEC = 4;
+
+/**
+ * 붙든 일본어 줄을 pos에서도 계속 보일지. 지금 소리 나는 줄이면 늘 그렇다.
+ * 한국어 설명이 길게 이어지면(0강처럼 일본어가 드문 강의) 몇 분 전 줄이 남지 않게 놓는다.
+ */
+export function heldStillFresh(
+  cues: ContextCue[],
+  held: number,
+  pos: number,
+): boolean {
+  const cue = cues[held];
+  if (pos <= cue.end) return true;
+  const since = pos - cue.end;
+  if (cueUnsure(cue)) return since <= HOLD_UNSURE_SEC;
+  if (since > HOLD_MAX_SEC) return false;
+  let lines = 0;
+  for (let i = held + 1; i < cues.length && cues[i].start <= pos; i++)
+    if (cues[i].lang === "ko") lines++;
+  return lines < HOLD_MAX_LINES;
 }
 
 export function stageView(cues: ContextCue[], pos: number): StageView {
@@ -73,6 +103,7 @@ export function stageView(cues: ContextCue[], pos: number): StageView {
       held = i;
       break;
     }
+  if (held >= 0 && held !== at && !heldStillFresh(cues, held, pos)) held = -1;
   const prev = at >= 0 ? at - 1 : before;
   const next = before + 1 < cues.length ? before + 1 : -1;
   return { at, prev, next, held };

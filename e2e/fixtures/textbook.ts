@@ -23,6 +23,22 @@ export const LONG_LECTURE_CUES = [
 ] as const;
 
 /**
+ * 0강 강의: 실제 0강처럼 일본어가 드물다. 첫머리에 짝 없는 일본어 줄 하나가 나온 뒤
+ * 한국어 설명만 오래 이어진다(지금 칸이 그 일본어 줄을 오래 붙들지 않는지 본다).
+ */
+export const TALK_LECTURE = { no: 0, seconds: 80 } as const;
+export const TALK_LECTURE_CUES = [
+  { start: 0, end: 4, text: "시험 오리엔테이션 첫 줄입니다.", lang: "ko" },
+  { start: 5, end: 7, text: "テストのおと。", lang: "ja" },
+  ...Array.from({ length: 18 }, (_, i) => ({
+    start: 8 + i * 4,
+    end: 11.5 + i * 4,
+    text: `시험 설명 ${i + 1}번째 줄입니다.`,
+    lang: "ko" as const,
+  })),
+];
+
+/**
  * 3강 소책자에만 둔 가짜 회화 문장. 자막 둘째 줄과 문장부호만 달라, 서버가 그 줄에 이 문장 카드를 붙인다.
  * 넷째 줄은 짝이 없어 받아 적은 자막만 보인다.
  */
@@ -125,7 +141,11 @@ function ilmutaLesson(no: number) {
     lecture: {
       file: `1. 음성 강의/L${n}.mp3`,
       durationSec:
-        no === LONG_LECTURE.no ? LONG_LECTURE.seconds : AUDIO_SECONDS,
+        no === LONG_LECTURE.no
+          ? LONG_LECTURE.seconds
+          : no === TALK_LECTURE.no
+            ? TALK_LECTURE.seconds
+            : AUDIO_SECONDS,
     },
     examples:
       no === 0
@@ -226,6 +246,18 @@ export function writeFakeTextbook(contentDir: string, mediaDir: string) {
     }),
   );
 
+  const talkItem = `L${nn(TALK_LECTURE.no)}`;
+  writeFileSync(
+    path.join(contentDir, "transcripts", "ilmuta", `${talkItem}.json`),
+    JSON.stringify({
+      book: "ilmuta",
+      item: talkItem,
+      kind: "lecture",
+      durationSec: TALK_LECTURE.seconds,
+      segments: TALK_LECTURE_CUES,
+    }),
+  );
+
   writeFileSync(
     path.join(contentDir, "transcripts", "ilmuta", `${FOLLOW_EXAMPLE.id}.json`),
     JSON.stringify({
@@ -267,6 +299,7 @@ export function writeFakeTextbook(contentDir: string, mediaDir: string) {
   const longMp3 = silentMp3(LONG_LECTURE.seconds);
   const pairMp3 = silentMp3(ILMUNTA_PAIR_LESSON.seconds);
   const followMp3 = silentMp3(FOLLOW_EXAMPLE.seconds);
+  const talkMp3 = silentMp3(TALK_LECTURE.seconds);
   const followFile = `${FOLLOW_EXAMPLE.id}.mp3`;
   const files = [
     ...ilmuta.lessons.flatMap((l) => [
@@ -289,7 +322,9 @@ export function writeFakeTextbook(contentDir: string, mediaDir: string) {
           ? pairMp3
           : file.endsWith(`/${followFile}`) && book === "ilmuta"
             ? followMp3
-            : mp3,
+            : file.endsWith(`/${talkItem}.mp3`) && book === "ilmuta"
+              ? talkMp3
+              : mp3,
     );
   }
 }

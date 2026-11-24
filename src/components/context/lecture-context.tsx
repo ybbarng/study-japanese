@@ -132,13 +132,12 @@ export function LectureContext({
   const prev =
     view.prev >= 0 && view.prev !== view.held ? cues[view.prev] : null;
   const next = view.next >= 0 ? cues[view.next] : null;
-  // 반복 단추는 크게 보이는 줄(붙든 일본어 줄, 없으면 지금 줄) 바로 아래에
+  // 반복 단추는 지금 들리는 줄을 잡는다(L 키와 같은 규칙). 그래서 지금 줄 바로 아래에 둔다:
+  // 지금 줄이 일본어면 큰 글 아래, 한국어 설명 중이면 그 설명 줄 아래.
+  // 붙들어 보이는 일본어 줄은 그 글을 눌러 다시 듣는다
   const loopRow = focus ? (
     <div className="mt-3 flex items-center gap-3">
-      <LoopButton
-        active={actions.isLooping(focus)}
-        onClick={() => actions.toggle(focus)}
-      />
+      <LoopButton active={actions.looping} onClick={actions.toggleHere} />
       {loopPause && actions.looping ? (
         <span className="animate-pulse text-accent">따라 말해 보세요</span>
       ) : null}
@@ -204,7 +203,7 @@ export function LectureContext({
         </div>
       ) : null}
 
-      {held ? loopRow : null}
+      {held && heldIsCurrent ? loopRow : null}
 
       <div
         className={cn(
@@ -231,7 +230,7 @@ export function LectureContext({
           <p className="py-1 text-ink-faint">…</p>
         ) : null}
         {current && !heldIsCurrent ? <CueExtras cue={current} /> : null}
-        {held ? null : loopRow}
+        {held && heldIsCurrent ? null : loopRow}
         {next ? <Dim cue={next} onSeek={actions.seek} /> : null}
       </div>
       <p className="mt-3 text-xs text-ink-faint">

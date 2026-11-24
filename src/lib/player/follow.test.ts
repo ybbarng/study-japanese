@@ -106,7 +106,7 @@ describe("지금 하는 말 칸", () => {
   it("말 없는 긴 틈에서도 앞뒤 줄과 붙든 일본어 줄은 남는다", () => {
     const lecture = [
       cue(0, 2, "설명", "ko"),
-      cue(3, 4, "やまはやまだ", "ja"),
+      cue(3, 4, "やまはやまだ", "ja", "やまはやまだ。"),
       cue(30, 32, "다음 설명", "ko"),
     ];
     expect(stageView(lecture, 20)).toEqual({
@@ -119,6 +119,52 @@ describe("지금 하는 말 칸", () => {
 
   it("아직 일본어가 없었으면 붙들 줄도 없다", () => {
     expect(stageView(EXAMPLE_CUES, 1).held).toBe(-1);
+  });
+});
+
+describe("붙든 일본어 줄을 놓을 때", () => {
+  /** 일본어 줄 하나 뒤로 3.5초짜리 한국어 설명이 count개 이어지는 강의 */
+  function longTalk(matched: boolean, count: number): ContextCue[] {
+    const out = [
+      cue(10, 12, "やまはやまだ", "ja", matched ? "やまはやまだ。" : undefined),
+    ];
+    for (let i = 0; i < count; i++)
+      out.push(cue(12.5 + i * 4, 16 + i * 4, `설명 ${i}`, "ko"));
+    return out;
+  }
+
+  it("교재와 맞춘 줄은 한국어 설명 몇 줄 동안 남는다", () => {
+    expect(stageView(longTalk(true, 40), 20).held).toBe(0);
+  });
+
+  it("한국어 설명이 여섯 줄 넘게 이어지면 놓는다", () => {
+    // 여섯째 설명 줄(32.5초 시작)이 나오면 끝난 지 25초가 안 되었어도 놓는다
+    expect(stageView(longTalk(true, 40), 32).held).toBe(0);
+    expect(stageView(longTalk(true, 40), 33).held).toBe(-1);
+  });
+
+  it("말 없는 틈이라도 끝난 지 25초가 지나면 놓는다", () => {
+    const lecture = [
+      cue(3, 4, "やまはやまだ", "ja", "やまはやまだ。"),
+      cue(40, 42, "다음 설명", "ko"),
+    ];
+    expect(stageView(lecture, 29).held).toBe(0);
+    expect(stageView(lecture, 30).held).toBe(-1);
+  });
+
+  it("흐린 받아쓰기 줄은 끝난 뒤 몇 초만 남긴다", () => {
+    expect(stageView(longTalk(false, 40), 15).held).toBe(0);
+    expect(stageView(longTalk(false, 40), 17).held).toBe(-1);
+  });
+
+  it("몇 분 동안 한국어 설명만 이어지면 지금 칸에 일본어 줄이 없다", () => {
+    const view = stageView(longTalk(false, 40), 140);
+    expect(view.held).toBe(-1);
+    expect(view.at).toBe(32);
+  });
+
+  it("지금 소리 나는 일본어 줄은 흐려도 붙든다", () => {
+    expect(stageView(longTalk(false, 40), 11).held).toBe(0);
   });
 });
 

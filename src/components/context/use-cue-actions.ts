@@ -76,7 +76,26 @@ export function useCueActions(
     [book, item, cues, loopOf],
   );
 
+  /**
+   * 지금 칸의 "이 문장 반복": L 키와 같은 규칙으로 지금 들리는 줄(막 넘어갔으면 화면에 보이던
+   * 앞 줄, 방금 자막을 눌러 옮겼으면 그 줄)을 잡는다. 한국어 설명 중에 붙들어 보이던 일본어 줄은
+   * 잡지 않는다(몇십 초 전으로 끌려가지 않게). 이미 반복 중이면 푼다.
+   */
+  const toggleHere = useCallback(() => {
+    const st = usePlayer.getState();
+    if (st.cueLoop && st.cueLoop.book === book && st.cueLoop.item === item) {
+      st.setCueLoop(null);
+      return;
+    }
+    const clock = usePlaybackClock.getState();
+    if (clock.book !== book || clock.item !== item) return;
+    const i = resolveLoopCue(cues, clock.pos, { seek: recentSeek() });
+    if (i < 0) return;
+    st.setCueLoop(loopOf(cues[i]));
+    st.seekTo(cues[i].start);
+  }, [book, item, cues, loopOf]);
+
   const isLooping = (cue: ContextCue) => loop?.start === cue.start;
 
-  return { seek, toggle, isLooping, looping: loop !== null };
+  return { seek, toggle, toggleHere, isLooping, looping: loop !== null };
 }
