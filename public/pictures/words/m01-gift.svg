@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 리본을 맨 선물 상자 -->
+  <path d="M32 20c-4-8-14-12-16-6-2 5 8 7 16 6zM32 20c4-8 14-12 16-6 2 5-8 7-16 6z" fill="#e8553e" stroke="#7a6a62" stroke-width="1.8" stroke-linejoin="round"/>
+  <rect x="10" y="30" width="44" height="28" rx="2" fill="#9b72c9" stroke="#7a6a62" stroke-width="2"/>
+  <rect x="7" y="20" width="50" height="11" rx="2" fill="#9b72c9" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M28 20h8v38h-8z" fill="#f5c84c" stroke="#7a6a62" stroke-width="1.5"/>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 삐뚤빼뚤한 그림 앞에서 땀 흘리는 얼굴: 잘 못하는·서투른 -->
+  <rect x="4" y="6" width="38" height="46" rx="2" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M10 40c4-12 6 4 10-8s6 10 10-2 4 6 6 2M12 18c3 4 6-4 9 1s4-3 6 0" fill="none" stroke="#4a82d4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="48" cy="48" r="12" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M42 46l3 1M54 46l-3 1" fill="none" stroke="#3a3040" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M43 54q2-2 5 0t5 0" fill="none" stroke="#7a6a62" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M58 30q-3 4 0 6 3-2 0-6z" fill="#79bde8"/>
+</svg>

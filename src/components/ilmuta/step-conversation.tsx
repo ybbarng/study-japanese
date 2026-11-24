@@ -5,6 +5,8 @@ import {
   useFollowIndex,
   useFollowScroll,
 } from "@/components/context/use-follow";
+import { ScenePicture } from "@/components/pictures/scene-picture";
+import { WordPicture } from "@/components/pictures/word-picture";
 import { cn } from "@/lib/cn";
 import {
   conversationScripts,
@@ -33,6 +35,11 @@ export function StepConversation({ data, listens }: StepProps) {
 
   return (
     <div className="space-y-6">
+      <ScenePicture
+        book="ilmuta"
+        lessonNo={lesson.no}
+        className="mx-auto max-w-md lg:max-w-lg"
+      />
       {conversationScripts(lesson).map((script, si) => {
         const sides = speakerSides(script.sentences);
         return (
@@ -112,6 +119,7 @@ export function StepConversation({ data, listens }: StepProps) {
                 key={w.ja}
                 className="rounded-xl bg-bg-raised px-3 py-2 text-center"
               >
+                <WordPicture ja={w.ja} size={40} className="mx-auto block" />
                 <RubyText
                   text={w.ja}
                   reading={w.reading}

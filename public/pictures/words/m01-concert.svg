@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 조명 아래 무대에서 노래하는 사람과 관객 -->
+  <path d="M14 2l10 30H4zM50 2l10 30H40z" fill="#f5c84c" fill-opacity="0.45"/>
+  <circle cx="32" cy="18" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.8"/>
+  <path d="M26 16c1-4 3-6 6-6s5 2 6 6c-3-1-5-2-6-4-1 2-3 3-6 4z" fill="#8a5a3c"/>
+  <path d="M24 38c0-9 3-13 8-13s8 4 8 13z" fill="#e8553e"/>
+  <path d="M39 30l5-6" fill="none" stroke="#6c7280" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="45" cy="23" r="2.5" fill="#a0a6b3" stroke="#7a6a62" stroke-width="1.2"/>
+  <path d="M2 40h60v4H2z" fill="#a8714a" stroke="#7a6a62" stroke-width="1.5"/>
+  <path d="M50 8v8M50 8l5-2v4" fill="none" stroke="#5fb36f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="48.5" cy="16.5" r="2.2" fill="#5fb36f"/>
+  <circle cx="10" cy="52" r="5" fill="#6c7280"/>
+  <circle cx="24" cy="54" r="5" fill="#6c7280"/>
+  <circle cx="40" cy="54" r="5" fill="#6c7280"/>
+  <circle cx="54" cy="52" r="5" fill="#6c7280"/>
+  <path d="M6 64v-4h8v4M20 64v-3h8v3M36 64v-3h8v3M50 64v-4h8v4" fill="#6c7280"/>
+  <path d="M30 46l-2-6M56 46l1-6" fill="none" stroke="#6c7280" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

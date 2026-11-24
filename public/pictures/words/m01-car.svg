@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 옆에서 본 자동차 -->
+  <path d="M4 44v-8c0-3 2-5 5-5h5l7-10h20l9 10h5c3 0 5 2 5 5v8z" fill="#e8553e" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M18 31l5-7h8v7zM35 31v-7h5l6 7z" fill="#79bde8"/>
+  <circle cx="17" cy="45" r="7" fill="#6c7280" stroke="#7a6a62" stroke-width="2"/>
+  <circle cx="17" cy="45" r="2.5" fill="#a0a6b3"/>
+  <circle cx="47" cy="45" r="7" fill="#6c7280" stroke="#7a6a62" stroke-width="2"/>
+  <circle cx="47" cy="45" r="2.5" fill="#a0a6b3"/>
+  <rect x="54" y="35" width="5" height="3" rx="1" fill="#f5c84c"/>
+</svg>

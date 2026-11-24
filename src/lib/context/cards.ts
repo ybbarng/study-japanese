@@ -6,8 +6,8 @@ import {
   rubySegments,
   splitOkurigana,
 } from "@/lib/ilmuta/ruby";
+import { pictureOf } from "@/lib/pictures";
 import type { Sentence } from "@/lib/textbook/schema";
-import { emojiOf } from "./emoji";
 import {
   type MatchCandidate,
   matchSegment,
@@ -36,8 +36,10 @@ export const cueWordSchema = z.object({
   ja: z.string(),
   reading: z.string().optional(),
   ko: z.string(),
-  /** 구체적인 낱말이면 그림 문자 하나(emoji.ts) */
+  /** 구체적인 낱말이면 그림 문자 하나(emoji.ts). 그린 그림(picture)이 있으면 두지 않는다 */
   emoji: z.string().optional(),
+  /** 그린 낱말 그림 id(public/pictures/words/<id>.svg, lib/pictures) */
+  picture: z.string().optional(),
 });
 export type CueWord = z.infer<typeof cueWordSchema>;
 
@@ -158,10 +160,11 @@ export function findWords(
   return out;
 }
 
-/** 그림 문자가 있는 낱말이면 붙인다 */
-function withEmoji(w: CueWord): CueWord {
-  const emoji = emojiOf(w.ja);
-  return emoji ? { ...w, emoji } : w;
+/** 그림이 있는 낱말이면 붙인다(그린 그림 → 그림 문자) */
+function withPicture(w: CueWord): CueWord {
+  const p = pictureOf(w.ja);
+  if (!p) return w;
+  return p.kind === "svg" ? { ...w, picture: p.id } : { ...w, emoji: p.emoji };
 }
 
 /**
@@ -175,8 +178,16 @@ export function buildCards(
 ): Record<string, CueCard> {
   const toKana = (t: string) => kanaOf(t, source.glossary);
   const matched = matchCards(segments, source);
-  if (!source.focus) return matched;
-  return repairCards(segments, matched, source.focus, toKana);
+  const cards = source.focus
+    ? repairCards(segments, matched, source.focus, toKana)
+    : matched;
+  // 앞뒤 맥락으로 찾은 카드의 낱말까지 그림을 붙인다
+  return Object.fromEntries(
+    Object.entries(cards).map(([k, c]) => [
+      k,
+      c.words.length ? { ...c, words: c.words.map(withPicture) } : c,
+    ]),
+  );
 }
 
 function matchCards(
@@ -206,9 +217,9 @@ function matchCards(
     ].join("　");
     // 문장이 곧 그 낱말이면(단어 코너) 낱말 칸에 다시 두지 않는다
     const own = new Set(matched.map((s) => s.ja));
-    const words = findWords(wordText, source.words)
-      .filter((w) => !own.has(w.ja))
-      .map(withEmoji);
+    const words = findWords(wordText, source.words).filter(
+      (w) => !own.has(w.ja),
+    );
     if (matched.length === 0 && words.length === 0) return;
     out[String(i)] = {
       // 받아 적은 글로 만든 문장이면 화면이 "교재와 다를 수 있음"을 보이도록 표시한다

@@ -5,6 +5,7 @@ import {
   useFollowIndex,
   useFollowScroll,
 } from "@/components/context/use-follow";
+import { WordPicture } from "@/components/pictures/word-picture";
 import { cn } from "@/lib/cn";
 import { KIND_LABEL } from "@/lib/ilmuta/labels";
 import { examplesOf } from "@/lib/ilmuta/steps";
@@ -136,6 +137,10 @@ function WordCard({
           : "bg-bg-raised lg:hover:ring-1 lg:hover:ring-accent/50",
       )}
     >
+      {/* 그림은 뜻을 알려 주므로 뜻을 가렸을 때는 숨긴다 */}
+      {showMeaning ? (
+        <WordPicture ja={word.ja} size={56} className="mb-1" />
+      ) : null}
       <RubyText
         text={word.ja}
         reading={word.reading}

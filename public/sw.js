@@ -2,12 +2,14 @@
 // - 오디오(/media/*): 강 단위로 받아 둔 파일은 캐시에서 준다. <audio>가 보내는 Range 요청도 캐시에서 잘라 준다.
 // - 화면: 네트워크 먼저, 끊기거나 4초 안에 오지 않으면 받아 둔 화면(강을 받을 때 앱이 함께 넣는다).
 // - 빌드 파일(/_next/static/*): 캐시 먼저(파일 이름에 해시가 있어 바뀌지 않는다).
+// - 그림(/pictures/*): 받아 둔 것을 바로 주고 뒤에서 새로 받아 둔다(그림을 고쳐도 다음에 열 때 바뀐다).
 // KEEP에 없는 캐시는 activate 때 지운다(예전 형태소 분석기 사전 캐시 sj-kuromoji-* 도 이때 지워진다).
 
 const AUDIO_CACHE = "sj-audio-v1"; // 받아 둔 강 오디오. 앱 화면이 넣고 지운다.
 const PAGE_CACHE = "sj-pages-v1";
 const STATIC_CACHE = "sj-static-v1";
-const KEEP = new Set([AUDIO_CACHE, PAGE_CACHE, STATIC_CACHE]);
+const PICTURE_CACHE = "sj-pictures-v1";
+const KEEP = new Set([AUDIO_CACHE, PAGE_CACHE, STATIC_CACHE, PICTURE_CACHE]);
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -32,6 +34,10 @@ self.addEventListener("fetch", (event) => {
 
   if (url.pathname.startsWith("/media/")) {
     event.respondWith(audioResponse(request));
+    return;
+  }
+  if (url.pathname.startsWith("/pictures/")) {
+    event.respondWith(staleWhileRevalidate(event, request, PICTURE_CACHE));
     return;
   }
   if (url.pathname.startsWith("/_next/static/")) {
@@ -74,6 +80,22 @@ async function audioResponse(request) {
       "Accept-Ranges": "bytes",
     },
   });
+}
+
+async function staleWhileRevalidate(event, request, cacheName) {
+  const cache = await caches.open(cacheName);
+  const cached = await cache.match(request);
+  const fresh = fetch(request)
+    .then((response) => {
+      if (response.ok) cache.put(request, response.clone());
+      return response;
+    })
+    .catch(() => cached ?? Response.error());
+  if (cached) {
+    event.waitUntil(fresh);
+    return cached;
+  }
+  return fresh;
 }
 
 async function cacheFirst(request, cacheName) {

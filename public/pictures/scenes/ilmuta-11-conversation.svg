@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200">
+  <!-- 벽의 가수 포스터: 여자가 포스터 속 예쁜 가수를 가리키며 묻고, 남자는 덤덤하게 어깨를 으쓱한다 -->
+  <rect x="118" y="14" width="84" height="110" rx="3" fill="#f5c84c" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M136 30l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1zM188 26l2 4 4 1-3 3 1 4-4-2-4 2 1-4-3-3 4-1z" fill="#f6f2ea"/>
+  <path d="M140 76c0-18 8-26 20-26s20 8 20 26v20h-40z" fill="#5e4a6e"/>
+  <path d="M136 124c0-20 10-28 24-28s24 8 24 28z" fill="#e8553e"/>
+  <circle cx="160" cy="74" r="14" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M146 72c1-11 7-16 14-16 8 0 13 5 14 15-7-1-13-5-16-9-2 5-6 8-12 10z" fill="#5e4a6e"/>
+  <path d="M154 76q2-2 4 0M162 76q2-2 4 0" fill="none" stroke="#3a3040" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M157 82q3 2 6 0" fill="none" stroke="#b8402f" stroke-width="2" stroke-linecap="round"/>
+  <path d="M176 110l8-14" fill="none" stroke="#6c7280" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="185" cy="94" r="3.5" fill="#a0a6b3" stroke="#7a6a62" stroke-width="1.5"/>
+  <!-- 그림자 -->
+  <ellipse cx="70" cy="188" rx="42" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <ellipse cx="250" cy="188" rx="42" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <!-- 왼쪽 여자: 포스터를 가리킨다 -->
+  <path d="M46 76c0-22 10-30 24-30s24 8 24 30v24c0 6-6 10-12 10H58c-6 0-12-4-12-10z" fill="#8a5a3c"/>
+  <path d="M36 186c0-48 14-78 34-78s34 30 34 78z" fill="#3fb0a6"/>
+  <path d="M62 100h16v12H62z" fill="#e3a57f"/>
+  <circle cx="70" cy="78" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M50 74c2-16 12-22 20-22 10 0 19 6 21 20-10-2-20-8-24-14-4 8-10 13-17 16z" fill="#8a5a3c"/>
+  <circle cx="63" cy="80" r="2.4" fill="#3a3040"/>
+  <circle cx="78" cy="80" r="2.4" fill="#3a3040"/>
+  <ellipse cx="70" cy="90" rx="3" ry="2.5" fill="#b8402f"/>
+  <path d="M98 128l14-26" fill="none" stroke="#2f8f86" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="114" cy="98" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <!-- 오른쪽 남자: 어깨를 으쓱 -->
+  <path d="M216 186c0-48 14-78 34-78s34 30 34 78z" fill="#6c7280"/>
+  <path d="M242 100h16v12h-16z" fill="#e3a57f"/>
+  <circle cx="250" cy="78" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M230 76c0-16 10-22 20-22s20 6 20 22c-6-6-14-9-22-8-8 1-14 4-18 8z" fill="#a8714a"/>
+  <path d="M240 80h6M254 80h6" fill="none" stroke="#3a3040" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M245 90h10" fill="none" stroke="#7a6a62" stroke-width="2" stroke-linecap="round"/>
+  <path d="M222 126l-16-10-4-14M278 126l16-10 4-14" fill="none" stroke="#6c7280" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="201" cy="98" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <circle cx="299" cy="98" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+</svg>

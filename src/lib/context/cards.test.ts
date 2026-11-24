@@ -74,13 +74,23 @@ describe("소책자 문장 카드", () => {
   });
 
   it("구체적인 낱말 카드에는 그림 문자를 붙이고, 그림이 없는 낱말은 그대로 둔다", () => {
-    const card = buildCards(
-      [ja("山は高い。今日はまったくべつのはなし。")],
-      source,
-    )["0"];
+    const card = buildCards([ja("山は高い。意味はまったくべつのはなし。")], {
+      ...source,
+      words: [...source.words, { ja: "意味", reading: "いみ", ko: "뜻" }],
+    })["0"];
     expect(card.words).toEqual([
       { ja: "山", reading: "やま", ko: "산", emoji: "⛰️" },
-      { ja: "今日", reading: "きょう", ko: "오늘" },
+      { ja: "意味", reading: "いみ", ko: "뜻" },
+    ]);
+  });
+
+  it("그린 그림이 있는 낱말에는 그림 문자 대신 그림 id를 붙인다", () => {
+    const card = buildCards([ja("傘はどこ")], {
+      ...source,
+      words: [{ ja: "傘", reading: "かさ", ko: "우산" }],
+    })["0"];
+    expect(card.words).toEqual([
+      { ja: "傘", reading: "かさ", ko: "우산", picture: "m01-umbrella" },
     ]);
   });
 

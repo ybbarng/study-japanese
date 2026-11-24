@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 면사포를 쓴 신부와 신랑, 반지: 결혼 -->
+  <path d="M30 8a4 4 0 1 1 0 .1zM34 8a4 4 0 1 1 0 .1z" fill="none" stroke="#f5c84c" stroke-width="2.5"/>
+  <path d="M28 4l2-3 2 3z" fill="#79bde8"/>
+  <path d="M2 64c0-12 6-18 14-18s14 6 14 18z" fill="#3b62a8"/>
+  <path d="M12 46l4 6 4-6z" fill="#f6f2ea"/>
+  <circle cx="16" cy="36" r="8" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M8 35c0-6 3-9 8-9s8 3 8 9c-2-3-5-4-9-4-2 0-5 2-7 4z" fill="#8a5a3c"/>
+  <path d="M38 30c0-8 5-12 10-12s10 4 10 12l4 34H34z" fill="#f6f2ea" stroke="#7a6a62" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M36 64c0-12 5-18 12-18s12 6 12 18z" fill="#f6f2ea" stroke="#7a6a62" stroke-width="1.8"/>
+  <circle cx="48" cy="34" r="8" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M40 32c1-5 4-8 8-8s7 3 8 8c-4-1-7-3-8-5-1 2-4 4-8 5z" fill="#5e4a6e"/>
+  <circle cx="42" cy="26" r="2" fill="#f4a0b8"/>
+  <circle cx="54" cy="26" r="2" fill="#f4a0b8"/>
+</svg>

@@ -98,7 +98,7 @@ for (const book of ["ilmuta", "ilmunta"] as const) {
       for (const w of card?.words ?? []) {
         tally.chips++;
         tally.distinct.add(w.ja);
-        if (w.emoji) {
+        if (w.emoji || w.picture) {
           tally.emojiChips++;
           tally.distinctEmoji.add(w.ja);
         }

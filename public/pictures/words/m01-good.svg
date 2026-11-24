@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 엄지를 세운 손: 좋다 -->
+  <path d="M22 28l8-16c2-4 8-3 8 2l-2 10h14c4 0 6 3 5 7l-4 18c-1 3-3 5-6 5H22z" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M38 34h14M38 42h12M38 50h9" fill="none" stroke="#7a6a62" stroke-width="1.6" stroke-linecap="round"/>
+  <rect x="8" y="26" width="14" height="30" rx="2" fill="#4a82d4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M50 8l1.5 4 4 1.5-4 1.5-1.5 4-1.5-4-4-1.5 4-1.5z" fill="#f5c84c"/>
+</svg>

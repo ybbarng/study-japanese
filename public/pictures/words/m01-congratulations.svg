@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 터지는 축하 폭죽과 색종이 -->
+  <path d="M6 58l12-34 22 22z" fill="#f5c84c" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M12 42l8 8M15 33l14 14" fill="none" stroke="#e8553e" stroke-width="3" stroke-linecap="round"/>
+  <path d="M30 22q6-10 14-8M38 32q10-4 16 2M24 16q-2-8 4-12" fill="none" stroke="#9b72c9" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="50" cy="12" r="3" fill="#e8553e"/>
+  <circle cx="56" cy="24" r="2.5" fill="#5fb36f"/>
+  <circle cx="40" cy="6" r="2.5" fill="#4a82d4"/>
+  <path d="M46 42l4 3-4 3-1-4zM34 8l3 1-1 3-3-1z" fill="#f0923a"/>
+  <path d="M58 40l2 4-4 1z" fill="#f4a0b8"/>
+</svg>

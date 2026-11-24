@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 두 손으로 감싸 든 반짝이는 하트: 소중한·중요한 -->
+  <path d="M32 20c-5-7-15-4-14 4 1 7 14 14 14 14s13-7 14-14c1-8-9-11-14-4z" fill="#e8553e" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M6 40c4 0 10 2 14 6 4 3 8 4 12 4v12H14C8 62 4 56 4 50z" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M58 40c-4 0-10 2-14 6-4 3-8 4-12 4v12h18c6 0 10-6 10-12z" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M10 10l1.5 4 4 1.5-4 1.5L10 21l-1.5-4-4-1.5 4-1.5zM54 8l1.5 4 4 1.5-4 1.5-1.5 4-1.5-4-4-1.5 4-1.5z" fill="#f5c84c"/>
+</svg>

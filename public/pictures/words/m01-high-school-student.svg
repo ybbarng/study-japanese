@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 블레이저 교복에 리본, 키가 거의 다 큰 학생 -->
+  <path d="M19 27c0-11 6-15 13-15s13 4 13 15v11c0 3-3 5-6 5H25c-3 0-6-2-6-5z" fill="#8a5a3c"/>
+  <path d="M13 62c0-13 8-19 19-19s19 6 19 19z" fill="#3b62a8"/>
+  <path d="M27 43l5 9 5-9z" fill="#f6f2ea" stroke="#7a6a62" stroke-width="1.2" stroke-linejoin="round"/>
+  <path d="M27 47l5 2-5 3zM37 47l-5 2 5 3z" fill="#e8553e"/>
+  <circle cx="22" cy="54" r="1.5" fill="#f5c84c"/>
+  <path d="M28 36h8v7h-8z" fill="#e3a57f"/>
+  <circle cx="32" cy="26" r="11" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M21 24c1-7 6-11 11-11 6 0 10 4 11 11-6-1-11-4-13-8-2 4-5 7-9 8z" fill="#8a5a3c"/>
+  <circle cx="28" cy="27" r="1.6" fill="#3a3040"/>
+  <circle cx="36" cy="27" r="1.6" fill="#3a3040"/>
+  <path d="M29 31.5q3 2.5 6 0" fill="none" stroke="#7a6a62" stroke-width="1.6" stroke-linecap="round"/>
+</svg>

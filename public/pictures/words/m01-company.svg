@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 창이 많은 회사 빌딩 -->
+  <rect x="14" y="6" width="28" height="52" fill="#4a82d4" stroke="#7a6a62" stroke-width="2"/>
+  <rect x="42" y="22" width="16" height="36" fill="#3b62a8" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M19 12h6v5h-6zM31 12h6v5h-6zM19 22h6v5h-6zM31 22h6v5h-6zM19 32h6v5h-6zM31 32h6v5h-6zM19 42h6v5h-6zM31 42h6v5h-6zM46 28h8v4h-8zM46 37h8v4h-8zM46 46h8v4h-8z" fill="#79bde8"/>
+  <rect x="24" y="50" width="8" height="8" fill="#f6f2ea"/>
+  <path d="M4 58h56" fill="none" stroke="#6c7280" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

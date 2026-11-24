@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 가운데 시계탑이 있는 학교 건물 -->
+  <rect x="4" y="26" width="56" height="30" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M22 26V14l10-8 10 8v12z" fill="#e8553e" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <circle cx="32" cy="18" r="5" fill="#f6f2ea" stroke="#7a6a62" stroke-width="1.5"/>
+  <path d="M32 18v-3M32 18h2.5" fill="none" stroke="#7a6a62" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M8 32h8v7H8zM48 32h8v7h-8zM8 44h8v7H8zM48 44h8v7h-8zM20 32h6v7h-6zM38 32h6v7h-6z" fill="#79bde8"/>
+  <rect x="27" y="40" width="10" height="16" fill="#a8714a"/>
+  <path d="M2 56h60" fill="none" stroke="#5fb36f" stroke-width="3" stroke-linecap="round"/>
+</svg>

@@ -1,3 +1,4 @@
+import { PictureMark } from "@/components/pictures/picture-mark";
 import { CueWordTaps } from "@/components/word-tap/cue-word-taps";
 import { cn } from "@/lib/cn";
 import type { CueSentence, CueWord } from "@/lib/context/cards";
@@ -152,11 +153,12 @@ function Words({ words }: { words: CueWord[] }) {
           key={w.ja}
           className="rounded-xl bg-bg-raised px-3 py-1.5 text-sm leading-tight"
         >
-          {w.emoji ? (
-            <span aria-hidden="true" className="mr-1.5 text-base">
-              {w.emoji}
-            </span>
-          ) : null}
+          <PictureMark
+            picture={w.picture}
+            emoji={w.emoji}
+            size={w.picture ? 28 : 20}
+            className="mr-1.5 -my-1"
+          />
           <span lang="ja" className="font-ja-serif text-base text-ink">
             {w.ja}
           </span>

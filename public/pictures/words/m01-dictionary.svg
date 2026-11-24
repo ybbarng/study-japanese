@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 옆면에 찾기 표시가 있는 두꺼운 사전 -->
+  <path d="M14 10h32l6 6v40H20l-6-6z" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M14 10v40h32V10z" fill="#3b62a8" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M46 10l6 6M46 50l6 6" fill="none" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M52 20h3v6h-3zM52 30h3v6h-3zM52 40h3v6h-3z" fill="#e8553e"/>
+  <rect x="20" y="18" width="20" height="10" rx="1.5" fill="#f5c84c"/>
+  <path d="M24 23h12" fill="none" stroke="#7a6a62" stroke-width="2" stroke-linecap="round"/>
+  <path d="M20 40h20M20 44h14" fill="none" stroke="#79bde8" stroke-width="2" stroke-linecap="round"/>
+</svg>

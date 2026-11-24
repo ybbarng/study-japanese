@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 여행 가방과 하늘의 비행기 -->
+  <path d="M34 14l10-2 8-8 3 1-5 9 8 1 2-3h2l-1 5 1 5h-2l-2-3-8 1 5 9-3 1-8-8-10-2z" fill="#a0a6b3" stroke="#7a6a62" stroke-width="1.5" stroke-linejoin="round" transform="rotate(-15 46 14)"/>
+  <path d="M18 24v-6h14v6" fill="none" stroke="#7a6a62" stroke-width="3" stroke-linejoin="round"/>
+  <rect x="8" y="24" width="34" height="32" rx="4" fill="#f0923a" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M17 24v32M33 24v32" fill="none" stroke="#a8714a" stroke-width="3"/>
+  <circle cx="14" cy="59" r="2.5" fill="#6c7280"/>
+  <circle cx="36" cy="59" r="2.5" fill="#6c7280"/>
+  <rect x="21" y="34" width="8" height="6" rx="1" fill="#79bde8"/>
+</svg>
