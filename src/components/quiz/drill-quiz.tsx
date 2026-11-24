@@ -7,14 +7,17 @@ import { skillsOfLesson } from "@/lib/ilmunta/curriculum";
 import { seededRng } from "@/lib/ilmunta/random";
 import { useDrillStore } from "@/lib/ilmunta/stores";
 import { drillQuizQuestions } from "@/lib/quiz/drill";
-import { drillWordQuestions } from "@/lib/quiz/drill-words";
+import { DRILL_WORDS, drillWordQuestions } from "@/lib/quiz/drill-words";
+import { particleQuestions } from "@/lib/quiz/particles";
+import { QUESTIONS_PER_SECTION } from "@/lib/quiz/pick";
 import type { Question } from "@/lib/quiz/types";
 import { QuizCard, type RenderJa } from "./quiz-card";
 
 /**
  * 일문따 과 화면 끝의 확인 문제: 이 과에서 다루는 활용을 문장 빈칸으로 3문제.
  * 답은 활용 드릴의 기술 기록(간격 반복)에 그대로 쌓여, 틀린 활용은 드릴에서도 먼저 나온다.
- * 활용을 다루지 않는 과는 그 과 낱말의 뜻·읽는 법 3문제(기록은 남기지 않고 그 자리에서 고쳐 준다).
+ * 활용을 다루지 않는 과는 그 과의 쓰임(조사 고르기, 5·26·27과)과 그 과 낱말의 뜻·읽는 법으로 3문제
+ * (기록은 남기지 않고 그 자리에서 고쳐 준다).
  */
 export function DrillQuiz({ lesson }: { lesson: number }) {
   const ready = useDrillReady();
@@ -31,10 +34,18 @@ export function DrillQuiz({ lesson }: { lesson: number }) {
   useEffect(() => {
     const now = Date.now();
     const rng = seededRng((now ^ (round * 7919)) >>> 0);
-    // 활용을 다루지 않는 과(쓰임·조사를 배우는 과)는 그 과 드릴 낱말의 뜻·읽는 법을 묻는다
+    // 활용을 다루지 않는 과(쓰임·조사를 배우는 과)는 그 과의 쓰임(조사 고르기)을 먼저 묻고,
+    // 모자라면 그 과 드릴 낱말의 뜻·읽는 법으로 채운다
     if (wordsOnly) {
+      const usage = particleQuestions(lesson, rng);
+      const rest = QUESTIONS_PER_SECTION - usage.length;
       setBuilt({
-        questions: drillWordQuestions(lesson, rng),
+        questions: [
+          ...usage,
+          ...(rest > 0
+            ? drillWordQuestions(lesson, rng, DRILL_WORDS, rest)
+            : []),
+        ],
         skillOf: new Map(),
       });
       return;
@@ -61,9 +72,16 @@ export function DrillQuiz({ lesson }: { lesson: number }) {
   );
 
   if (!built || built.questions.length === 0) return null;
+  const hasUsage = built.questions.some((q) => q.key.includes(":p:"));
   return (
     <QuizCard
-      title={wordsOnly ? "확인 문제 · 이 과 낱말" : "확인 문제 · 이 과 활용"}
+      title={
+        !wordsOnly
+          ? "확인 문제 · 이 과 활용"
+          : hasUsage
+            ? "확인 문제 · 이 과 쓰임"
+            : "확인 문제 · 이 과 낱말"
+      }
       questions={built.questions}
       onAnswer={(q, correct) => {
         const skill = built.skillOf.get(q.key);

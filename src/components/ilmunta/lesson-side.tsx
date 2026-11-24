@@ -1,8 +1,8 @@
 import Link from "next/link";
 import {
+  lessonDrillTarget,
   type Skill,
   skillLabel,
-  skillsOfLesson,
 } from "@/lib/ilmunta/curriculum";
 import { ilmuntaPdfLinks } from "@/lib/ilmunta/media";
 import { monthOfLesson } from "@/lib/ilmunta/months";
@@ -34,19 +34,33 @@ export function BookCue({ lesson }: { lesson: IlmuntaLesson }) {
   );
 }
 
-/** 이 과에서 다루는 활용이 있으면 드릴로 바로 */
+/**
+ * 드릴로 바로 가기. 이 과에서 다루는 활용이 있으면 그 과만, 활용이 없는 과(쓰임·조사)는
+ * 지금까지 나온 활용을 섞어 복습한다(배운 것을 잊지 않게 과마다 꺼내 써 보기).
+ */
 export function LessonDrillLink({ no }: { no: number }) {
-  const skills = skillsOfLesson(no);
-  if (skills.length === 0) return null;
+  const target = lessonDrillTarget(no);
+  if (!target) return null;
   const labels = [
-    ...new Set(skills.map((s: Skill) => skillLabel(s).split(" · ")[0])),
+    ...new Set(target.skills.map((s: Skill) => skillLabel(s).split(" · ")[0])),
   ];
   return (
     <Link
-      href={`/ilmunta/drill?lesson=${no}`}
+      href={target.href}
+      data-drill-link={target.kind}
       className="flex flex-col gap-2 rounded-2xl bg-bg-raised p-5 active:bg-bg-sunken"
     >
-      <span className="font-medium">이 과 활용 드릴</span>
+      <span className="font-medium">
+        {target.kind === "lesson"
+          ? "이 과 활용 드릴"
+          : `활용 복습 드릴 · 1~${no}과`}
+      </span>
+      {target.kind === "review" ? (
+        <span className="text-sm text-ink-soft">
+          이 과는 활용을 새로 배우지 않으니, 지금까지 나온 활용을 섞어 풀어
+          봅니다.
+        </span>
+      ) : null}
       <span className="flex flex-wrap gap-1.5">
         {labels.slice(0, 8).map((l) => (
           <span

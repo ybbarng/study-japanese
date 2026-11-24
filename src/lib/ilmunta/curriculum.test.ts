@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   DRILL_LESSONS,
+  lessonDrillTarget,
   SKILL_BY_KEY,
   SKILLS,
   skillLabel,
@@ -70,5 +71,22 @@ describe("skillLabel", () => {
     const s = SKILL_BY_KEY.get("verb:te:godan");
     if (!s) throw new Error();
     expect(skillLabel(s)).toBe("て형 · 1그룹");
+  });
+});
+
+describe("lessonDrillTarget", () => {
+  it("활용을 다루는 과는 그 과만 드릴한다", () => {
+    expect(lessonDrillTarget(6)?.href).toBe("/ilmunta/drill?lesson=6");
+  });
+
+  it("활용이 없는 과(5과)는 그 과까지 나온 활용을 섞어 복습하고, 가까운 과 활용을 먼저 보인다", () => {
+    const t = lessonDrillTarget(5);
+    expect(t?.kind).toBe("review");
+    expect(t?.href).toBe("/ilmunta/drill?upto=5");
+    expect(t?.skills[0].lessons).toContain(4);
+  });
+
+  it("조사를 배우는 과도 바로 가기가 있다", () => {
+    expect(lessonDrillTarget(27)?.href).toBe("/ilmunta/drill?upto=27");
   });
 });

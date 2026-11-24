@@ -39,7 +39,14 @@ function lessonHint(no: number): string {
   return first ? skillLabel(first).split(" · ")[0] : "복습";
 }
 
-export function DrillApp({ onlyLesson }: { onlyLesson?: number }) {
+export function DrillApp({
+  onlyLesson,
+  reviewUpTo,
+}: {
+  onlyLesson?: number;
+  /** 활용이 없는 과에서 왔으면 그 과까지 나온 활용을 섞는다(저장한 범위는 건드리지 않는다) */
+  reviewUpTo?: number;
+}) {
   const ready = useDrillReady();
   if (!ready)
     return (
@@ -50,10 +57,16 @@ export function DrillApp({ onlyLesson }: { onlyLesson?: number }) {
         …
       </p>
     );
-  return <DrillSession onlyLesson={onlyLesson} />;
+  return <DrillSession onlyLesson={onlyLesson} reviewUpTo={reviewUpTo} />;
 }
 
-function DrillSession({ onlyLesson }: { onlyLesson?: number }) {
+function DrillSession({
+  onlyLesson,
+  reviewUpTo,
+}: {
+  onlyLesson?: number;
+  reviewUpTo?: number;
+}) {
   const prefs = useDrillStore((s) => s.prefs);
   const setPrefs = useDrillStore((s) => s.setPrefs);
   const states = useDrillStore((s) => s.data.skills);
@@ -65,13 +78,13 @@ function DrillSession({ onlyLesson }: { onlyLesson?: number }) {
     () =>
       onlyLesson
         ? skillsOfLesson(onlyLesson)
-        : skillsInLessons(1, prefs.maxLesson),
-    [onlyLesson, prefs.maxLesson],
+        : skillsInLessons(1, reviewUpTo ?? prefs.maxLesson),
+    [onlyLesson, reviewUpTo, prefs.maxLesson],
   );
 
   const style: QuestionStyle = prefs.questionStyle ?? "sentence";
   // 이 과까지 배운 낱말만 문제에 쓴다
-  const upTo = onlyLesson ?? prefs.maxLesson;
+  const upTo = onlyLesson ?? reviewUpTo ?? prefs.maxLesson;
   const rng = useRef<Rng>(seededRng(Date.now()));
   const next = useCallback(
     (prev?: Question): Question => {
@@ -178,6 +191,13 @@ function DrillSession({ onlyLesson }: { onlyLesson?: number }) {
                 {onlyLesson}과만 ·{" "}
                 <Link href="/ilmunta/drill" className="text-accent">
                   범위 넓히기
+                </Link>
+              </span>
+            ) : reviewUpTo ? (
+              <span className="rounded-full bg-bg-raised px-3 py-1.5">
+                1~{reviewUpTo}과 복습 ·{" "}
+                <Link href="/ilmunta/drill" className="text-accent">
+                  범위 바꾸기
                 </Link>
               </span>
             ) : (

@@ -156,6 +156,28 @@ export function skillsOfLesson(no: number): Skill[] {
   return SKILLS.filter((s) => s.lessons.includes(no));
 }
 
+/**
+ * 과 화면 끝 드릴 바로 가기. 이 과에서 다루는 활용이 있으면 그 과만, 없으면(조사·부사·쓰임을
+ * 배우는 과) 이 과까지 나온 활용을 섞어 복습한다. skills는 보일 이름표용으로 가까운 과 것부터.
+ */
+export function lessonDrillTarget(
+  no: number,
+): { kind: "lesson" | "review"; href: string; skills: Skill[] } | null {
+  const own = skillsOfLesson(no);
+  if (own.length > 0)
+    return { kind: "lesson", href: `/ilmunta/drill?lesson=${no}`, skills: own };
+  const lastBefore = (s: Skill) => Math.max(...s.lessons.filter((l) => l < no));
+  const earlier = skillsInLessons(1, no - 1).sort(
+    (a, b) => lastBefore(b) - lastBefore(a),
+  );
+  if (earlier.length === 0) return null;
+  return {
+    kind: "review",
+    href: `/ilmunta/drill?upto=${no}`,
+    skills: earlier,
+  };
+}
+
 /** 기술이 있는 과 번호(오름차순) */
 export const DRILL_LESSONS: readonly number[] = [
   ...new Set(SKILLS.flatMap((s) => s.lessons)),
