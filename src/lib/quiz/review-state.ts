@@ -67,18 +67,42 @@ export function dueKeys(data: QuizData, now: number, prefix = ""): string[] {
   return dueQueue(cards, now, 100);
 }
 
-/** 강마다 다시 낼 때가 된 문제 수(강 번호 차례) */
+const STEP_OF: Record<string, "words" | "patterns" | "conversation"> = {
+  w: "words",
+  p: "patterns",
+  c: "conversation",
+};
+
+/**
+ * 일무따 강마다 다시 낼 때가 된 문제 수와, 그 강에서 먼저 갈 구역(다시 낼 문제가 가장 많은 구역).
+ * 강 번호 차례. 일문따 활용(d)은 드릴 기록으로 따로 다시 내므로 세지 않는다
+ */
 export function dueByLesson(
   data: QuizData,
   now: number,
-): { lesson: number; count: number }[] {
-  const counts = new Map<number, number>();
+): {
+  lesson: number;
+  count: number;
+  step: "words" | "patterns" | "conversation";
+}[] {
+  const byLesson = new Map<number, Map<string, number>>();
   for (const k of dueKeys(data, now)) {
     const no = lessonOfKey(k);
-    if (no !== null) counts.set(no, (counts.get(no) ?? 0) + 1);
+    const step = STEP_OF[sectionOfKey(k) ?? ""];
+    if (no === null || !step) continue;
+    const m = byLesson.get(no) ?? new Map<string, number>();
+    m.set(step, (m.get(step) ?? 0) + 1);
+    byLesson.set(no, m);
   }
-  return [...counts]
-    .map(([lesson, count]) => ({ lesson, count }))
+  return [...byLesson]
+    .map(([lesson, m]) => {
+      const steps = [...m].sort((a, b) => b[1] - a[1]);
+      return {
+        lesson,
+        count: steps.reduce((n, [, c]) => n + c, 0),
+        step: steps[0][0] as "words" | "patterns" | "conversation",
+      };
+    })
     .sort((a, b) => a.lesson - b.lesson);
 }
 

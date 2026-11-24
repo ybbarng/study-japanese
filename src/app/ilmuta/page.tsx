@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ContinueCard } from "@/components/ilmuta/continue-card";
 import { LessonRow } from "@/components/ilmuta/lesson-row";
 import { NoTextbook } from "@/components/ilmuta/no-textbook";
+import { QuizReviewLinks } from "@/components/quiz/review-links";
 import { PageFrame } from "@/components/shell/page-frame";
 import { BOOK_NAME, lessonLabel } from "@/lib/ilmuta/labels";
 import { lectureTally } from "@/lib/ilmuta/progress";
@@ -34,6 +35,8 @@ export default async function IlmutaMapPage() {
       <div className="mt-5">
         <ContinueCard pick={data.pick} rows={data.rows} />
       </div>
+
+      <QuizReviewLinks />
 
       {data.pendingWriting.length > 0 ? (
         <p className="mt-3 px-2 text-sm text-ink-soft">

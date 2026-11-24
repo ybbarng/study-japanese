@@ -44,18 +44,24 @@ describe("recordQuizAnswer", () => {
 });
 
 describe("dueByLesson", () => {
-  it("강마다 다시 낼 문제 수를 강 차례로 센다", () => {
+  it("강마다 다시 낼 문제 수와 가장 많이 몰린 구역을 강 차례로 센다", () => {
     let d = emptyQuizData();
     for (const k of [
       "L5:w:meaning:05-2#0",
       "L1:w:reading:01-2#1",
       "L5:c:say:05-4-1#3",
+      "L5:c:listen:05-4-1#5",
     ])
       d = recordQuizAnswer(d, k, false, T0);
     expect(dueByLesson(d, T0 + DAY)).toEqual([
-      { lesson: 1, count: 1 },
-      { lesson: 5, count: 2 },
+      { lesson: 1, count: 1, step: "words" },
+      { lesson: 5, count: 3, step: "conversation" },
     ]);
+  });
+
+  it("일문따 활용 문제(d)는 세지 않는다", () => {
+    const d = recordQuizAnswer(emptyQuizData(), "L3:d:x|y", false, T0);
+    expect(dueByLesson(d, T0 + DAY)).toEqual([]);
   });
 });
 
