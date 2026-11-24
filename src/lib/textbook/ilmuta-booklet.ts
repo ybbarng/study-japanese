@@ -1,9 +1,11 @@
 import type { PageRange, Pattern, Sentence } from "./schema";
 import {
   hasHangul,
+  isKoreanCell,
   isPageNumber,
   pdfLines,
   type Segment,
+  splitJaKoRun,
   splitSegments,
   stripKoreanDirections,
   tidyJa,
@@ -121,13 +123,13 @@ function firstFound(indexes: number[], fallback: number): number {
 }
 
 /**
- * 줄이 넘어가며 잘린 한국어 조각을 잇는다. 뒤 조각이 어미 조각(`니다`, `니까`, `까?`, `요.`)으로
- * 시작하면 낱말 가운데서 잘린 것으로 보고 붙여 쓴다(`있습니` + `까?`, `있거든` + `요.`).
+ * 줄이 넘어가며 잘린 한국어 조각을 잇는다. 뒤 조각이 어미 조각(`니다`, `니까`, `까?`, `요.`, `다.`)으로
+ * 시작하면 낱말 가운데서 잘린 것으로 보고 붙여 쓴다(`있습니` + `까?`, `있거든` + `요.`, `했습니` + `다.`).
  */
 export function appendWrappedKo(acc: string, piece: string): string {
   const next = piece.trim();
   if (!acc) return next;
-  return /^(니다|니까|까[?？]|요[.?!？])/.test(next)
+  return /^(니다|니까|[까다][.?!？]|요[.?!？])/.test(next)
     ? acc + next
     : `${acc} ${next}`;
 }
@@ -284,7 +286,13 @@ export function parsePatterns(lines: string[]): {
     const ko: string[] = [];
     for (const { text } of splitSegments(line)) {
       if (isPageNumber(text) || FORM_LABEL_RE.test(text)) continue;
-      (hasHangul(text) ? ko : ja).push(text);
+      const run = splitJaKoRun(text);
+      if (run) {
+        ja.push(run.ja);
+        ko.push(run.ko);
+        continue;
+      }
+      (isKoreanCell(text) ? ko : ja).push(text);
     }
     return { ja: ja.join(""), ko: ko.join(" ") };
   };

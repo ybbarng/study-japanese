@@ -276,7 +276,7 @@ async function buildIlmunta(report: Report): Promise<Ilmunta> {
     return {
       no,
       title: h?.title ?? "",
-      ...(h ? { pages: h.pages } : {}),
+      ...(h ? { pages: h.pages, bookletPage: h.bookletPage } : {}),
       ...(days ? { scheduleDays: days } : {}),
       lectures: lessonLectures,
       examples: lessonExamples,

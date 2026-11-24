@@ -39,6 +39,21 @@ export interface LessonProgress {
   writingDone: boolean;
 }
 
+/**
+ * 강의를 들은 강 수와 전체 강 수. 0강은 책 앞의 안내 강의라 세지 않는다(책 차례의 1~60강).
+ * 왼쪽 탐색과 일무따 머리가 같은 수를 보이게 한 곳에서 센다.
+ */
+export function lectureTally(rows: { no: number; lectureDone: boolean }[]): {
+  done: number;
+  total: number;
+} {
+  const counted = rows.filter((r) => r.no > 0);
+  return {
+    done: counted.filter((r) => r.lectureDone).length,
+    total: counted.length,
+  };
+}
+
 export function lessonProgress(
   lesson: IlmutaLesson,
   listens: ListenIndex,

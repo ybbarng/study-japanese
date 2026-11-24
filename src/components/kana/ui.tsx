@@ -5,8 +5,9 @@ import Link from "next/link";
 import { type ReactNode, useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { StickyPanel } from "@/components/shell/sticky-panel";
+import { WORD_VOICE_NOTE, type WordVoice } from "@/lib/kana/voice";
 import { usePlayer } from "@/lib/player/store";
-import { canPlay, playSound, playWord } from "./audio";
+import { canPlay, playSound, playWord, wordVoice } from "./audio";
 
 export function cn(...args: Parameters<typeof clsx>) {
   return twMerge(clsx(...args));
@@ -153,6 +154,7 @@ export function SoundButton({
   const [state, setState] = useState<"idle" | "playing" | "none">(
     soundId && !canPlay(soundId) ? "none" : "idle",
   );
+  const voice = useWordVoice(!soundId && !!word);
 
   const play = async () => {
     setState("playing");
@@ -177,7 +179,7 @@ export function SoundButton({
     if (autoPlay) void play();
   }, [soundId, word]);
 
-  return (
+  const button = (
     <button
       type="button"
       onClick={play}
@@ -192,6 +194,30 @@ export function SoundButton({
       {state === "none" ? "🔇" : "🔊"}
     </button>
   );
+  if (!word) return button;
+  // 낱말 소리는 어떻게 낸 소리인지 곁에 적는다(글자 소리를 이은 것이면 실제 높낮이와 다르다)
+  return (
+    <span className="inline-flex flex-col items-center gap-1">
+      {button}
+      <span className="max-w-[14rem] text-center text-xs text-ink-faint">
+        {WORD_VOICE_NOTE[voice]}
+      </span>
+    </span>
+  );
+}
+
+/** 낱말 소리를 지금 기기에서 어떻게 내는지. 음성 목록은 늦게 차서 바뀔 때 다시 본다 */
+function useWordVoice(enabled: boolean): WordVoice {
+  const [voice, setVoice] = useState<WordVoice>("joined");
+  useEffect(() => {
+    if (!enabled) return;
+    const update = () => setVoice(wordVoice());
+    update();
+    if (typeof speechSynthesis === "undefined") return;
+    speechSynthesis.addEventListener("voiceschanged", update);
+    return () => speechSynthesis.removeEventListener("voiceschanged", update);
+  }, [enabled]);
+  return voice;
 }
 
 /** PC에서 보기 왼쪽 위에 붙이는 키 표시(1~4 키나 글자 키로 고른다). 폰에서는 감춘다 */

@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 import type { ItemSummary } from "@/lib/store/listen";
 import { fakeLesson } from "./__fixtures__/lesson";
 import { isWeekendKst, pendingWriting, pickContinue } from "./continue";
-import { indexListens, type LessonProgress, lessonProgress } from "./progress";
+import {
+  indexListens,
+  type LessonProgress,
+  lectureTally,
+  lessonProgress,
+} from "./progress";
 
 function summary(
   item: string,
@@ -133,5 +138,16 @@ describe("이어서 할 강 고르기", () => {
 
   it("밀린 쓰기는 강의를 들은 강만 센다", () => {
     expect(pendingWriting(progress)).toEqual([1, 2]);
+  });
+});
+
+describe("강의 들은 강 수", () => {
+  it("0강은 들었어도 세지 않고 전체 수에서도 뺀다", () => {
+    const rows = [
+      { no: 0, lectureDone: true },
+      { no: 1, lectureDone: true },
+      { no: 2, lectureDone: false },
+    ];
+    expect(lectureTally(rows)).toEqual({ done: 1, total: 2 });
   });
 });

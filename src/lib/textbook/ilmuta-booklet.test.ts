@@ -150,7 +150,8 @@ describe("parseWordItem", () => {
     ["城[しろ] (일본식)성", { ja: "城", reading: "しろ", ko: "(일본식)성" }],
     [
       "東京城[とうきょうじょう] とうきょう성",
-      { ja: "東京城", reading: "とうきょうじょう", ko: "とうきょう성" },
+      // 뜻 속 가나 지명은 가나를 아직 못 읽는 학습자를 위해 한글로 적는다
+      { ja: "東京城", reading: "とうきょうじょう", ko: "도쿄성" },
     ],
     ["パソコン PC", { ja: "パソコン", ko: "PC" }],
     ["～さん ~씨", { ja: "～さん", ko: "~씨" }],
@@ -220,9 +221,59 @@ describe("parsePatterns", () => {
       },
     ]);
   });
+
+  it("일본어 문장 바로 뒤에 공백 없이 붙은 해석을 가른다", () => {
+    const { sentences } = parsePatterns([
+      "           1 ～が来た。                               ~가 왔어.",
+      "       猫が来た。                                 고양이가 왔어.",
+      "       犬が来た。개가 왔어.",
+    ]);
+    expect(sentences[1]).toEqual({
+      ja: "犬が来た。",
+      ko: "개가 왔어.",
+      pattern: 1,
+    });
+  });
+
+  it("한글 문형 표시가 든 문형 머리도 해석과 한 칸만 떨어져 있으면 가른다", () => {
+    const { patterns } = parsePatterns([
+      "           3 ～(な 삭제)です。 ~합니다.",
+    ]);
+    expect(patterns).toEqual([
+      { no: 3, ja: "～(な 삭제)です。", ko: "~합니다." },
+    ]);
+  });
+
+  it("한글 문형 표시가 든 일본어 칸은 해석과 멀리 떨어져 있어도 일본어로 본다", () => {
+    const { patterns } = parsePatterns([
+      "           1 ～は～(이)だ。                          ~는 ~이다.",
+    ]);
+    expect(patterns).toEqual([
+      { no: 1, ja: "～は～(이)だ。", ko: "~는 ~이다." },
+    ]);
+  });
+
+  it("괄호로 시작하는 해석이 일본어 문장에 붙어 있어도 가른다", () => {
+    const { sentences } = parsePatterns([
+      "           1 ～が来た。                               ~가 왔어.",
+      "       犬が来た。(우리)개가 왔어.",
+    ]);
+    expect(sentences).toEqual([
+      { ja: "犬が来た。", ko: "(우리)개가 왔어.", pattern: 1 },
+    ]);
+  });
 });
 
 describe("parseHeader", () => {
+  it("한국어 해석 속 가나 지명은 한글로 적고, 줄을 넘어 잘린 `다.`는 붙여 쓴다", () => {
+    const header = parseHeader([
+      "      名古屋へ来ました。                       なごや로",
+      "                                              왔습니",
+      "                                              다.",
+    ]);
+    expect(header.titleKo).toBe("나고야로 왔습니다.");
+  });
+
   it("제목 위의 한국어는 부제로 두고, 줄이 넘어 잘린 존댓말 어미는 붙여 쓴다", () => {
     expect(
       parseHeader([

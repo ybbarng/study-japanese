@@ -100,6 +100,14 @@ export function LessonRunner({ lessonId }: { lessonId: string }) {
     setStep(k);
   };
 
+  const nextWriting = () => {
+    if (writeIndex + 1 >= writing.length) goto("words");
+    else {
+      setWriteIndex(writeIndex + 1);
+      setSub((writeIndex + 1) / writing.length);
+    }
+  };
+
   const lessonIndex = LESSONS.findIndex((l) => l.id === lesson.id);
   const nextLesson = LESSONS[lessonIndex + 1];
 
@@ -218,13 +226,9 @@ export function LessonRunner({ lessonId }: { lessonId: string }) {
             romaji={getSound(parseCardId(writing[writeIndex]).soundId).ko}
             onGrade={(ok) => {
               answer(writing[writeIndex], ok);
-              if (!ok) return;
-              if (writeIndex + 1 >= writing.length) goto("words");
-              else {
-                setWriteIndex(writeIndex + 1);
-                setSub((writeIndex + 1) / writing.length);
-              }
+              if (ok) nextWriting();
             }}
+            onSkip={nextWriting}
           />
           <p className="pt-2 text-center text-xs text-ink-faint">
             {writeIndex + 1} / {writing.length}

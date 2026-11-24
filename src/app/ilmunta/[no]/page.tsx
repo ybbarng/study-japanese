@@ -59,7 +59,7 @@ export default async function IlmuntaLessonPage({
         after={
           <>
             <LessonDrillLink no={lesson.no} />
-            <PdfLinks />
+            <PdfLinks lesson={lesson} />
             {source ? (
               <SourceCredit source={source} closed={load.data.sourceClosed} />
             ) : null}

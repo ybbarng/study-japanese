@@ -4,6 +4,7 @@ import { LessonRow } from "@/components/ilmuta/lesson-row";
 import { NoTextbook } from "@/components/ilmuta/no-textbook";
 import { PageFrame } from "@/components/shell/page-frame";
 import { BOOK_NAME, lessonLabel } from "@/lib/ilmuta/labels";
+import { lectureTally } from "@/lib/ilmuta/progress";
 import { loadMapData } from "@/lib/ilmuta/server-data";
 
 export const metadata = { title: "일무따 — にほんご" };
@@ -13,7 +14,7 @@ export default async function IlmutaMapPage() {
   const data = await loadMapData();
   if (!data) return <NoTextbook />;
   const current = data.pick.kind === "done" ? null : data.pick.no;
-  const lecturesDone = data.rows.filter((r) => r.progress.lectureDone).length;
+  const lectures = lectureTally(data.rows.map((r) => r.progress));
 
   return (
     <PageFrame className="px-4 pb-8 lg:px-10">
@@ -23,7 +24,7 @@ export default async function IlmutaMapPage() {
         </Link>
         <h1 className="mt-3 text-2xl font-bold">{BOOK_NAME}</h1>
         <p className="mt-1 text-sm text-ink-soft">
-          강의 {lecturesDone}/{data.rows.length} 들음
+          강의 {lectures.done}/{lectures.total} 들음
           {data.pendingWriting.length > 0
             ? ` · 문장 쓰기 남은 강 ${data.pendingWriting.length}개`
             : ""}
