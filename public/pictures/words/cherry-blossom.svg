@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <path d="M4 58c14-6 24-16 32-30M22 46c6 0 10 2 14 6M30 34c-4-4-6-10-6-16" fill="none" stroke="#a8714a" stroke-width="3" stroke-linecap="round"/>
+  <g transform="translate(44 20)">
+    <path d="M0-9.5a4.2 4.2 0 1 1 0 .1zM9-3a4.2 4.2 0 1 1 0 .1zM5.6 7.6a4.2 4.2 0 1 1 0 .1zM-5.6 7.6a4.2 4.2 0 1 1 0 .1zM-9-3a4.2 4.2 0 1 1 0 .1z" fill="#f4a0b8" stroke="#7a6a62" stroke-width="1.2"/>
+    <circle cx="0" cy="0" r="5" fill="#f4a0b8"/>
+    <circle cx="0" cy="0" r="2.4" fill="#e8553e"/>
+  </g>
+  <g transform="translate(20 22) scale(.8)">
+    <path d="M0-9.5a4.2 4.2 0 1 1 0 .1zM9-3a4.2 4.2 0 1 1 0 .1zM5.6 7.6a4.2 4.2 0 1 1 0 .1zM-5.6 7.6a4.2 4.2 0 1 1 0 .1zM-9-3a4.2 4.2 0 1 1 0 .1z" fill="#f4a0b8" stroke="#7a6a62" stroke-width="1.4"/>
+    <circle cx="0" cy="0" r="5" fill="#f4a0b8"/>
+    <circle cx="0" cy="0" r="2.4" fill="#e8553e"/>
+  </g>
+  <g transform="translate(47 46) scale(.75)">
+    <path d="M0-9.5a4.2 4.2 0 1 1 0 .1zM9-3a4.2 4.2 0 1 1 0 .1zM5.6 7.6a4.2 4.2 0 1 1 0 .1zM-5.6 7.6a4.2 4.2 0 1 1 0 .1zM-9-3a4.2 4.2 0 1 1 0 .1z" fill="#f4a0b8" stroke="#7a6a62" stroke-width="1.5"/>
+    <circle cx="0" cy="0" r="5" fill="#f4a0b8"/>
+    <circle cx="0" cy="0" r="2.4" fill="#e8553e"/>
+  </g>
+  <path d="M10 8c2 0 3 2 2 3-2 0-3-1-2-3zM58 30c2 0 3 2 2 3-2 0-3-1-2-3zM30 6c2 0 3 2 2 3-2 0-3-1-2-3z" fill="#f4a0b8"/>
+</svg>

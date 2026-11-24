@@ -29,4 +29,29 @@ export const SCENES: ScenePictureMap = {
     label:
       "남자가 잡지의 영화 광고를 보여 주며 함께 보자고 하고, 여자는 셋이 함께 가는 것을 떠올린다. 벽 달력에 모레가 표시돼 있다.",
   },
+  "ilmuta-21-conversation": {
+    id: "ilmuta-21-conversation",
+    label:
+      "학교 앞에서 한 사람이 헤어모델 일을 떠올리며 친구에게 권하고, 친구가 놀라 자기를 가리킨다.",
+  },
+  "ilmuta-22-conversation": {
+    id: "ilmuta-22-conversation",
+    label:
+      "공항에서 여행 가방을 끄는 사람이 다음 달 어머니와 김을 떠올리고, 다른 사람이 손을 흔들어 배웅한다.",
+  },
+  "ilmuta-23-conversation": {
+    id: "ilmuta-23-conversation",
+    label:
+      "선물 가게 선반 앞에서 한 사람이 김을 권하고, 바구니를 든 사람이 반긴다.",
+  },
+  "ilmuta-24-conversation": {
+    id: "ilmuta-24-conversation",
+    label:
+      "사무실 책상 옆에서 한 사람이 밤에 집에서 여는 파티를 떠올리며 동료를 부르고, 동료가 끄덕인다.",
+  },
+  "ilmuta-25-conversation": {
+    id: "ilmuta-25-conversation",
+    label:
+      "벚꽃이 핀 성 앞에서 한 사람이 손가락 두 개를 펴고, 다른 사람이 사진기로 찍는다.",
+  },
 };
