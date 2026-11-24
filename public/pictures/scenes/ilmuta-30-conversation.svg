@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200">
+  <!-- 아침 해와 길 -->
+  <path d="M160 14v6M140 22l4 4M180 22l-4 4" fill="none" stroke="#f0923a" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M146 44a14 14 0 0 1 28 0z" fill="#f5c84c" stroke="#f0923a" stroke-width="2"/>
+  <path d="M4 44h312" fill="none" stroke="#a0a6b3" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- 바닥 그림자 -->
+  <ellipse cx="78" cy="188" rx="42" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <ellipse cx="236" cy="188" rx="60" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <!-- 왼쪽 사람: 버스로 다닌다 -->
+  <g transform="translate(78 78)">
+    <path d="M-34 108c0-48 14-78 34-78s34 30 34 78z" fill="#3b62a8"/>
+    <path d="M-6 30l6 10 6-10z" fill="#f6f2ea"/>
+    <path d="M-8 22h16v10h-16z" fill="#e3a57f"/>
+    <circle cx="0" cy="0" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+    <path d="M-20 -2c0-16 10-22 20-22s20 6 20 22c-6-6-14-9-22-8-8 1-14 4-18 8z" fill="#5e4a6e"/>
+    <circle cx="-7" cy="2" r="2.4" fill="#3a3040"/>
+    <circle cx="8" cy="2" r="2.4" fill="#3a3040"/>
+    <path d="M-5 10q5 5 10 0" fill="none" stroke="#7a6a62" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  <!-- 생각 풍선: 버스 -->
+  <circle cx="64" cy="48" r="3" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <circle cx="56" cy="38" r="4.5" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <ellipse cx="42" cy="20" rx="32" ry="16" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M24 12a4 4 0 0 1 4-4h28a4 4 0 0 1 4 4v16H24z" fill="#5fb36f" stroke="#7a6a62" stroke-width="1.5"/>
+  <rect x="27" y="11" width="30" height="8" rx="1" fill="#79bde8"/>
+  <circle cx="30" cy="29" r="3" fill="#6c7280"/>
+  <circle cx="54" cy="29" r="3" fill="#6c7280"/>
+  <!-- 오른쪽 사람: 자전거 옆에 선다 -->
+  <g transform="translate(270 78)">
+    <path d="M-34 108c0-48 14-78 34-78s34 30 34 78z" fill="#f0923a"/>
+    <path d="M-8 22h16v12h-16z" fill="#e3a57f"/>
+    <circle cx="0" cy="0" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+    <path d="M-20 -2c0-16 10-22 20-22s20 6 20 22c-6-6-14-9-22-8-8 1-14 4-18 8z" fill="#8a5a3c"/>
+    <path d="M-10 2q3-3 6 0M4 2q3-3 6 0" fill="none" stroke="#3a3040" stroke-width="2" stroke-linecap="round"/>
+    <path d="M-6 10q6 6 12 0z" fill="#b8402f" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M-26 50l-16 18" fill="none" stroke="#f0923a" stroke-width="10" stroke-linecap="round"/>
+  </g>
+  <circle cx="176" cy="164" r="20" fill="none" stroke="#6c7280" stroke-width="5"/>
+  <circle cx="236" cy="164" r="20" fill="none" stroke="#6c7280" stroke-width="5"/>
+  <path d="M176 164l18-28h30l12 28M194 136l14 28h28M208 164l16-28M222 126l2 10" fill="none" stroke="#e8553e" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M184 128h16M216 124h12" fill="none" stroke="#7a6a62" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="226" cy="146" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+</svg>

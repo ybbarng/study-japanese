@@ -54,4 +54,29 @@ export const SCENES: ScenePictureMap = {
     label:
       "벚꽃이 핀 성 앞에서 한 사람이 손가락 두 개를 펴고, 다른 사람이 사진기로 찍는다.",
   },
+  "ilmuta-26-conversation": {
+    id: "ilmuta-26-conversation",
+    label:
+      "하트 장식 앞에서 한 사람이 사탕을 줄 거냐고 묻고, 다른 사람이 손을 저으며 아니라고 한다.",
+  },
+  "ilmuta-27-conversation": {
+    id: "ilmuta-27-conversation",
+    label:
+      "저녁 창가에서 한 사람이 여자 친구의 부모님과 반지를 떠올리고, 친구가 두 손을 들고 놀라며 축하한다.",
+  },
+  "ilmuta-28-conversation": {
+    id: "ilmuta-28-conversation",
+    label:
+      "재즈 포스터 앞에서 한 사람이 콘서트 표 두 장을 내밀고, 다른 사람이 음악을 떠올리며 반가워한다.",
+  },
+  "ilmuta-29-conversation": {
+    id: "ilmuta-29-conversation",
+    label:
+      "시계가 걸린 벽 앞에서 한 사람이 담배를 피우며 시험지를 떠올리고, 친구가 놀라서 묻는다.",
+  },
+  "ilmuta-30-conversation": {
+    id: "ilmuta-30-conversation",
+    label:
+      "아침 해가 뜬 길에서 한 사람은 버스를 떠올리고, 다른 사람은 자전거 옆에 서서 웃는다.",
+  },
 };
