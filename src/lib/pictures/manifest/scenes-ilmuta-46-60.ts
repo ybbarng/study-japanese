@@ -54,4 +54,29 @@ export const SCENES: ScenePictureMap = {
     label:
       "교실 칠판 앞에서 한 학생은 예습한 공책을 펼쳐 두고, 옆자리 학생은 깜짝 놀란다.",
   },
+  "ilmuta-56-conversation": {
+    id: "ilmuta-56-conversation",
+    label:
+      "튀김 접시와 간장병·소금통이 놓인 식탁에서, 한 사람이 손을 들어 말리고 다른 사람은 젓가락을 든 채 놀란다.",
+  },
+  "ilmuta-57-conversation": {
+    id: "ilmuta-57-conversation",
+    label:
+      "밤늦게 현관문으로 아들이 가방을 들고 들어오며 손을 흔들고, 앞치마 차림의 어머니가 맞이한다. 시계와 창밖 달이 늦은 시간을 보인다.",
+  },
+  "ilmuta-58-conversation": {
+    id: "ilmuta-58-conversation",
+    label:
+      "탁자 위 딸기 케이크를 사이에 두고, 직접 만든 사람이 뿌듯해하고 손님이 포크를 든 채 감탄한다.",
+  },
+  "ilmuta-59-conversation": {
+    id: "ilmuta-59-conversation",
+    label:
+      "여행 가방 옆에서 한 사람은 여행 책을 들고 느긋하게 웃고, 다른 사람은 노트북으로 인터넷을 찾아보라고 권한다. 말풍선에 달력과 물음표가 있다.",
+  },
+  "ilmuta-60-conversation": {
+    id: "ilmuta-60-conversation",
+    label:
+      "역 앞에서 한 사람이 숨을 헐떡이며 무릎에 손을 짚고, 다른 사람이 걱정하며 맞이한다. 뒤로 역 건물과 주차장의 차가 보인다.",
+  },
 };

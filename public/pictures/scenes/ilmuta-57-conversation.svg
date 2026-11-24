@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200">
+  <!-- 밤 창문과 시계 -->
+  <rect x="232" y="14" width="64" height="48" rx="4" fill="#3b62a8" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M272 22a12 12 0 1 0 8 20 9 9 0 1 1-8-20z" fill="#f5c84c" stroke="#7a6a62" stroke-width="1.5"/>
+  <circle cx="246" cy="26" r="1.8" fill="#f6f2ea"/>
+  <circle cx="252" cy="48" r="1.5" fill="#f6f2ea"/>
+  <circle cx="160" cy="34" r="18" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M160 22v12l8 6" fill="none" stroke="#e8553e" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- 현관문 -->
+  <rect x="14" y="20" width="64" height="168" fill="#fbe7b0" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M20 26l38 10v152H20z" fill="#a8714a" stroke="#7a6a62" stroke-width="2.5" stroke-linejoin="round"/>
+  <circle cx="50" cy="110" r="3.5" fill="#f5c84c" stroke="#7a6a62" stroke-width="1.5"/>
+  <!-- 바닥 그림자 -->
+  <ellipse cx="116" cy="188" rx="42" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <ellipse cx="250" cy="188" rx="42" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <!-- 들어오는 아들: 가방, 손 인사 -->
+  <path d="M82 186c0-48 14-78 34-78s34 30 34 78z" fill="#3fb0a6"/>
+  <path d="M108 100h16v12h-16z" fill="#e3a57f"/>
+  <circle cx="116" cy="78" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M96 76c0-16 10-22 20-22s20 6 20 22c-6-6-14-9-22-8-8 1-14 4-18 8z" fill="#5e4a6e"/>
+  <circle cx="110" cy="80" r="2.4" fill="#3a3040"/>
+  <circle cx="125" cy="80" r="2.4" fill="#3a3040"/>
+  <path d="M111 88q6 5 12 0" fill="none" stroke="#7a6a62" stroke-width="2" stroke-linecap="round"/>
+  <path d="M146 126l12-30" fill="none" stroke="#3fb0a6" stroke-width="11" stroke-linecap="round"/>
+  <circle cx="160" cy="91" r="6.5" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M88 130l-6 22" fill="none" stroke="#3fb0a6" stroke-width="11" stroke-linecap="round"/>
+  <rect x="66" y="148" width="30" height="24" rx="4" fill="#4a82d4" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M74 148c0-8 14-8 14 0" fill="none" stroke="#3b62a8" stroke-width="3"/>
+  <!-- 어머니: 앞치마, 반긴다 -->
+  <path d="M216 186c0-48 14-78 34-78s34 30 34 78z" fill="#e8553e"/>
+  <path d="M230 116l-2 70h44l-2-70c-6 6-12 8-20 8s-14-2-20-8z" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M242 100h16v12h-16z" fill="#e3a57f"/>
+  <circle cx="250" cy="78" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+  <circle cx="250" cy="52" r="8" fill="#8a5a3c"/>
+  <path d="M230 78c0-16 8-24 20-24s20 8 20 24c-4-8-12-12-20-12s-16 4-20 12z" fill="#8a5a3c"/>
+  <path d="M240 80q3-3 6 0M254 80q3-3 6 0" fill="none" stroke="#3a3040" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M244 88q6 5 12 0" fill="none" stroke="#7a6a62" stroke-width="2" stroke-linecap="round"/>
+  <path d="M222 126l-14-10" fill="none" stroke="#e8553e" stroke-width="11" stroke-linecap="round"/>
+  <circle cx="204" cy="113" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+</svg>
