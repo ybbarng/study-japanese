@@ -3,6 +3,7 @@ import { mkdirSync, rmSync } from "node:fs";
 import path from "node:path";
 import { writeFakeSong } from "./fixtures/song";
 import { writeFakeTextbook } from "./fixtures/textbook";
+import { writeFakeWordTap } from "./fixtures/word-tap";
 
 // E2E용 서버: 가짜 교재·무음 mp3·빈 DB 자리를 만들고, 빌드해 둔 앱을 띄운다.
 // playwright.config.ts의 webServer가 부른다.
@@ -21,6 +22,7 @@ const mediaDir = path.join(root, "media");
 const dataDir = path.join(root, "data");
 writeFakeTextbook(contentDir, mediaDir);
 writeFakeSong(mediaDir, contentDir);
+writeFakeWordTap(contentDir);
 
 const nextBin = path.join(repo, "node_modules", ".bin", "next");
 const child = spawn(nextBin, ["start", "--port", port], {

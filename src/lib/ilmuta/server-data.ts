@@ -11,6 +11,8 @@ import {
 } from "@/lib/store/writings";
 import { loadIlmuta } from "@/lib/textbook/load";
 import type { Ilmuta, IlmutaLesson } from "@/lib/textbook/schema";
+import { loadIlmutaWordTap } from "@/lib/word-tap/server";
+import { emptyWordTap, type WordTapData } from "@/lib/word-tap/types";
 import type { Transcript } from "./context-cues";
 import { type ContinuePick, pendingWriting, pickContinue } from "./continue";
 import {
@@ -86,6 +88,8 @@ export interface LessonData {
   transcript: Transcript | null;
   listens: ListenIndex;
   writing: WritingDoc | null;
+  /** 예문 낱말 누르기 자료(content/textbook-analysis, docs/textbook-analysis.md) */
+  wordTap: WordTapData;
 }
 
 export type LessonLoad =
@@ -118,6 +122,10 @@ export async function loadLessonData(no: number): Promise<LessonLoad> {
       transcript: loadContextTranscript("ilmuta", lectureItem(no), canSee),
       listens: indexListens(summarizeListening(db, "ilmuta")),
       writing: getWriting(db, "ilmuta", no),
+      // 분석은 교재 문장을 잘라 만든 조각이라 교재를 볼 수 있을 때만 싣는다
+      wordTap: visible
+        ? loadIlmutaWordTap(book.lessons, lesson)
+        : emptyWordTap(no),
     },
   };
 }

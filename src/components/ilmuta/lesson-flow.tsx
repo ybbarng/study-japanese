@@ -11,6 +11,7 @@ import {
 } from "react";
 import { OfflineButton } from "@/components/offline/offline-button";
 import { StickyPanel } from "@/components/shell/page-frame";
+import { WordTapProvider } from "@/components/word-tap/word-tap-provider";
 import { followStep } from "@/lib/ilmuta/follow-step";
 import { lessonLabel, registerLabel } from "@/lib/ilmuta/labels";
 import { currentSection } from "@/lib/ilmuta/sections";
@@ -149,7 +150,7 @@ export function LessonFlow({
   }, [playingItem]);
 
   return (
-    <>
+    <WordTapProvider data={data.wordTap}>
       <main className="mx-auto max-w-md px-5 pt-[max(env(safe-area-inset-top),1.25rem)] lg:grid lg:max-w-[100rem] lg:grid-cols-[minmax(0,1fr)_24rem] lg:grid-rows-[auto_auto_1fr] lg:gap-x-8 lg:px-10 lg:pt-8 xl:grid-cols-[8.5rem_minmax(0,1fr)_26rem] xl:grid-rows-[auto_1fr] 2xl:grid-cols-[9rem_minmax(0,1fr)_30rem]">
         <header className="lg:col-start-1 lg:row-start-1 xl:col-start-2">
           <Link href="/ilmuta" className="text-sm text-ink-faint lg:hidden">
@@ -265,6 +266,6 @@ export function LessonFlow({
         </aside>
       </main>
       {footer}
-    </>
+    </WordTapProvider>
   );
 }

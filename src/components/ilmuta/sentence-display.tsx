@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { TapSentence } from "@/components/word-tap/tap-sentence";
+import { WordTapHint } from "@/components/word-tap/word-tap-hint";
 import { cn } from "@/lib/cn";
 import type { Glossary } from "@/lib/ilmuta/ruby";
 import type { Sentence } from "@/lib/textbook/schema";
@@ -30,13 +32,16 @@ export function useSentenceDisplay() {
     { id: "ko", label: "뜻", on: display.ko },
   ];
   const chips = (
-    <ToggleChips
-      toggles={toggles}
-      onChange={(id, on) => {
-        setDisplay((d) => ({ ...d, [id]: on }));
-        setRevealed(new Set());
-      }}
-    />
+    <div className="space-y-2">
+      <ToggleChips
+        toggles={toggles}
+        onChange={(id, on) => {
+          setDisplay((d) => ({ ...d, [id]: on }));
+          setRevealed(new Set());
+        }}
+      />
+      <WordTapHint />
+    </div>
   );
   return {
     display,
@@ -67,19 +72,33 @@ export function SentenceView({
   const showJa = display.ja || revealed;
   const showKo = display.ko || revealed;
   const hidden = !showJa || !showKo;
+  const jaClass = cn(
+    "block leading-loose",
+    // PC에서는 넓이를 살려 한 단계 크게(책보다 큰 글자로 읽는 법까지)
+    size === "lg" ? "text-2xl lg:text-3xl" : "text-xl lg:text-2xl",
+  );
+  const plainJa = (
+    <RubyText
+      text={sentence.ja}
+      glossary={glossary}
+      showReading={display.reading}
+      className={jaClass}
+    />
+  );
   const body = (
     <>
       {showJa ? (
-        <RubyText
-          text={sentence.ja}
-          glossary={glossary}
-          showReading={display.reading}
-          className={cn(
-            "block leading-loose",
-            // PC에서는 넓이를 살려 한 단계 크게(책보다 큰 글자로 읽는 법까지)
-            size === "lg" ? "text-2xl lg:text-3xl" : "text-xl lg:text-2xl",
-          )}
-        />
+        // 가린 문장(단추 안)에서는 낱말을 누르지 않는다. 다 보일 때만 낱말마다 누른다
+        hidden ? (
+          plainJa
+        ) : (
+          <TapSentence
+            ja={sentence.ja}
+            showReading={display.reading}
+            className={jaClass}
+            fallback={plainJa}
+          />
+        )
       ) : (
         <span className="block text-2xl tracking-widest text-ink-faint">
           ・・・

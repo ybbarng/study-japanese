@@ -6,6 +6,7 @@ export type NavId =
   | "ilmuta"
   | "ilmunta"
   | "songs"
+  | "words"
   | "ime"
   | "offline";
 
@@ -26,6 +27,7 @@ export const STUDY_ITEMS: NavItem[] = [
 ];
 
 export const TOOL_ITEMS: NavItem[] = [
+  { id: "words", href: "/words", label: "낱말 사전" },
   { id: "ime", href: "/ime", label: "입력기 켜기" },
   { id: "offline", href: "/offline", label: "받아 둔 강" },
 ];

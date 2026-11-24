@@ -23,6 +23,8 @@
     "context:report": "tsx scripts/context/match-report.ts",
     "songs:pull": "tsx scripts/songs/pull.ts",
     "songs:check": "tsx scripts/songs/check.ts",
+    "textbook:analysis-check": "tsx scripts/textbook/analysis-check.ts",
+    "textbook:analysis-from-draft": "tsx scripts/textbook/analysis-from-draft.ts",
     "check:prod": "tsx scripts/check-prod.ts",
     "kana:audio": "node scripts/kana/cut.mjs",
     "kana:audio:verify": "node scripts/kana/verify.mjs --rows",
