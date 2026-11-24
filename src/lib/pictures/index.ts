@@ -1,6 +1,8 @@
 import { emojiOf, lookupForms } from "@/lib/context/emoji";
 import { SCENES as ILMUTA_01_15_SCENES } from "./manifest/scenes-ilmuta-01-15";
+import { SCENES as ILMUTA_31_45_SCENES } from "./manifest/scenes-ilmuta-31-45";
 import { WORDS as ILMUTA_01_15_WORDS } from "./manifest/words-ilmuta-01-15";
+import { WORDS as ILMUTA_31_45_WORDS } from "./manifest/words-ilmuta-31-45";
 import { scenePictureSrc, wordPictureSrc } from "./paths";
 import {
   type Book,
@@ -17,11 +19,13 @@ import {
 /** 범위 이름 → 낱말 그림 표. 같은 낱말이 두 표에 들어가지 않는다(시험이 본다) */
 export const WORD_MANIFESTS: Readonly<Record<string, WordPictureMap>> = {
   "ilmuta-01-15": ILMUTA_01_15_WORDS,
+  "ilmuta-31-45": ILMUTA_31_45_WORDS,
 };
 
 /** 범위 이름 → 장면 그림 표 */
 export const SCENE_MANIFESTS: Readonly<Record<string, ScenePictureMap>> = {
   "ilmuta-01-15": ILMUTA_01_15_SCENES,
+  "ilmuta-31-45": ILMUTA_31_45_SCENES,
 };
 
 const WORDS: WordPictureMap = Object.assign(
