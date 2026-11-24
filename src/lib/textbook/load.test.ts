@@ -110,6 +110,24 @@ describe("책에 상관없이 자막 읽기", () => {
     );
   });
 
+  it("나뉜 강의 파일 이름(`L26-02-02-_1_`)처럼 밑줄이 든 항목도 읽는다", () => {
+    const dir = contentDir();
+    mkdirSync(path.join(dir, "transcripts", "ilmunta"), { recursive: true });
+    writeFileSync(
+      path.join(dir, "transcripts", "ilmunta", "L26-02-02-_1_.json"),
+      JSON.stringify({
+        book: "ilmunta",
+        item: "L26-02-02-_1_",
+        kind: "lecture",
+        durationSec: 2,
+        segments: [{ start: 0, end: 1, text: "가짜", lang: "ko" }],
+      }),
+    );
+    expect(
+      loadTranscript("ilmunta", "L26-02-02-_1_", dir)?.segments[0].text,
+    ).toBe("가짜");
+  });
+
   it.each([
     ["kana", "a"],
     ["ilmuta", "../L01"],

@@ -34,8 +34,11 @@ export function loadIlmuta(dir: string = contentDir()): Ilmuta | null {
 }
 
 const TRANSCRIPT_BOOKS = new Set(["ilmuta", "ilmunta"]);
-/** 오디오 항목 이름(L01, 01-4-1, L01-01 …). 경로 조각으로 쓰므로 이 모양만 받는다 */
-const ITEM = /^[A-Za-z0-9][A-Za-z0-9-]{0,15}$/;
+/**
+ * 오디오 항목 이름(L01, 01-4-1, L01-01, 나뉜 강의 L26-02-02-_1_ …). 경로 조각으로 쓰므로 이 모양만 받는다.
+ * 점·슬래시는 받지 않아 폴더 밖으로 나가지 못한다
+ */
+const ITEM = /^[A-Za-z0-9][A-Za-z0-9_-]{0,23}$/;
 
 /** 오디오 자막(`transcripts/<book>/<item>.json`). 없거나 깨졌거나 이름이 틀리면 조용히 null */
 export function loadTranscript(
