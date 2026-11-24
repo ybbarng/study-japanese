@@ -226,10 +226,8 @@ async function retryFile(
   const cached: Cached = existsSync(cacheFile)
     ? (JSON.parse(await readFile(cacheFile, "utf8")) as Cached)
     : { prompt, prompted: {}, plain: {} };
-  if (cached.prompt !== prompt) {
-    cached.prompt = prompt;
-    cached.prompted = {};
-  }
+  // 판정 규칙을 고쳐 일문따 짝이 달라지면 prompt도 조금 달라진다. prompt는 표기를 끌어당길 뿐이라
+  // 이미 받은 결과를 그대로 쓴다(처음부터 다시 받으려면 캐시 폴더를 지운다)
   const needPrompted = targets.filter(
     (i) => !(segKey(segments[i]) in cached.prompted),
   );

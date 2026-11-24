@@ -8,7 +8,8 @@
  * ① matched: 새 글로 바꾸면 그 구간이 교재 문장과 통째로 맞고, 파일 전체의 맞춤 수가 줄지 않는다.
  *    prompt에 넣은 문장을 소리 없이 베껴 쓴 것을 막으려고, 새 글이 다른 받아쓰기(plain 또는 원래)와도
  *    어느 정도 닮아야 한다(소리가 뒷받침한다).
- * ② agreed: 맞춤은 없지만 prompted·plain 두 받아쓰기가 서로 거의 같고, 원래 글만 동떨어졌다.
+ * ② agreed: 맞춤은 없지만 prompted·plain 두 받아쓰기가 글자까지 같고, 원래 글만 동떨어졌다
+ *    (가타카나투성이 글은 한국어를 잘못 들은 것이라 받지 않는다).
  * ③ kanji: 읽기는 원래와 같고, 두 받아쓰기가 똑같이 한자를 더 써서 적었다(표기만 고친다).
  * 어느 쪽이든 먼저 안전 검사(환각 문구·되풀이·한글 섞임·길이)를 통과해야 한다.
  */
@@ -34,9 +35,21 @@ export const LENGTH_RATIO = { min: 0.5, max: 2 };
 export const MAX_KANA_PER_SEC = 14;
 /** matched: 새 글이 다른 받아쓰기 하나와 이만큼은 닮아야 한다 */
 export const SUPPORT_SIMILARITY = 0.5;
-/** agreed: 두 새 받아쓰기가 이만큼 닮고, 원래 글과의 닮음보다 이만큼 더 커야 한다 */
-export const AGREE_SIMILARITY = 0.85;
+/** agreed: 두 새 받아쓰기는 글자까지 같고, 원래 글과의 닮음은 1에서 이만큼 모자라야 한다 */
 export const AGREE_MARGIN = 0.15;
+/**
+ * agreed: 가나·한자 중 가타카나가 이 비율을 넘으면 받지 않는다.
+ * 강의에서 한국어 말을 일본어로 잘못 들으면 두 받아쓰기 모두 비슷한 엉터리 가타카나가 된다.
+ * 일무따 강의·예문 88개 파일에서 재 보니, 이 조건과 글자 일치를 더하면 교재 문장에서 멀어진 바꿈이
+ * 12/105에서 4/74로 줄었다.
+ */
+export const MAX_KATAKANA_SHARE = 0.5;
+
+function katakanaShare(s: string): number {
+  const ja = s.match(/[ぁ-ゖァ-ヺー\p{Script=Han}]/gu)?.length ?? 0;
+  const kata = s.match(/[ァ-ヺー]/g)?.length ?? 0;
+  return ja === 0 ? 1 : kata / ja;
+}
 
 export type Decodes = {
   original: string;
@@ -107,9 +120,13 @@ export function judge(
   }
 
   if (d.prompted !== null && d.plain !== null && options.includes(d.prompted)) {
-    const agree = kanaSimilarity(d.prompted, d.plain, toKana);
+    const agree = normalizeJa(d.prompted) === normalizeJa(d.plain);
     const toOriginal = kanaSimilarity(d.prompted, d.original, toKana);
-    if (agree >= AGREE_SIMILARITY && agree >= toOriginal + AGREE_MARGIN)
+    if (
+      agree &&
+      toOriginal <= 1 - AGREE_MARGIN &&
+      katakanaShare(d.prompted) <= MAX_KATAKANA_SHARE
+    )
       return { change: true, kind: "agreed", text: d.prompted.trim() };
     // 읽기는 원래와 같고 두 받아쓰기가 똑같이 한자로 적었으면(とくいな → 得意な) 표기만 고친다
     const kana = (t: string) => normalizeJa(toKana(t));

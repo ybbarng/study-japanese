@@ -107,6 +107,20 @@ describe("judge", () => {
     expect(result).toEqual({ change: true, kind: "kanji", text: "公園にいく" });
   });
 
+  it("refuses agreed decodes that are mostly katakana (Korean speech misheard as Japanese)", () => {
+    const result = judge(
+      {
+        original: "ルペコヨ",
+        prompted: "ピエルイボタ",
+        plain: "ピエルイボタ",
+        durationSec: 1.5,
+      },
+      never,
+      plainKana,
+    );
+    expect(result).toEqual({ change: false, reason: "not-better" });
+  });
+
   it("keeps the original when the new decodes disagree with each other", () => {
     const result = judge(
       {
