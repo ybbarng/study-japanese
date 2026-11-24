@@ -39,6 +39,7 @@ import {
   promotable,
   promoteSegments,
   type TranscriptReview,
+  withTrustedFixes,
 } from "./review";
 import { findRepeatPairs, type TranscriptPair } from "./transcript-pairs";
 
@@ -124,7 +125,15 @@ export function contextTranscript(
         : null
       : ilmuntaCardSource(
           lessons,
-          [...(pairs ?? []), ...selfPairs(clean.segments, lessons)],
+          [
+            ...(pairs ?? []),
+            // 예문 짝처럼 믿을 만한 일본어 고침을 반영해 찾는다(고치기 전 글로 찾으면 같은 문장이 두 표기로
+            // 생겨, 반쪽 줄이 어느 문장인지 모르게 된다)
+            ...selfPairs(
+              withTrustedFixes(clean.segments, prepared.candidates),
+              lessons,
+            ),
+          ],
           no,
           extras,
         );

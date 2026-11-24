@@ -6,6 +6,7 @@ import {
   promotable,
   promoteSegments,
   type ReviewLine,
+  reviewedForPairs,
   type TranscriptReview,
   transcriptReviewSchema,
 } from "./review";
@@ -177,6 +178,45 @@ describe("한국어 줄의 받아쓰기 오타 고침(korean)", () => {
       review({ ...typo, corrected: "" }),
     );
     expect(out.segments).toEqual([ko(20, 22, "그 게임의 출신은")]);
+  });
+});
+
+describe("예문 짝을 만들 자막(reviewedForPairs)", () => {
+  const segments = [ja(10, 12, "山野カメラ"), ko(13, 15, "산의 카메라")];
+
+  it("믿을 만한 일본어 고침은 글을 고친 글로 바꾸고 고친 줄로 표시한다", () => {
+    expect(reviewedForPairs(segments, review(line()))).toEqual([
+      { ...ja(10, 12, "山のカメラ。"), reviewed: true },
+      ko(13, 15, "산의 카메라"),
+    ]);
+  });
+
+  it("소리 확인을 통과하지 못한 고침은 받아 적은 글 그대로 둔다", () => {
+    expect(
+      reviewedForPairs(segments, review(line({ audioVerified: false }))),
+    ).toEqual(segments);
+  });
+
+  it("확신이 high가 아닌 고침은 받아 적은 글 그대로 둔다", () => {
+    expect(
+      reviewedForPairs(segments, review(line({ confidence: "mid" }))),
+    ).toEqual(segments);
+  });
+
+  it("한국어 줄 고침도 함께 반영한다", () => {
+    const out = reviewedForPairs(
+      segments,
+      review(
+        line({
+          start: 13,
+          end: 15,
+          original: "산의 카메라",
+          corrected: "산의 사진기",
+          kind: "korean",
+        }),
+      ),
+    );
+    expect(out).toEqual([ja(10, 12, "山野カメラ"), ko(13, 15, "산의 사진기")]);
   });
 });
 

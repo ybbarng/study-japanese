@@ -80,6 +80,26 @@ describe("일본어 → 뜻 → 일본어 되풀이 짝", () => {
     ]);
     expect(pair.ja).toBe("猫がとても好きですよね。");
   });
+
+  it("한쪽만 교정 파일로 고친 글이면 한자가 적어도 고친 쪽 글을 쓴다", () => {
+    const fixed = "あさにはやく起きる時間ですよね。";
+    const heard = "麻にはやく起きる時間ですよね。";
+    for (const reviewedFirst of [true, false]) {
+      clock = 0;
+      const [pair] = findRepeatPairs([
+        {
+          ...seg("ja", reviewedFirst ? fixed : heard),
+          reviewed: reviewedFirst,
+        },
+        seg("ko", "아침에 일찍 일어날 시간이지요."),
+        {
+          ...seg("ja", reviewedFirst ? heard : fixed),
+          reviewed: !reviewedFirst,
+        },
+      ]);
+      expect(pair.ja).toBe(fixed);
+    }
+  });
 });
 
 describe("사이가 넓거나 나뉜 되풀이", () => {

@@ -7,7 +7,7 @@ import { withoutNoise } from "@/lib/transcript/hallucination";
 import { ilmuntaGlossary } from "./card-sources";
 import { kanaOf } from "./cards";
 import type { Transcript } from "./cues";
-import { prepareReview, type TranscriptReview } from "./review";
+import { reviewedForPairs, type TranscriptReview } from "./review";
 import {
   findRepeatPairs,
   PAIR_MIN_SIMILARITY,
@@ -52,7 +52,9 @@ export function ilmuntaLessonLines(
 
 /**
  * 과의 짝. 자막이 없으면 빈 열(자막·교정 파일이 그대로면 같은 객체라 호출하는 쪽이 캐시 열쇠로 쓸 수 있다).
- * 그 예문 자막의 교정 파일이 있으면 먼저 반영한다(뜻 줄의 받아쓰기 오타를 고친 줄 등, review.ts)
+ * 그 예문 자막의 교정 파일이 있으면 먼저 반영한다: 뜻 줄의 받아쓰기 오타를 고친 줄(korean)과
+ * 믿을 만한 일본어 고침(japanese·name, 같은 소리의 다른 한자 등). 되풀이 둘 중 고친 쪽 글을 짝에 쓴다
+ * (review.ts reviewedForPairs)
  */
 export function ilmuntaLessonPairs(no: number, dir?: string): TranscriptPair[] {
   const item = grammarExampleItem(no);
@@ -62,7 +64,9 @@ export function ilmuntaLessonPairs(no: number, dir?: string): TranscriptPair[] {
   const hit = cache.get(t);
   if (hit && hit.review === review) return hit.pairs;
   const glossary = ilmuntaGlossary(loadIlmuta(dir)?.lessons ?? null);
-  const segments = prepareReview(t.segments, review).segments;
+  // 꼬리 조각(앞 줄과 같은 글의 짧은 구간)은 교정 전 글로 먼저 거른다. 앞 줄만 고치면 글이 달라져
+  // 조각이 남고, 되풀이 일본어에 붙어 짝이 깨진다
+  const segments = reviewedForPairs(withoutNoise(t.segments), review);
   const pairs = findRepeatPairs(withoutNoise(segments), {
     minSimilarity: PAIR_MIN_SIMILARITY,
     toKana: (text) => kanaOf(text, glossary),

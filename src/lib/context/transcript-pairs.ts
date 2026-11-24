@@ -52,7 +52,14 @@ export function betterTranscription(a: string, b: string): string {
   return lb > la ? b : a;
 }
 
-type Segment = { start: number; end: number; text: string; lang: "ko" | "ja" };
+type Segment = {
+  start: number;
+  end: number;
+  text: string;
+  lang: "ko" | "ja";
+  /** 교정 파일로 고친 글(review.ts reviewedForPairs). 되풀이 둘 중 이 쪽을 고른다 */
+  reviewed?: boolean;
+};
 
 /** 두 일본어 사이에 낄 수 있는 한국어 줄 수(뜻을 두 번 읽거나 "어?" 같은 소리가 끼기도 한다) */
 const MAX_KO_BETWEEN = 3;
@@ -73,13 +80,28 @@ export interface RepeatPairOptions {
 function jaRuns(
   segments: Segment[],
   i: number,
-): { text: string; end: number }[] {
+): { text: string; end: number; reviewed: boolean }[] {
   const a = segments[i];
   if (a?.lang !== "ja") return [];
-  const out = [{ text: a.text, end: i }];
+  const out = [{ text: a.text, end: i, reviewed: a.reviewed === true }];
   const b = segments[i + 1];
-  if (b?.lang === "ja") out.push({ text: `${a.text}${b.text}`, end: i + 1 });
+  if (b?.lang === "ja")
+    out.push({
+      text: `${a.text}${b.text}`,
+      end: i + 1,
+      reviewed: a.reviewed === true || b.reviewed === true,
+    });
   return out;
+}
+
+/** 두 번 받아 적은 글 중 쓸 쪽: 한쪽만 교정 파일로 고친 글이면 그쪽, 아니면 betterTranscription */
+function chosenTranscription(
+  a: { text: string; reviewed: boolean },
+  b: { text: string; reviewed: boolean },
+): string {
+  if (a.reviewed !== b.reviewed)
+    return undoubledText(a.reviewed ? a.text : b.text);
+  return betterTranscription(undoubledText(a.text), undoubledText(b.text));
 }
 
 /** 사이 한국어 줄 가운데 뜻으로 볼 가장 긴 줄(같은 뜻을 두 번 읽거나 짧은 감탄이 끼어도) */
@@ -174,6 +196,7 @@ export function findRepeatPairs(
         // 앞 일본어가 두 줄이면, 첫 줄을 떼어도 똑같이(또는 더) 닮는지 본다. 그러면 첫 줄은
         // 예문 번호를 읽은 소리 같은 머리말이라 문장에 넣지 않는다(뒤 되풀이에는 없다)
         let aText = a.text;
+        let aReviewed = a.reviewed;
         let aStart = segments[i].start;
         let score = scoreOf(a.text);
         if (a.end > i) {
@@ -184,6 +207,7 @@ export function findRepeatPairs(
             [...undoubled(normalizeJa(tail))].length >= MIN_JA_LENGTH
           ) {
             aText = tail;
+            aReviewed = segments[a.end].reviewed === true;
             aStart = segments[a.end].start;
             score = tailScore;
           }
@@ -191,10 +215,7 @@ export function findRepeatPairs(
         const na = undoubled(normalizeJa(aText));
         if (score < minSimilarity || !compatible(na, nb)) continue;
         if (found && score <= found.pair.score) continue;
-        const ja = betterTranscription(
-          undoubledText(aText),
-          undoubledText(b.text),
-        );
+        const ja = chosenTranscription({ text: aText, reviewed: aReviewed }, b);
         // 이은 뜻이 뜻으로 볼 만하지 않으면(강의의 설명 줄이 섞임) 가장 긴 줄 하나로 다시 본다
         const joined = meaningOf(between);
         const accepts = (k: string) =>

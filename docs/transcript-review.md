@@ -59,6 +59,16 @@
 | `splitAt`이 있는 줄 | 일본어 부분(글은 `corrected`)과 한국어 부분(글은 `koreanPart`, 없으면 내주지 않음)으로 나눈다. `japaneseSide`가 `before`(기본)면 일본어가 `start`~`splitAt`, `after`면 `splitAt`~`end`. 일본어 부분도 아래 기준으로 올릴지 정하고, 올리지 않으면 고친 글을 흐린 받아쓰기로 보인다 |
 | `splitAt`이 없는 섞인 줄 | 원래 글 그대로 흐린 받아쓰기 |
 
+### 일문따 예문 짝
+
+일문따 강의·예문 카드의 문장 후보인 예문 짝(`NN-1` 자막의 일본어 → 뜻 → 일본어 되풀이, `src/lib/context/ilmunta-pairs.ts`)과 화면 자막에서 다시 찾는 되풀이 짝(`build.ts` `selfPairs`)은 교정을 먼저 반영한 글로 만든다(`review.ts` `reviewedForPairs`·`withTrustedFixes`).
+
+- `kind: korean` 줄은 고친 뜻 글로 바꾼다.
+- `kind: japanese`·`name` 줄은 `confidence: high`이고 `audioVerified: true`이며 `corrected`에 일본어 글자가 있고 한글이 없으면 고친 글로 바꾼다. 짧은 줄·교재 낱말 여부는 보지 않는다(카드로 올리는 기준보다 너그럽다). 글만 바꾸고 짝 카드의 출처는 여전히 받아 적은 글이다.
+- 되풀이 둘 중 한쪽만 고친 줄이면 그쪽 글을 짝 문장으로 쓴다(한자가 적어도).
+- 꼬리 조각은 교정 전 글로 먼저 거른다. 앞 줄만 고치면 글이 달라져 조각이 남고 짝이 깨진다.
+- 화면 자막 줄 글은 위 표대로다(정상 카드로 올리지 않는 줄은 원래 글 그대로).
+
 교정 파일과 상관없이, 앞 줄과 글이 같은 0.3초 미만 구간(세 글자 이상)은 꼬리 조각으로 보고 뺀다(`src/lib/transcript/hallucination.ts` `tailEchoIndexes`).
 
 ### 정상 카드로 올리는 기준

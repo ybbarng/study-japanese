@@ -226,6 +226,52 @@ export function prepareReview<T extends Segment>(
   return out;
 }
 
+/**
+ * 고친 일본어를 받아 적은 글 대신 써도 될 줄인가: 일본어 줄 고침(japanese·name)이고 확신(high)이며
+ * 소리 확인(audioVerified)을 통과했고, 고친 글에 일본어 글자가 있고 한글이 없다.
+ * 카드로 올리는 기준(promotable)보다 너그럽다(짧은 줄·교재 낱말 여부는 보지 않는다): 글만 바꾸고
+ * 출처는 여전히 받아 적은 글이다
+ */
+export function trustedJapaneseFix(line: ReviewLine): boolean {
+  if (line.kind !== "japanese" && line.kind !== "name") return false;
+  if (line.confidence !== "high" || line.audioVerified !== true) return false;
+  const corrected = line.corrected?.trim() ?? "";
+  return JAPANESE.test(corrected) && !HANGUL.test(corrected);
+}
+
+/**
+ * 예문 짝(transcript-pairs.ts)을 만들 자막: prepareReview에 더해, 믿을 만한 일본어 고침
+ * (trustedJapaneseFix)은 그 구간 글을 고친 글로 바꾸고 reviewed를 단다(되풀이 둘 중 고친 쪽을 고르게).
+ * review가 없거나 바꿀 줄이 없으면 prepareReview의 segments 그대로
+ */
+export function reviewedForPairs<T extends Segment>(
+  segments: T[],
+  review: TranscriptReview | null,
+): (T & { reviewed?: boolean })[] {
+  const prepared = prepareReview(segments, review);
+  return withTrustedFixes(prepared.segments, prepared.candidates);
+}
+
+/**
+ * 후보 가운데 믿을 만한 일본어 고침(trustedJapaneseFix)과 시각이 같은 일본어 구간의 글을 고친 글로 바꾸고
+ * reviewed를 단다. 바꿀 줄이 없으면 segments 그대로
+ */
+export function withTrustedFixes<T extends Segment>(
+  segments: T[],
+  candidates: ReviewCandidate[],
+): (T & { reviewed?: boolean })[] {
+  const fixes = candidates.filter((c) => trustedJapaneseFix(c.line));
+  if (fixes.length === 0) return segments;
+  return segments.map((seg) => {
+    if (seg.lang !== "ja") return seg;
+    const fix = fixes.find(
+      (c) => sameTime(c.start, seg.start) && sameTime(c.end, seg.end),
+    );
+    if (!fix) return seg;
+    return { ...seg, text: fix.line.corrected?.trim() ?? "", reviewed: true };
+  });
+}
+
 /** 표기 비교용: 반각·전각을 맞추고 부호·공백만 뺀다(가나 종류는 그대로) */
 export function plainForm(text: string): string {
   return text.normalize("NFKC").replace(/[\s\p{P}\p{S}]/gu, "");
