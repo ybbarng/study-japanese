@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { loadIlmuntaMap } from "@/lib/ilmunta/server-data";
+import { lectureTally } from "@/lib/ilmuta/progress";
 import { loadMapData } from "@/lib/ilmuta/server-data";
 import type { NavProgress } from "@/lib/shell/nav";
 
@@ -10,12 +11,7 @@ export async function GET() {
     loadIlmuntaMap(),
   ]);
   const body: NavProgress = {};
-  if (ilmuta)
-    body.ilmuta = {
-      done: ilmuta.rows.filter((r) => r.no > 0 && r.progress.lectureDone)
-        .length,
-      total: ilmuta.rows.filter((r) => r.no > 0).length,
-    };
+  if (ilmuta) body.ilmuta = lectureTally(ilmuta.rows.map((r) => r.progress));
   if (ilmunta)
     body.ilmunta = {
       done: ilmunta.listens.filter((l) => l.total > 0 && l.heard >= l.total)
