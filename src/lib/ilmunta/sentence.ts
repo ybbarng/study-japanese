@@ -58,18 +58,28 @@ function candidates(frame: Frame, skill: Skill, upTo?: number): Candidate[] {
   return [];
 }
 
+type FrameOption = {
+  readonly frame: Frame;
+  readonly words: readonly Candidate[];
+};
+
+/** framesFor 결과. 틀·장면·낱말이 고정 데이터라 (기술, 과)마다 한 번만 계산한다 */
+const framesCache = new Map<string, readonly FrameOption[]>();
+
 /**
  * 이 기술을 낼 수 있는 틀과 그 낱말들.
  * `upTo`를 주면 그 과까지 배운 낱말만 넣고, 넣을 낱말이 하나도 없는 틀은 뺀다
  */
-export function framesFor(
-  skill: Skill,
-  upTo?: number,
-): { frame: Frame; words: Candidate[] }[] {
-  return FRAMES.map((frame) => ({
+export function framesFor(skill: Skill, upTo?: number): readonly FrameOption[] {
+  const key = `${skill.key}@${upTo ?? "all"}`;
+  const hit = framesCache.get(key);
+  if (hit) return hit;
+  const options = FRAMES.map((frame) => ({
     frame,
     words: candidates(frame, skill, upTo),
   })).filter((x) => x.words.length > 0);
+  framesCache.set(key, options);
+  return options;
 }
 
 /** 문장으로 낼 수 있는 기술인지(문형·경어·자타동사 등은 활용표 문제로만 낸다) */

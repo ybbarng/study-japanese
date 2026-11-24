@@ -26,20 +26,21 @@ function chain(skill: Skill, style: QuestionStyle, upTo: number, n: number) {
 }
 
 describe("강별로 배운 낱말만 낸다", () => {
-  it("어느 과 범위에서든 그 과까지 배운 낱말만 나온다(문장·활용표 둘 다)", () => {
-    const early: string[] = [];
-    for (const upTo of DRILL_LESSONS)
+  // 과마다 시험을 나눈다: 한 시험에 모든 과를 몰면 문제를 8만 개 넘게 만들어 부하 속에서 시간 상한을 넘었다
+  it.each(DRILL_LESSONS)(
+    "1~%i과 범위에서는 그 과까지 배운 낱말만 나온다(문장·활용표 둘 다)",
+    (upTo) => {
+      const early: string[] = [];
       for (const skill of skillsInLessons(1, upTo))
         for (const style of ["sentence", "table"] as const)
           for (const word of chain(skill, style, upTo, 15)) {
             const lesson = LESSON_OF.get(word);
             if (lesson != null && lesson > upTo)
-              early.push(
-                `${upTo}과 ${skill.key} ${style}: ${word}(${lesson}과)`,
-              );
+              early.push(`${skill.key} ${style}: ${word}(${lesson}과)`);
           }
-    expect(early).toEqual([]);
-  });
+      expect(early).toEqual([]);
+    },
+  );
 
   it("문장 틀은 그 과까지 배운 낱말만 받고, 넣을 낱말이 없는 틀은 그 과에서 내지 않는다", () => {
     const count = (fs: ReturnType<typeof framesFor>) =>
@@ -73,9 +74,10 @@ describe("강별로 배운 낱말만 낸다", () => {
 });
 
 describe("같은 낱말이 잇달아 나오지 않는다", () => {
-  it("배운 낱말이 둘 이상인 기술은 앞 문제와 같은 낱말을 내지 않는다(문장 방식)", () => {
-    const repeats: string[] = [];
-    for (const upTo of DRILL_LESSONS)
+  it.each(DRILL_LESSONS)(
+    "1~%i과 범위에서 배운 낱말이 둘 이상인 기술은 앞 문제와 같은 낱말을 내지 않는다(문장 방식)",
+    (upTo) => {
+      const repeats: string[] = [];
       for (const skill of skillsInLessons(1, upTo)) {
         const distinct = new Set(
           framesFor(skill, upTo).flatMap((f) =>
@@ -86,8 +88,9 @@ describe("같은 낱말이 잇달아 나오지 않는다", () => {
         const words = chain(skill, "sentence", upTo, 20);
         for (let i = 1; i < words.length; i++)
           if (words[i] === words[i - 1])
-            repeats.push(`${upTo}과 ${skill.key}: ${words[i]}`);
+            repeats.push(`${skill.key}: ${words[i]}`);
       }
-    expect(repeats).toEqual([]);
-  });
+      expect(repeats).toEqual([]);
+    },
+  );
 });
