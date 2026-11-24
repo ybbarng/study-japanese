@@ -75,6 +75,24 @@ describe("내보내기·들여오기", () => {
     expect(() => parseKanaData("not json")).toThrow();
   });
 
+  it("카드 상자 번호가 음수면 오류를 던진다", () => {
+    const d = introduce(emptyKanaData(), ["hira:a"], T0);
+    const card = d.cards["hira:a"];
+    const json = serializeKanaData({
+      ...d,
+      cards: { "hira:a": { ...card, box: -1 } } as typeof d.cards,
+    });
+    expect(() => parseKanaData(json)).toThrow("cards.hira:a");
+  });
+
+  it("최고 기록이 숫자가 아니면 오류를 던진다", () => {
+    const json = JSON.stringify({
+      ...emptyKanaData(),
+      bests: { rush: "12" },
+    });
+    expect(() => parseKanaData(json)).toThrow("bests.rush");
+  });
+
   it("모르는 카드 id는 버린다", () => {
     const d = introduce(emptyKanaData(), ["hira:a"], T0);
     const json = serializeKanaData({

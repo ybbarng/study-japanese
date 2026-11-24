@@ -1,4 +1,9 @@
-import { z } from "zod";
+import {
+  isNumber,
+  isRecord,
+  isStringArray,
+  readSrsCard,
+} from "@/lib/srs-shape";
 import { ALL_CARD_IDS, type CardId } from "./data";
 import { type CardState, newCard, review } from "./srs";
 
@@ -113,23 +118,30 @@ export function streak(data: KanaData, now: number): number {
 
 const cardIdSet = new Set<string>(ALL_CARD_IDS);
 
-const cardStateSchema = z.object({
-  box: z.number().int().min(0),
-  due: z.number(),
-  lapses: z.number().int().min(0),
-  reps: z.number().int().min(0),
-  lastSeen: z.number(),
-  lastCorrect: z.boolean(),
-});
+// 모양 확인은 zod 없이 손으로 한다(가나 상태는 모든 화면의 아래 막대가 읽는다, srs-shape.ts).
 
-const kanaDataSchema = z.object({
-  version: z.literal(1),
-  updatedAt: z.number(),
-  cards: z.record(z.string(), cardStateSchema),
-  lessons: z.record(z.string(), z.number()),
-  bests: z.record(z.string(), z.number()),
-  days: z.array(z.string()),
-});
+class KanaShapeError extends Error {
+  constructor(where: string) {
+    super(`가나 상태 모양이 틀립니다: ${where}`);
+    this.name = "KanaShapeError";
+  }
+}
+
+function readCard(v: unknown, id: string): CardState {
+  const card = readSrsCard(v);
+  if (!card) throw new KanaShapeError(`cards.${id}`);
+  return card;
+}
+
+function readNumbers(v: unknown, where: string): Record<string, number> {
+  if (!isRecord(v)) throw new KanaShapeError(where);
+  const out: Record<string, number> = {};
+  for (const [k, n] of Object.entries(v)) {
+    if (!isNumber(n)) throw new KanaShapeError(`${where}.${k}`);
+    out[k] = n;
+  }
+  return out;
+}
 
 export function serializeKanaData(data: KanaData): string {
   const { version, updatedAt, cards, lessons, bests, days } = data;
@@ -138,10 +150,22 @@ export function serializeKanaData(data: KanaData): string {
 
 /** JSON을 읽어 상태로. 모양이 틀리면 오류를 던진다. 모르는 카드 id는 버린다. */
 export function parseKanaData(json: string): KanaData {
-  const parsed = kanaDataSchema.parse(JSON.parse(json));
+  const raw: unknown = JSON.parse(json);
+  if (!isRecord(raw) || raw.version !== 1) throw new KanaShapeError("version");
+  if (!isNumber(raw.updatedAt)) throw new KanaShapeError("updatedAt");
+  if (!isRecord(raw.cards)) throw new KanaShapeError("cards");
+  if (!isStringArray(raw.days)) throw new KanaShapeError("days");
   const cards: Partial<Record<CardId, CardState>> = {};
-  for (const [k, v] of Object.entries(parsed.cards)) {
-    if (cardIdSet.has(k)) cards[k as CardId] = v;
+  for (const [k, v] of Object.entries(raw.cards)) {
+    const card = readCard(v, k);
+    if (cardIdSet.has(k)) cards[k as CardId] = card;
   }
-  return { ...parsed, cards };
+  return {
+    version: 1,
+    updatedAt: raw.updatedAt,
+    cards,
+    lessons: readNumbers(raw.lessons, "lessons"),
+    bests: readNumbers(raw.bests, "bests"),
+    days: raw.days,
+  };
 }

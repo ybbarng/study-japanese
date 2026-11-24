@@ -1,7 +1,7 @@
 import { readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import type { z } from "zod";
-import { type Transcript, transcriptSchema } from "@/lib/context/cues";
+import { type Transcript, transcriptSchema } from "@/lib/context/card-schema";
 import { type Ilmuta, ilmutaSchema } from "./schema";
 
 // 교재 JSON은 이미지에 넣지 않고 실행할 때 CONTENT_DIR(기본 <cwd>/content)에서 읽는다.

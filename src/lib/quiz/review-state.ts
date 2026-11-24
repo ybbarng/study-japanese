@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { type CardState, dueQueue, newCard, review } from "@/lib/kana/srs";
+import { isNumber, isRecord, readSrsCards } from "@/lib/srs-shape";
 import type { Versioned } from "@/lib/sync/state-sync";
 
 // 교재 영역 확인 문제의 간격 반복 기록. 틀린 문제만 카드로 남기고(맞힌 적만 있는 문제는 남기지 않는다),
@@ -106,20 +106,13 @@ export function dueByLesson(
     .sort((a, b) => a.lesson - b.lesson);
 }
 
-const cardSchema = z.object({
-  box: z.number().int().min(0),
-  due: z.number(),
-  lapses: z.number().int().min(0),
-  reps: z.number().int().min(0),
-  lastSeen: z.number(),
-  lastCorrect: z.boolean(),
-});
-
-export const quizDataSchema = z.object({
-  version: z.literal(1),
-  updatedAt: z.number(),
-  cards: z.record(z.string(), cardSchema),
-});
+/** 서버·기기에서 읽은 값이 확인 문제 상태 모양이면 그 상태, 아니면 null(zod 없이, srs-shape.ts) */
+export function readQuizData(v: unknown): QuizData | null {
+  if (!isRecord(v) || v.version !== 1 || !isNumber(v.updatedAt)) return null;
+  const cards = readSrsCards(v.cards);
+  if (!cards) return null;
+  return { version: 1, updatedAt: v.updatedAt, cards };
+}
 
 /** 서버에 보낼 문서. 한 번도 틀린 적 없는 빈 상태는 보내지 않는다 */
 export function toVersioned(data: QuizData): Versioned<QuizData> | null {
@@ -133,7 +126,7 @@ export function adoptFromServer(
   synced: Versioned<unknown> | null,
 ): QuizData | null {
   if (!synced || synced.updatedAt <= current.updatedAt) return null;
-  const parsed = quizDataSchema.safeParse(synced.value);
-  if (!parsed.success) return null;
-  return { ...parsed.data, updatedAt: synced.updatedAt };
+  const parsed = readQuizData(synced.value);
+  if (!parsed) return null;
+  return { ...parsed, updatedAt: synced.updatedAt };
 }

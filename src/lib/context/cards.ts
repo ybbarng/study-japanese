@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   type Glossary,
   hasKanji,
@@ -9,6 +8,7 @@ import {
 import { pictureOf } from "@/lib/pictures";
 import type { Sentence } from "@/lib/textbook/schema";
 import { alignInOrder, undoubled } from "./align";
+import type { CueCard, CueOrigin, CueWord } from "./card-schema";
 import { type FixedSource, fixedCards } from "./fixed-cards";
 import {
   bestCandidate,
@@ -27,50 +27,18 @@ import {
 
 // 자막의 일본어 구간마다 붙일 "맥락 카드": 맞춘 소책자 문장(정확한 글·읽는 법·뜻)과 구간 속 낱말.
 // 서버가 자막을 내줄 때 만들어 붙인다(화면은 소책자 전체를 받지 않아도 된다).
+// 카드의 꼴은 card-schema.ts에 있다(재생 화면이 이 파일의 그림 표·맞추기 코드를 받지 않게).
 
-const rubySegmentSchema = z.object({
-  text: z.string(),
-  reading: z.string().optional(),
-});
-
-export const cueSentenceSchema = z.object({
-  ja: z.string(),
-  ko: z.string(),
-  /** 한자 위에 달 읽는 법까지 나눈 글 */
-  ruby: z.array(rubySegmentSchema),
-});
-export type CueSentence = z.infer<typeof cueSentenceSchema>;
-
-export const cueWordSchema = z.object({
-  ja: z.string(),
-  reading: z.string().optional(),
-  ko: z.string(),
-  /** 구체적인 낱말이면 그림 문자 하나(emoji.ts). 그린 그림(picture)이 있으면 두지 않는다 */
-  emoji: z.string().optional(),
-  /** 그린 낱말 그림 id(public/pictures/words/<id>.svg, lib/pictures) */
-  picture: z.string().optional(),
-});
-export type CueWord = z.infer<typeof cueWordSchema>;
-
-/** 카드 문장이 어디서 왔나: 소책자의 정확한 글(booklet), 자막에서 받아 적은 글(transcript) */
-export const cueOriginSchema = z.enum(["booklet", "transcript"]);
-export type CueOrigin = z.infer<typeof cueOriginSchema>;
-
-export const cueCardSchema = z.object({
-  /** 문장 출처. 없으면 소책자(booklet) */
-  origin: cueOriginSchema.optional(),
-  /** 맞춘 소책자 문장(조각 차례대로) */
-  sentences: z.array(cueSentenceSchema),
-  /** 구간의 모든 조각을 맞췄으면 true. 이때 화면은 자막 글 대신 소책자 글을 보인다 */
-  whole: z.boolean(),
-  /** 구간 속에서 찾은 아는 낱말(읽는 법·뜻) */
-  words: z.array(cueWordSchema),
-  /** 받아 적은 글 대신 보일 글(한글로 적힌 일본어에 표기를 덧붙인 글, 되풀이 중 나은 받아쓰기) */
-  text: z.string().optional(),
-  /** 바로 맞추지 못하고 앞뒤 맥락·소리로 찾은 카드(repair.ts) */
-  inferred: z.boolean().optional(),
-});
-export type CueCard = z.infer<typeof cueCardSchema>;
+export {
+  type CueCard,
+  type CueOrigin,
+  type CueSentence,
+  type CueWord,
+  cueCardSchema,
+  cueOriginSchema,
+  cueSentenceSchema,
+  cueWordSchema,
+} from "./card-schema";
 
 /** 카드를 만들 재료 */
 export interface CardSource {

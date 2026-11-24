@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { type Transcript, transcriptSchema } from "@/lib/context/cues";
+import type { Transcript } from "@/lib/context/cues";
+import { asTranscript, transcriptApiUrl } from "@/lib/context/transcript-api";
 
 // 트랙의 자막(맥락 카드 포함)을 받아 온다. 한 번 받은 것(없음 포함)은 화면이 바뀌어도 다시 받지 않는다.
 const cache = new Map<string, Transcript | null>();
@@ -16,12 +17,9 @@ export function fetchTranscript(
   if (cache.has(key)) return Promise.resolve(cache.get(key) ?? null);
   const running = inflight.get(key);
   if (running) return running;
-  const p = fetch(`/api/transcripts/${key}`)
+  const p = fetch(transcriptApiUrl(book, item))
     .then(async (res) => {
-      const parsed = res.ok
-        ? transcriptSchema.safeParse(await res.json())
-        : null;
-      const value = parsed?.success ? parsed.data : null;
+      const value = res.ok ? asTranscript(await res.json()) : null;
       cache.set(key, value);
       return value;
     })

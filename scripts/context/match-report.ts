@@ -1,8 +1,8 @@
 import { readdirSync } from "node:fs";
 import path from "node:path";
 import { contextTranscript } from "@/lib/context/build";
+import { transcriptSchema } from "@/lib/context/card-schema";
 import { lessonNoOfItem } from "@/lib/context/card-sources";
-import { transcriptSchema } from "@/lib/context/cues";
 import { ilmuntaLessonPairs } from "@/lib/context/ilmunta-pairs";
 import { contextExtras } from "@/lib/context/lesson-names-server";
 import { contentDir, loadIlmuta, readJson } from "@/lib/textbook/load";

@@ -1,5 +1,10 @@
-import { z } from "zod";
 import { type CardState, newCard, review } from "@/lib/kana/srs";
+import {
+  isNumber,
+  isRecord,
+  isStringArray,
+  readSrsCards,
+} from "@/lib/srs-shape";
 import type { Versioned } from "@/lib/sync/state-sync";
 
 /** 서버 상태 문서 키 */
@@ -71,22 +76,29 @@ export function recordBest(
   };
 }
 
-const cardSchema = z.object({
-  box: z.number().int().min(0),
-  due: z.number(),
-  lapses: z.number().int().min(0),
-  reps: z.number().int().min(0),
-  lastSeen: z.number(),
-  lastCorrect: z.boolean(),
-});
+const isNonNegative = (v: unknown): v is number => isNumber(v) && v >= 0;
 
-export const drillDataSchema = z.object({
-  version: z.literal(1),
-  updatedAt: z.number(),
-  skills: z.record(z.string(), cardSchema),
-  bests: z.object({ streak: z.number().min(0), sprint: z.number().min(0) }),
-  days: z.array(z.string()),
-});
+/** 서버·기기에서 읽은 값이 드릴 기록 모양이면 그 기록, 아니면 null(zod 없이, srs-shape.ts) */
+export function readDrillData(v: unknown): DrillData | null {
+  if (!isRecord(v) || v.version !== 1 || !isNumber(v.updatedAt)) return null;
+  const skills = readSrsCards(v.skills);
+  if (!skills) return null;
+  const bests = v.bests;
+  if (
+    !isRecord(bests) ||
+    !isNonNegative(bests.streak) ||
+    !isNonNegative(bests.sprint)
+  )
+    return null;
+  if (!isStringArray(v.days)) return null;
+  return {
+    version: 1,
+    updatedAt: v.updatedAt,
+    skills,
+    bests: { streak: bests.streak, sprint: bests.sprint },
+    days: v.days,
+  };
+}
 
 /** 서버에 보낼 문서. 한 번도 하지 않은 빈 상태는 보내지 않는다 */
 export function toVersioned(data: DrillData): Versioned<DrillData> | null {
@@ -100,7 +112,7 @@ export function adoptFromServer(
   synced: Versioned<unknown> | null,
 ): DrillData | null {
   if (!synced || synced.updatedAt <= current.updatedAt) return null;
-  const parsed = drillDataSchema.safeParse(synced.value);
-  if (!parsed.success) return null;
-  return { ...parsed.data, updatedAt: synced.updatedAt };
+  const parsed = readDrillData(synced.value);
+  if (!parsed) return null;
+  return { ...parsed, updatedAt: synced.updatedAt };
 }

@@ -1,27 +1,12 @@
-import { z } from "zod";
-import { type CueCard, cueCardSchema } from "./cards";
+import type { CueCard, Transcript } from "./card-schema";
 
 // 강의 재생 화면의 "맥락": 지금 재생 위치에 맞춰 띄울 것들. 일무따·일문따가 함께 쓴다.
 // 자막(content/transcripts/<book>/<item>.json)에, 서버가 일본어 구간마다 맞춘 소책자 문장·낱말
 // 카드(cards.ts)를 붙여 내준다. 카드가 없는 구간은 자막만 보인다.
+// 자막의 꼴(transcriptSchema)은 card-schema.ts에 있다. 이 파일은 모든 화면의 재생기가 쓰므로
+// 값으로는 zod·카드 만들기 코드를 끌어오지 않는다.
 
-export const transcriptSchema = z.object({
-  book: z.string(),
-  item: z.string(),
-  kind: z.string(),
-  durationSec: z.number().nonnegative(),
-  segments: z.array(
-    z.object({
-      start: z.number().nonnegative(),
-      end: z.number().nonnegative(),
-      text: z.string(),
-      lang: z.enum(["ko", "ja"]),
-    }),
-  ),
-  /** segments 차례(문자열) → 그 구간의 맥락 카드. 서버가 붙인다 */
-  cards: z.record(z.string(), cueCardSchema).optional(),
-});
-export type Transcript = z.infer<typeof transcriptSchema>;
+export type { Transcript };
 
 export type ContextCue = {
   kind: "subtitle";
