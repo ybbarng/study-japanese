@@ -6,7 +6,9 @@ import { recentSeek } from "@/components/context/use-cue-actions";
 import { fetchTranscript } from "@/components/context/use-transcript";
 import { isAdminClient } from "@/lib/auth/client";
 import { transcriptCues } from "@/lib/context/cues";
+import { abLoopStep, nextAbLoop } from "@/lib/player/ab-loop";
 import { setPlaybackClock } from "@/lib/player/clock";
+import { type PlayerHandles, usePlayerControls } from "@/lib/player/controls";
 import { cueLoopStep, resolveLoopCue } from "@/lib/player/cue-loop";
 import {
   isCompleted,
@@ -171,6 +173,16 @@ export function GlobalPlayer() {
       if (phase.kind !== "track" || !track || loopTimer.current !== null)
         return;
       const st = usePlayer.getState();
+      const ab = abLoopStep(st.abLoop, {
+        book: track.book,
+        item: track.item,
+        pos,
+      });
+      if (ab.kind === "clear") st.setAbLoop(null);
+      if (ab.kind === "back") {
+        a.currentTime = ab.to;
+        return;
+      }
       const step = cueLoopStep(
         st.cueLoop,
         { book: track.book, item: track.item, pos },
@@ -235,6 +247,18 @@ export function GlobalPlayer() {
       start: cues[i].start,
       end: cues[i].end,
     });
+  }, [phase.kind, endLoopPause]);
+
+  /** A–B 구간: 지금 위치로 시작 찍기 → 끝 찍기 → 풀기 */
+  const markAb = useCallback(() => {
+    const st = usePlayer.getState();
+    const t = currentTrack(st);
+    const a = audioRef.current;
+    if (!t || !a || phase.kind !== "track") return;
+    endLoopPause();
+    st.setAbLoop(
+      nextAbLoop(st.abLoop, { book: t.book, item: t.item, pos: a.currentTime }),
+    );
   }, [phase.kind, endLoopPause]);
 
   const prev = useCallback(() => {
@@ -310,6 +334,42 @@ export function GlobalPlayer() {
       window.removeEventListener("online", onOnline);
     };
   }, [finalize]);
+
+  // 화면 안 재생기(강 화면 위에 붙은 것)에 손잡이를 빌려준다. 손잡이는 한 번만 내주고
+  // 부를 때마다 지금 그린 차례의 함수로 이어 준다(재생 위치가 바뀔 때마다 새로 내주지 않게)
+  const live = useRef<PlayerHandles | null>(null);
+  live.current = {
+    toggle: () => {
+      const st = usePlayer.getState();
+      st.setPlaying(!st.wantPlaying);
+    },
+    prev,
+    next: advance,
+    seek: (t) => {
+      if (audioRef.current) audioRef.current.currentTime = t;
+    },
+    seekBy,
+    loop: () => void toggleLoopHere(),
+    markAb,
+  };
+  useEffect(() => {
+    usePlayerControls.setState({
+      handles: {
+        toggle: () => live.current?.toggle(),
+        prev: () => live.current?.prev(),
+        next: () => live.current?.next(),
+        seek: (t) => live.current?.seek(t),
+        seekBy: (d) => live.current?.seekBy(d),
+        loop: () => live.current?.loop(),
+        markAb: () => live.current?.markAb(),
+      },
+    });
+    return () => usePlayerControls.setState({ handles: null });
+  }, []);
+  const gapTotal = phase.kind === "gap" ? phase.total : null;
+  useEffect(() => {
+    usePlayerControls.setState({ paused, gap: gapTotal });
+  }, [paused, gapTotal]);
 
   // PC 키보드 단축키(재생 로직은 위 손잡이를 그대로 부른다)
   usePlayerShortcuts({

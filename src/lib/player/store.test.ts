@@ -21,6 +21,18 @@ describe("seekTo", () => {
     });
   });
 
+  it("A–B 반복을 걸면 한 문장 반복이 풀리고, 한 문장 반복을 걸면 A–B가 풀린다", () => {
+    const cue = { book: "ilmuta", item: "L03", start: 10, end: 14 };
+    const ab = { book: "ilmuta", item: "L03", a: 20, b: 25 };
+    usePlayer.getState().setCueLoop(cue);
+    usePlayer.getState().setAbLoop(ab);
+    expect(usePlayer.getState().cueLoop).toBeNull();
+    expect(usePlayer.getState().abLoop).toEqual(ab);
+    usePlayer.getState().setCueLoop(cue);
+    expect(usePlayer.getState().abLoop).toBeNull();
+    expect(usePlayer.getState().cueLoop).toEqual(cue);
+  });
+
   it("멈춰 있었으면 그 위치부터 재생하도록 바꾼다", () => {
     usePlayer.getState().seekTo(3);
     expect(usePlayer.getState().wantPlaying).toBe(true);
