@@ -57,14 +57,31 @@ async function rightLabel(quiz: Locator): Promise<string> {
   return ask.includes("읽는 법은?") ? word.reading : word.ko;
 }
 
-test("활용을 다루지 않는 과도 끝에 낱말 확인 문제가 있고, 틀리면 정답을 알려 준다", async ({
+test("활용을 다루지 않는 5과 끝 확인 문제는 이 과 쓰임(が를 쓰는 な형용사)을 먼저 묻고, 낱말 문제로 채운다", async ({
   page,
 }) => {
   await login(page, `/ilmunta/${ILMUNTA_WORDS_ONLY_LESSON}`);
-  const quiz = page.getByRole("region", { name: /확인 문제 · 이 과 낱말/ });
+  const quiz = page.getByRole("region", { name: /확인 문제 · 이 과 쓰임/ });
   await quiz.scrollIntoViewIfNeeded();
   await expect(quiz.getByText("1 / 3")).toBeAttached();
 
+  // 쓰임 문제 둘: 한국어는 '~을 좋아하다'지만 일본어는 が. を를 고르면 정답 が와 까닭을 보인다
+  for (const n of [1, 2]) {
+    await expect(quiz.getByText(`${n} / 3`)).toBeAttached();
+    await expect(quiz.getByText("빈칸에 알맞은 조사는?")).toBeVisible();
+    await quiz
+      .locator("ul li button")
+      .filter({ hasText: /^\d?\s*を$/ })
+      .click();
+    await expect(quiz.getByText("정답은 が")).toBeVisible();
+    await expect(
+      quiz.getByText(/한국어로는 다른 조사를 쓰지만 일본어는 「が」/),
+    ).toBeVisible();
+    await quiz.getByRole("button", { name: "다음 →" }).click();
+  }
+
+  // 셋째는 이 과 낱말 문제
+  await expect(quiz.getByText("3 / 3")).toBeAttached();
   const right = await rightLabel(quiz);
   const labels = await quiz.locator("ul li button").allInnerTexts();
   const wrong = labels.findIndex(
@@ -76,6 +93,19 @@ test("활용을 다루지 않는 과도 끝에 낱말 확인 문제가 있고, �
   );
   await quiz.locator("ul li button").nth(wrong).click();
   await expect(quiz.getByText(`정답은 ${right}`)).toBeVisible();
+});
+
+test("활용을 다루지 않는 과에도 지금까지 나온 활용을 섞는 드릴 바로 가기가 있다", async ({
+  page,
+}) => {
+  await login(page, `/ilmunta/${ILMUNTA_WORDS_ONLY_LESSON}`);
+  const link = page.getByRole("link", { name: /활용 복습 드릴 · 1~5과/ });
+  await link.click();
+  await expect(page).toHaveURL(/\/ilmunta\/drill\?upto=5$/);
+  await expect(page.getByText("1~5과 복습")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "쓰기", exact: true }),
+  ).toBeVisible();
 });
 
 test("일문따 드릴에서 답한 뒤 정답 문장을 기계 음성으로 들을 수 있고, 기계 음성이라고 알린다", async ({

@@ -115,7 +115,7 @@ const QUIZ_WORD_CUES = QUIZ_WORDS.map((w, i) => ({
 }));
 
 const ILMUTA_LESSONS = [0, 1, 2, 3];
-/** 5과는 활용을 다루지 않는 과(과 끝 확인 문제가 낱말 문제로 나온다) */
+/** 5과는 활용을 다루지 않는 과(과 끝 확인 문제가 쓰임(조사)·낱말 문제로 나온다) */
 export const ILMUNTA_WORDS_ONLY_LESSON = 5;
 const ILMUNTA_LESSONS = [1, 2, ILMUNTA_WORDS_ONLY_LESSON];
 
