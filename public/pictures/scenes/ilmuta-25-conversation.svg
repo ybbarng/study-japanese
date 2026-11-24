@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200">
+  <!-- 뒤 성 -->
+  <path d="M110 108l8-24h84l8 24z" fill="#a0a6b3" stroke="#7a6a62" stroke-width="2.5" stroke-linejoin="round"/>
+  <rect x="128" y="64" width="64" height="20" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M110 68q50-14 100 0l-12-10h-76z" fill="#3fb0a6" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <rect x="138" y="42" width="44" height="16" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M122 46q38-12 76 0l-12-10h-52z" fill="#3fb0a6" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <rect x="146" y="24" width="28" height="12" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M134 28q26-10 52 0l-10-12h-32z" fill="#3fb0a6" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M144 14l-3-5M176 14l3-5" fill="none" stroke="#f5c84c" stroke-width="3" stroke-linecap="round"/>
+  <path d="M138 70h8v8h-8zM156 70h8v8h-8zM174 70h8v8h-8zM150 46h6v6h-6zM164 46h6v6h-6z" fill="#6c7280"/>
+  <!-- 벚나무 둘 -->
+  <path d="M28 120V86M292 120V86" fill="none" stroke="#a8714a" stroke-width="5" stroke-linecap="round"/>
+  <path d="M8 84c-4-14 8-24 20-22 6-10 22-8 24 2 10 2 12 16 2 22-6 6-20 6-26 2-8 4-18 2-20-4z" fill="#f4a0b8" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M268 84c-4-14 8-24 20-22 6-10 22-8 24 2 10 2 12 16 2 22-6 6-20 6-26 2-8 4-18 2-20-4z" fill="#f4a0b8" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M100 30c2 0 3 2 2 3-2 0-3-1-2-3zM220 22c2 0 3 2 2 3-2 0-3-1-2-3zM96 70c2 0 3 2 2 3-2 0-3-1-2-3zM226 84c2 0 3 2 2 3-2 0-3-1-2-3z" fill="#f4a0b8" stroke="#7a6a62" stroke-width="1"/>
+  <!-- 바닥 그림자 -->
+  <ellipse cx="78" cy="188" rx="42" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <ellipse cx="244" cy="188" rx="42" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <!-- 왼쪽 사람: 손가락 두 개를 펴고 사진 찍힌다 -->
+  <g transform="translate(78 78)">
+    <path d="M-24 -2c0-22 10-30 24-30s24 8 24 30v24c0 6-6 10-12 10h-24c-6 0-12-4-12-10z" fill="#5e4a6e"/>
+    <path d="M-34 108c0-48 14-78 34-78s34 30 34 78z" fill="#f5c84c"/>
+    <path d="M-8 22h16v12h-16z" fill="#e3a57f"/>
+    <circle cx="0" cy="0" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+    <path d="M-20 -4c2-16 12-22 20-22 10 0 19 6 21 20-10-2-20-8-24-14-4 8-10 13-17 16z" fill="#5e4a6e"/>
+    <path d="M-10 2q3-3 6 0M4 2q3-3 6 0" fill="none" stroke="#3a3040" stroke-width="2" stroke-linecap="round"/>
+    <path d="M-7 10q7 7 14 0z" fill="#b8402f" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M26 50l12-30" fill="none" stroke="#f0923a" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="39" cy="17" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+    <path d="M37 13l-3-10M41 13l4-9" fill="none" stroke="#f3c9a4" stroke-width="4" stroke-linecap="round"/>
+    <path d="M37 13l-3-10M41 13l4-9" fill="none" stroke="#7a6a62" stroke-width="1" stroke-linecap="round" stroke-dasharray="0"/>
+  </g>
+  <!-- 오른쪽 사람: 사진기를 든다 -->
+  <g transform="translate(244 78)">
+    <path d="M-34 108c0-48 14-78 34-78s34 30 34 78z" fill="#3b62a8"/>
+    <path d="M-8 22h16v12h-16z" fill="#e3a57f"/>
+    <circle cx="0" cy="0" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+    <path d="M-20 -2c0-16 10-22 20-22s20 6 20 22c-6-6-14-9-22-8-8 1-14 4-18 8z" fill="#8a5a3c"/>
+    <circle cx="8" cy="2" r="2.4" fill="#3a3040"/>
+    <path d="M-4 11q4 3 8 0" fill="none" stroke="#7a6a62" stroke-width="2" stroke-linecap="round"/>
+    <path d="M-24 46l-14-6M22 48l-34-6" fill="none" stroke="#4a82d4" stroke-width="10" stroke-linecap="round"/>
+    <rect x="-46" y="24" width="30" height="20" rx="3" fill="#6c7280" stroke="#7a6a62" stroke-width="2"/>
+    <circle cx="-31" cy="34" r="6" fill="#4a82d4" stroke="#7a6a62" stroke-width="1.5"/>
+    <path d="M-40 24l2-5h8l2 5" fill="#6c7280" stroke="#7a6a62" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M-52 18l-6-4M-54 30h-7M-52 42l-6 4" fill="none" stroke="#f5c84c" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>

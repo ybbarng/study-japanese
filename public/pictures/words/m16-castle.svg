@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <path d="M8 60l4-14h40l4 14z" fill="#a0a6b3" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M14 52h8M28 55h8M42 52h8M20 58h6" fill="none" stroke="#6c7280" stroke-width="1.5" stroke-linecap="round"/>
+  <rect x="16" y="36" width="32" height="10" fill="#f6f2ea" stroke="#7a6a62" stroke-width="1.5"/>
+  <path d="M8 38q24-8 48 0l-6-6H14z" fill="#3fb0a6" stroke="#7a6a62" stroke-width="1.5" stroke-linejoin="round"/>
+  <rect x="20" y="24" width="24" height="9" fill="#f6f2ea" stroke="#7a6a62" stroke-width="1.5"/>
+  <path d="M12 26q20-7 40 0l-6-6H18z" fill="#3fb0a6" stroke="#7a6a62" stroke-width="1.5" stroke-linejoin="round"/>
+  <rect x="24" y="13" width="16" height="8" fill="#f6f2ea" stroke="#7a6a62" stroke-width="1.5"/>
+  <path d="M18 15q14-6 28 0l-6-7H24z" fill="#3fb0a6" stroke="#7a6a62" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M24 8l-2-3M40 8l2-3" fill="none" stroke="#f5c84c" stroke-width="2" stroke-linecap="round"/>
+  <path d="M22 39h4v4h-4zM30 39h4v4h-4zM38 39h4v4h-4zM26 27h4v3h-4zM34 27h4v3h-4zM30 15h4v3h-4z" fill="#6c7280"/>
+</svg>
