@@ -59,6 +59,8 @@ const KOREAN_WORDS = new Set([
   "그다지",
   "주시",
 ]);
+/** 띄어 받아 적은 낱말 뒤에 올 수 있는 한 글자 조사 */
+const JOIN_TAILS = new Set([..."는은가이를을로도라랑와과에의"]);
 /** 맞추지 못한 되풀이 두 줄을 같은 문장으로 볼 기준 */
 const PAIR_SIMILARITY = 0.8;
 /** 구간 통째를 낱말로 볼 때 한글이 이만큼 이하여야 한다(긴 설명은 통째로 보지 않는다) */
@@ -219,7 +221,10 @@ export interface HangulHit {
 export function findHangulWords(text: string, words: CueWord[]): HangulHit[] {
   const focus = hangulFocus(words);
   const out: HangulHit[] = [];
-  for (const run of hangulRuns(text)) {
+  const runs = hangulRuns(text);
+  let skipTo = -1;
+  runs.forEach((run, r) => {
+    if (run.at < skipTo) return;
     let hit: HangulHit | null = null;
     for (let k = 2; k <= run.text.length; k++) {
       const piece = run.text.slice(0, k);
@@ -231,8 +236,23 @@ export function findHangulWords(text: string, words: CueWord[]): HangulHit[] {
           hit = { end: run.at + k, word: f.word, score };
       }
     }
-    if (hit) out.push(hit);
-  }
+    // 한 낱말을 띄어 받아 적기도 한다(にがてな → 니가 때나). 이 조각만으로 못 찾았으면 빈칸 하나 건너
+    // 다음 조각까지 이어 본다. 두 한국어 낱말이 우연히 닮기 쉬워(꼭 조사 → こうこう) 소리가 똑같고,
+    // 다음 조각 끝이나 한 글자 조사 앞에서 끝날 때만 받는다.
+    const next = runs[r + 1];
+    if (!hit && next && text.slice(run.at + run.text.length, next.at) === " ")
+      for (let k = 1; k <= next.text.length; k++) {
+        const rest = next.text.slice(k);
+        if (rest !== "" && !JOIN_TAILS.has(rest)) continue;
+        const phones = hangulPhones(run.text + next.text.slice(0, k));
+        const f = focus.find((x) => x.phones === phones);
+        if (f) hit = { end: next.at + k, word: f.word, score: 1 };
+      }
+    if (hit) {
+      out.push(hit);
+      skipTo = hit.end;
+    }
+  });
   return out;
 }
 

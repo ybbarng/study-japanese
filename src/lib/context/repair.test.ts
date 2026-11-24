@@ -48,6 +48,22 @@ describe("한글로 적힌 일본어 낱말 찾기", () => {
     expect(findHangulWords("동사는 움직임", words)).toEqual([]);
   });
 
+  it("한 낱말을 띄어 받아 적은 것도 빈칸을 건너 이어 찾는다", () => {
+    const text = "타마 고는 달걀";
+    expect(annotate(text, findHangulWords(text, words))).toBe(
+      "타마 고(卵)는 달걀",
+    );
+  });
+
+  it("띄어 쓴 두 조각은 소리가 똑같아도 다음 조각 중간에서 끝나면 보지 않는다", () => {
+    // 「타마 고기」: 고 뒤에 조사가 아닌 글자가 이어지면 한국어 낱말이다
+    expect(findHangulWords("타마 고기를", words)).toEqual([]);
+  });
+
+  it("띄어 쓴 두 조각은 소리 하나라도 다르면 보지 않는다", () => {
+    expect(findHangulWords("단 샤는", words)).toEqual([]);
+  });
+
   it("찾은 자리 뒤에 일본어 표기를 덧붙인다", () => {
     const text = "타마고나 달걀";
     expect(annotate(text, findHangulWords(text, words))).toBe(
