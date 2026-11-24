@@ -25,6 +25,16 @@ interface Props {
   heading?: ReactNode;
   /** 아직 이 오디오가 재생기에 없을 때 보일 안내 */
   idle?: string;
+  /**
+   * 폰 위에 붙은 재생기 안처럼 좁은 곳: 붙든 일본어 줄(읽는 법·뜻)과 지금 한국어 말 한 줄만.
+   * 낱말 칩·앞뒤 말·안내 글은 뺀다(교재를 가리지 않게)
+   */
+  compact?: boolean;
+  /**
+   * 폰 재생기가 한 줄로 접혔을 때: 붙든 일본어 줄(뜻을 맞췄으면 뜻까지)과 지금 한국어 말을
+   * 한 줄씩만. 읽어 내려가는 동안에도 지금 무슨 말이 나오는지 늘 보이게 한다
+   */
+  lines?: boolean;
   className?: string;
 }
 
@@ -40,6 +50,8 @@ export function LectureContext({
   size = "card",
   heading,
   idle = "강의를 틀면 여기에 지금 하는 말이 자막으로 따라 나옵니다.",
+  compact = false,
+  lines = false,
   className,
 }: Props) {
   const cues = useMemo(
@@ -53,10 +65,45 @@ export function LectureContext({
 
   const frame = cn(
     "rounded-2xl",
-    size === "card" ? "bg-bg-sunken p-5" : "bg-bg-sunken p-6 xl:p-8",
+    compact
+      ? "bg-bg-sunken px-3 py-2"
+      : size === "card"
+        ? "bg-bg-sunken p-5"
+        : "bg-bg-sunken p-6 xl:p-8",
     className,
   );
 
+  if (pos === null && (compact || lines)) return null;
+  if (pos !== null && lines) {
+    const v = stageView(cues, pos);
+    const held = v.held >= 0 ? cues[v.held] : null;
+    const now = v.at >= 0 && v.at !== v.held ? cues[v.at] : null;
+    const meaning =
+      held?.card?.whole && held.card.sentences.length > 0
+        ? held.card.sentences.map((s) => s.ko).join(" ")
+        : null;
+    if (!held && !now) return null;
+    return (
+      <section
+        aria-live="polite"
+        aria-label="지금 하는 말"
+        data-lines
+        className={cn("text-sm leading-snug", className)}
+      >
+        {held ? (
+          <p className="truncate">
+            <span lang="ja" className="font-ja-serif text-base text-accent">
+              {cueText(held)}
+            </span>
+            {meaning ? (
+              <span className="ml-2 text-ink-soft">{meaning}</span>
+            ) : null}
+          </p>
+        ) : null}
+        {now ? <p className="truncate text-ink-soft">{cueText(now)}</p> : null}
+      </section>
+    );
+  }
   if (pos === null)
     return (
       <section aria-label="지금 하는 말" className={frame}>
@@ -86,6 +133,38 @@ export function LectureContext({
       ) : null}
     </div>
   ) : null;
+
+  if (compact)
+    return (
+      <section aria-live="polite" aria-label="지금 하는 말" className={frame}>
+        {heading}
+        {held ? (
+          <button
+            type="button"
+            data-held-cue
+            onClick={() => actions.seek(held)}
+            title="이 말부터 다시 듣기"
+            className="block w-full text-left active:opacity-60"
+          >
+            <CueHeadline cue={held} size="list" detail />
+          </button>
+        ) : null}
+        {current && !heldIsCurrent ? (
+          <button
+            type="button"
+            data-current-cue
+            onClick={() => actions.seek(current)}
+            className={cn(
+              "block w-full truncate text-left text-sm text-ink-soft",
+              held && "mt-1",
+            )}
+          >
+            {cueText(current)}
+          </button>
+        ) : null}
+        {loopRow}
+      </section>
+    );
 
   return (
     <section aria-live="polite" aria-label="지금 하는 말" className={frame}>

@@ -134,6 +134,12 @@ describe("화면을 굴려야 하는지", () => {
     expect(needsScroll({ top: 50, bottom: 150 }, phone)).toBe(true);
   });
 
+  it("위에 붙은 재생기 뒤에 숨은 문장도 굴린다", () => {
+    const covered = { height: 900, coveredTop: 300, coveredBottom: 0 };
+    expect(needsScroll({ top: 200, bottom: 280 }, covered)).toBe(true);
+    expect(needsScroll({ top: 400, bottom: 480 }, covered)).toBe(false);
+  });
+
   it("띠보다 큰 문장은 머리가 위쪽 선에 오도록만 굴린다", () => {
     expect(needsScroll({ top: 100, bottom: 900 }, phone)).toBe(false);
     expect(needsScroll({ top: 400, bottom: 1300 }, phone)).toBe(true);

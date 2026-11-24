@@ -83,11 +83,13 @@ export function needsScroll(
   box: { top: number; bottom: number },
   view: {
     height: number;
-    /** 아래에 떠서 가리는 높이(폰 단추·재생 막대) */
+    /** 위에 붙어 가리는 높이(폰 강 화면 위 재생기) */
+    coveredTop?: number;
+    /** 아래에 떠서 가리는 높이(폰 재생 막대) */
     coveredBottom: number;
   },
 ): boolean {
-  const topLine = view.height * 0.12;
+  const topLine = Math.max(view.height * 0.12, (view.coveredTop ?? 0) + 16);
   const bottomLine = view.height - view.coveredBottom - view.height * 0.08;
   if (box.bottom - box.top > bottomLine - topLine) return box.top > topLine;
   return box.top < topLine || box.bottom > bottomLine;

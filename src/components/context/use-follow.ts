@@ -40,16 +40,22 @@ export function useFollowIndex(
   );
 }
 
-/** 폰에서 화면 아래에 떠서 가리는 높이(아래 단추 영역 + 재생 막대) */
-function coveredBottom(): number {
-  let covered = 0;
-  for (const sel of ["[data-bottom-nav]", "[data-player-bar]"]) {
-    const el = document.querySelector<HTMLElement>(sel);
-    if (!el || getComputedStyle(el).position !== "fixed") continue;
+/** 화면 위·아래에 붙어 가리는 높이(폰 강 화면 위 재생기, 다른 화면의 아래 재생 막대) */
+function covered(): { top: number; bottom: number } {
+  let top = 0;
+  let bottom = 0;
+  for (const el of document.querySelectorAll<HTMLElement>(
+    "[data-player-bar]",
+  )) {
     const r = el.getBoundingClientRect();
-    if (r.height > 0) covered = Math.max(covered, window.innerHeight - r.top);
+    if (r.height === 0) continue;
+    const position = getComputedStyle(el).position;
+    if (position === "fixed" && r.bottom >= window.innerHeight - 1)
+      bottom = Math.max(bottom, window.innerHeight - r.top);
+    // 위에 붙어 있는(sticky가 걸린) 재생기
+    if (position === "sticky" && r.top <= 1) top = Math.max(top, r.bottom);
   }
-  return covered;
+  return { top, bottom };
 }
 
 /**
@@ -86,15 +92,20 @@ export function useFollowScroll(key: string | null, selector: string) {
     const el = document.querySelector<HTMLElement>(selector);
     if (!el) return;
     const r = el.getBoundingClientRect();
-    const covered = coveredBottom();
-    if (!needsScroll(r, { height: window.innerHeight, coveredBottom: covered }))
-      return;
-    // 지금 문장을 보기 좋은 띠의 위쪽 1/3쯤에 둔다
-    const band = window.innerHeight - covered;
-    const top =
-      window.scrollY +
-      r.top -
-      Math.max(window.innerHeight * 0.12, (band - r.height) / 3);
+    const cov = covered();
+    const view = {
+      height: window.innerHeight,
+      coveredTop: cov.top,
+      coveredBottom: cov.bottom,
+    };
+    if (!needsScroll(r, view)) return;
+    // 지금 문장을 가리지 않는 띠의 위쪽 1/3쯤에 둔다
+    const band = window.innerHeight - cov.top - cov.bottom;
+    const offset = Math.max(
+      window.innerHeight * 0.12,
+      cov.top + Math.max(16, (band - r.height) / 3),
+    );
+    const top = window.scrollY + r.top - offset;
     window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
   }, [key, selector]);
 }
