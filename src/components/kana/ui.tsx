@@ -207,7 +207,7 @@ export function SoundButton({
 }
 
 /** 낱말 소리를 지금 기기에서 어떻게 내는지. 음성 목록은 늦게 차서 바뀔 때 다시 본다 */
-function useWordVoice(enabled: boolean): WordVoice {
+export function useWordVoice(enabled: boolean): WordVoice {
   const [voice, setVoice] = useState<WordVoice>("joined");
   useEffect(() => {
     if (!enabled) return;

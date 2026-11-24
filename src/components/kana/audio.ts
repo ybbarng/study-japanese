@@ -74,6 +74,19 @@ export async function playWord(word: string): Promise<PlayResult> {
   return playJoined(word);
 }
 
+/**
+ * 문장·한자 낱말 소리. 음성 합성에는 보이는 글(한자 섞인 글)을 넘겨 조사 は·へ를 문맥대로 읽게 하고,
+ * 음성이 없으면 읽는 법(가나)의 글자 소리를 잇는다.
+ */
+export async function playText(
+  text: string,
+  kana: string,
+): Promise<PlayResult> {
+  const voice = japaneseVoice();
+  if (voice) return speak(text, voice);
+  return playJoined(kana);
+}
+
 async function playJoined(word: string): Promise<PlayResult> {
   let result: PlayResult = "missing";
   for (const u of tokenize(word)) {

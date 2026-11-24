@@ -1,6 +1,8 @@
+import { SpeakButton } from "@/components/speech/speak-button";
 import { cn } from "@/lib/cn";
 import { splitChange } from "@/lib/ilmunta/check";
 import type { Question } from "@/lib/ilmunta/question";
+import { drillSpeech } from "@/lib/ilmunta/speech";
 import { RubyWord } from "./ruby-word";
 import { SentenceLine } from "./sentence-card";
 
@@ -19,6 +21,7 @@ export function AnswerFeedback({
 }) {
   const change = splitChange(q.given.kanji, q.answer.kanji);
   const others = q.accepted.slice(1);
+  const speech = drillSpeech(q);
   return (
     <div
       className={cn(
@@ -59,6 +62,11 @@ export function AnswerFeedback({
           <p className="text-sm text-ink-soft">{q.sentence.ko}</p>
         </div>
       ) : null}
+      {/* 드릴 문장은 교재 소리가 없어 기기 음성으로 읽는다(답한 뒤라 정답을 미리 들려주지 않는다) */}
+      <SpeakButton
+        {...speech}
+        label={q.sentence ? "이 문장 듣기" : "이 꼴 듣기"}
+      />
       {others.length > 0 ? (
         <p className="text-sm text-ink-soft">
           이것도 맞아요:{" "}
