@@ -208,3 +208,43 @@ describe("낱말 찾기", () => {
     expect(findWords("山と山", [{ ja: "山", ko: "산" }])).toHaveLength(1);
   });
 });
+
+describe("받아 적은 글로 만든 카드의 읽는 법·낱말 칩", () => {
+  const sentence = {
+    ja: "花子は花瓶を下さった。",
+    ko: "하나코는 꽃병을 주셨다.",
+  };
+  const base = {
+    sentences: [sentence],
+    glossary: {
+      花: "はな",
+      子: "こ",
+      花瓶: "かびん",
+      下: "した",
+      下さ: "くださ",
+    },
+    words: [
+      { ja: "花", reading: "はな", ko: "꽃" },
+      { ja: "子", reading: "こ", ko: "아이" },
+      { ja: "花瓶", reading: "かびん", ko: "꽃병" },
+      { ja: "下", reading: "した", ko: "아래" },
+    ],
+  };
+
+  it("이름 속 한자·높임 동사 앞부분에는 낱말 칩과 틀린 읽기를 달지 않는다", () => {
+    const card = buildCards([ja(sentence.ja)], {
+      ...base,
+      origin: "transcript",
+    })["0"];
+    expect(card?.words.map((w) => w.ja)).toEqual(["花瓶"]);
+    expect(card?.sentences[0]?.ruby.filter((r) => r.reading)).toEqual([
+      { text: "花瓶", reading: "かびん" },
+      { text: "下", reading: "くだ" },
+    ]);
+  });
+
+  it("소책자 문장 카드는 예전처럼 사전 낱말을 모두 찾는다(확인 모드는 받아 적은 글만)", () => {
+    const card = buildCards([ja(sentence.ja)], base)["0"];
+    expect(card?.words.map((w) => w.ja)).toEqual(["花", "子", "花瓶", "下"]);
+  });
+});

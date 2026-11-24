@@ -19,6 +19,11 @@ import {
   splitSentences,
 } from "./match";
 import { type RepairSegment, repairCards, wordSentence } from "./repair";
+import {
+  kanjiCompounds,
+  verifiedRubySegments,
+  wordFitsAt,
+} from "./word-bounds";
 
 // 자막의 일본어 구간마다 붙일 "맥락 카드": 맞춘 소책자 문장(정확한 글·읽는 법·뜻)과 구간 속 낱말.
 // 서버가 자막을 내줄 때 만들어 붙인다(화면은 소책자 전체를 받지 않아도 된다).
@@ -88,10 +93,23 @@ export interface CardSource {
 /** 한 구간에 보일 낱말은 이만큼까지 */
 const MAX_WORDS = 6;
 
-function rubyOf(s: Sentence, glossary: Glossary): RubySegment[] {
+/** 문장의 읽는 법. 받아 적은 글(transcript)이면 자리가 확인된 낱말에만 단다(word-bounds.ts) */
+function rubyOf(s: Sentence, source: CardSource): RubySegment[] {
   if (s.reading && s.reading !== s.ja && hasKanji(s.ja))
     return splitOkurigana(s.ja, s.reading);
-  return rubySegments(s.ja, glossary);
+  return source.origin === "transcript"
+    ? verifiedRubySegments(s.ja, source.glossary)
+    : rubySegments(s.ja, source.glossary);
+}
+
+/** 받아 적은 글로 만든 카드면 낱말 칩도 자리가 확인된 것만 */
+function wordsIn(text: string, source: CardSource): CueWord[] {
+  return findWords(
+    text,
+    source.words,
+    MAX_WORDS,
+    source.origin === "transcript",
+  );
 }
 
 /** 한자 낱말을 읽는 법으로 푼 글(비교용) */
@@ -139,11 +157,15 @@ function wordWorthShowing(w: CueWord): boolean {
   return hasKanji(w.ja) || [...w.ja].length >= 3;
 }
 
-/** 글 속에서 앞에서부터 가장 긴 낱말을 찾는다(겹치는 짧은 낱말은 건너뛴다) */
+/**
+ * 글 속에서 앞에서부터 가장 긴 낱말을 찾는다(겹치는 짧은 낱말은 건너뛴다).
+ * strict면 자리가 확인된 낱말만(word-bounds.ts: 이름·합성어·외래어의 일부, 다른 낱말의 어간은 뺀다)
+ */
 export function findWords(
   text: string,
   words: CueWord[],
   max: number = MAX_WORDS,
+  strict = false,
 ): CueWord[] {
   const byFirst = new Map<string, CueWord[]>();
   for (const w of words) {
@@ -154,11 +176,18 @@ export function findWords(
   }
   for (const list of byFirst.values())
     list.sort((a, b) => b.ja.length - a.ja.length);
+  const compounds = strict ? kanjiCompounds(words.map((w) => w.ja)) : undefined;
   const out: CueWord[] = [];
   const seen = new Set<string>();
   let i = 0;
   while (i < text.length && out.length < max) {
-    const hit = byFirst.get(text[i])?.find((w) => text.startsWith(w.ja, i));
+    const hit = byFirst
+      .get(text[i])
+      ?.find(
+        (w) =>
+          text.startsWith(w.ja, i) &&
+          (!strict || wordFitsAt(text, i, w.ja, compounds)),
+      );
     if (hit) {
       if (!seen.has(hit.ja)) out.push(hit);
       seen.add(hit.ja);
@@ -264,13 +293,12 @@ function sentenceCard(sentences: Sentence[], source: CardSource): CueCard {
     sentences: sentences.map((s) => ({
       ja: s.ja,
       ko: s.ko,
-      ruby: rubyOf(s, source.glossary),
+      ruby: rubyOf(s, source),
     })),
     whole: true,
-    words: findWords(
-      sentences.map((s) => s.ja).join("　"),
-      source.words,
-    ).filter((w) => !own.has(w.ja)),
+    words: wordsIn(sentences.map((s) => s.ja).join("　"), source).filter(
+      (w) => !own.has(w.ja),
+    ),
   };
 }
 
@@ -333,9 +361,7 @@ function matchCards(
     ].join("　");
     // 문장이 곧 그 낱말이면(단어 코너) 낱말 칸에 다시 두지 않는다
     const own = new Set(matched.map((s) => s.ja));
-    const words = findWords(wordText, source.words).filter(
-      (w) => !own.has(w.ja),
-    );
+    const words = wordsIn(wordText, source).filter((w) => !own.has(w.ja));
     if (matched.length === 0 && words.length === 0) return;
     out[String(i)] = {
       // 받아 적은 글로 만든 문장이면 화면이 "교재와 다를 수 있음"을 보이도록 표시한다
@@ -345,7 +371,7 @@ function matchCards(
       sentences: matched.map((s) => ({
         ja: s.ja,
         ko: s.ko,
-        ruby: rubyOf(s, source.glossary),
+        ruby: rubyOf(s, source),
       })),
       whole,
       words,
