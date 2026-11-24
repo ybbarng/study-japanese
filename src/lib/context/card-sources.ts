@@ -69,10 +69,14 @@ export function orderedSentences(
   return example.sentences.length > 0 ? example.sentences : undefined;
 }
 
-/** 낱말 분석 파일에서 모은 그 강의 등장인물 이름과 한자 읽기(lesson-names.ts) */
+/**
+ * 파일에서 모은 그 강·과의 덧붙일 재료. 일무따: 낱말 분석의 등장인물 이름과 한자 읽기(lesson-names.ts).
+ * 일문따: 같은 과 예문 mp3 자막의 일본어 줄(ilmunta-pairs.ts의 ilmuntaLessonLines).
+ */
 export interface LessonExtras {
-  names: CueWord[];
-  glossary: Glossary;
+  names?: CueWord[];
+  glossary?: Glossary;
+  echoes?: string[];
 }
 
 /**
@@ -213,6 +217,7 @@ export function ilmuntaCardSource(
   ilmutaLessons: IlmutaLesson[] | null,
   pairs: TranscriptPair[] = [],
   lessonNo: number | null = null,
+  extras: LessonExtras | null = null,
 ): CardSource {
   const words = ilmuntaWords(ilmutaLessons);
   const glossary = glossaryOf(words);
@@ -236,6 +241,7 @@ export function ilmuntaCardSource(
         lessonNo === null
           ? undefined
           : new Set(skillsOfLesson(lessonNo).map((s) => s.key)),
+      echoes: extras?.echoes,
     },
   };
 }

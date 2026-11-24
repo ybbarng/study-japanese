@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { CueWord } from "./cards";
 import { conjugatedForms } from "./conjugations";
-import { type FixedSegment, type Frame, fixedCards } from "./fixed-cards";
+import {
+  echoOf,
+  type FixedSegment,
+  type Frame,
+  fixedCards,
+} from "./fixed-cards";
 
 // 교재 글이 아니라 모양만 같은 가짜 틀·낱말·이름을 쓴다(저장소 규칙)
 
@@ -102,6 +107,24 @@ describe("문형 틀에 그 강 낱말·이름 채우기", () => {
     };
     const out = fixedCards([ja("うん")], done, {}, asKana);
     expect(out["0"]).toBe(done["0"]);
+  });
+});
+
+describe("같은 과 예문 자막에 있는 줄", () => {
+  const echoes = ["先週の土曜日に駅で友達に会った。", "猫が好きです。"];
+
+  it("거의 같은 줄이 있으면 그 문장으로, 받아쓰기 출처로", () => {
+    expect(echoOf("先週の土曜日に駅で友達と会った", echoes, asKana)).toBe(
+      "先週の土曜日に駅で友達に会った。",
+    );
+  });
+
+  it("긍정·부정이 다르면 닮아도 고르지 않는다", () => {
+    expect(echoOf("猫が好きではないです", echoes, asKana)).toBeNull();
+  });
+
+  it("다섯 글자 미만 짧은 줄은 보지 않는다", () => {
+    expect(echoOf("猫が好き", ["猫が好き"], asKana)).toBeNull();
   });
 });
 

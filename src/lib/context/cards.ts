@@ -194,7 +194,13 @@ export function buildCards(
   const repaired = source.focus
     ? repairCards(segments, matched, source.focus, toKana)
     : matched;
-  const cards = fixedCards(segments, repaired, source.fixed ?? {}, toKana);
+  const cards = fixedCards(
+    segments,
+    repaired,
+    source.fixed ?? {},
+    toKana,
+    (s) => sentenceCard([s], source),
+  );
   // 앞뒤 맥락으로 찾은 카드의 낱말까지 그림을 붙인다
   return Object.fromEntries(
     Object.entries(cards).map(([k, c]) => [

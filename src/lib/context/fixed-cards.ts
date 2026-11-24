@@ -1,9 +1,11 @@
 import { hasKanji } from "@/lib/ilmuta/ruby";
+import type { Sentence } from "@/lib/textbook/schema";
 import type { CueCard, CueSentence, CueWord } from "./cards";
 import type { ConjugatedForm } from "./conjugations";
-import { normalizeJa } from "./match";
+import { compatible, normalizeJa, similarity } from "./match";
 import { kanaPhones, phoneSimilarity } from "./phonetic";
 import { wordSentence } from "./repair";
+import { betterTranscription } from "./transcript-pairs";
 
 // 소책자 문장과 맞추지 못한 짧은 일본어 줄을, 문장 대신 정해진 재료로 알아본다. 화면을 모르는 순수 함수다.
 // ① 맞장구·대답(うん·ううん·はい…): 정해 둔 뜻으로. うん과 ううん은 whisper가 자주 뒤바꾸므로 바로 뒤
@@ -11,6 +13,7 @@ import { wordSentence } from "./repair";
 // ② 그 강의 문형 틀(「うん、～の。」)에 그 강 낱말·등장인물 이름을 채운 꼴: 틀의 가나는 그대로 맞아야 하고,
 //    빈칸의 글은 낱말 읽기와 소리가 닮아야 한다(받아 적기가 이름을 틀리게 적는다).
 // ③ 드릴 낱말의 활용형(食べさせられる): 활용 엔진이 만든 꼴과 읽기가 똑같을 때만.
+// ④ 같은 과 예문 mp3 자막에 거의 같은 줄이 있으면(따로 받아 적은 두 글이 같다) 그 글로.
 // 맞춘 글은 받아 적은 글이 아니라 정해 둔 재료로 만든 글이다. ②는 강사가 실제로 한 말과 다를 수 있어
 // 출처를 transcript로 두어 화면이 "교재와 다를 수 있음"을 붙이게 한다.
 
@@ -290,6 +293,8 @@ export interface FixedSource {
    * (강사는 그 과의 꼴을 말하므로, 다른 꼴과 읽기가 같으면 잘린 받아쓰기일 수 있다).
    */
   lessonSkills?: Set<string>;
+  /** 같은 과 예문 mp3 자막의 일본어 줄(④, 일문따) */
+  echoes?: string[];
 }
 
 /**
@@ -334,6 +339,7 @@ export function fixedCards(
   cards: Record<string, CueCard>,
   source: FixedSource,
   toKana: (t: string) => string,
+  makeCard?: (s: Sentence) => CueCard,
 ): Record<string, CueCard> {
   const out = { ...cards };
   const clauses = frameClauses(source.frames ?? []).map((f) => ({
@@ -397,8 +403,56 @@ export function fixedCards(
         matches.length > 0
           ? conjugationCard(matches, source.lessonSkills)
           : null;
-      if (made) out[String(i)] = made;
+      if (made) {
+        out[String(i)] = made;
+        return;
+      }
+    }
+    if (source.echoes && makeCard) {
+      const echo = echoOf(seg.text, source.echoes, toKana);
+      if (echo)
+        out[String(i)] = {
+          ...makeCard({
+            ja: betterTranscription(seg.text.trim(), echo),
+            ko: "",
+          }),
+          origin: "transcript",
+          inferred: true,
+        };
     }
   });
   return out;
+}
+
+/** 다른 자막에서 같은 문장으로 볼 닮은 정도와 최소 길이(비교용 글자 수) */
+const ECHO_SIMILARITY = 0.85;
+const ECHO_MIN_LENGTH = 5;
+
+/**
+ * ④ 같은 과 예문 mp3 자막에 거의 같은 일본어 줄이 있으면 그 줄. 서로 다른 녹음을 따로 받아 적은 글이
+ * 거의 같으니 한 번만 들린 것보다 믿을 만하다. 긍정·부정이 다르거나 다른 한자 낱말이면 보지 않는다.
+ */
+export function echoOf(
+  text: string,
+  echoes: string[],
+  toKana: (t: string) => string,
+): string | null {
+  const plain = normalizeJa(text);
+  if ([...plain].length < ECHO_MIN_LENGTH) return null;
+  const kana = normalizeJa(toKana(text));
+  let best: string | null = null;
+  let bestScore = 0;
+  for (const e of echoes) {
+    const ep = normalizeJa(e);
+    if (!compatible(plain, ep)) continue;
+    const score = Math.max(
+      similarity(plain, ep),
+      similarity(kana, normalizeJa(toKana(e))),
+    );
+    if (score >= ECHO_SIMILARITY && score > bestScore) {
+      best = e.trim();
+      bestScore = score;
+    }
+  }
+  return best;
 }

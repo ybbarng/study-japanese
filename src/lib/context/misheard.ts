@@ -207,6 +207,16 @@ export function japaneseShare(plain: string, known: Set<string>): number {
   return best[chars.length] / chars.length;
 }
 
+/**
+ * 강사의 한국어 어미·낱말을 가나로 옮긴 조각(비교용 히라가나). 일본어에는 거의 나오지 않는다.
+ * ~거예요(がてよ·がでよ)·~거죠(がでしょ)·~해요(へよ)·~라고 하(らごは)·~는(ぬん)·사람(さらみ)·
+ * 붙여(ぷち·ぶち)·~하게(はげて)·~죠(줄 끝 ちょ)·~예요(でよ)·~잖고요(じゃっこ) 등.
+ * 일무따·일문따 예문 mp3 전체에서 걸리지 않는 것만 골랐다(ひょん·ちょ 하나는 회화의 한국인 이름
+ * ヒョンジン·チョン에, でよ 뒤 く는 「病院でよく」에 걸려 뺐다).
+ */
+const KOREAN_TELLS =
+  /がてよ|がでよ|かてよ|がてご|がてしょ|がでしょ|がてくよ|へよ|へっそ|はげ(?:て|はだ)|らご(?:は|へ)|ぬん|さらみ|ぴょん|ぷち|ぶち|ぶっち|ぱっき|ちょ$|ますよくよ|いっちょ|でよ(?![くう])|っこよ|じゃっこ|ちょそ|えよ$|でしじゃ|まんち|いしょ$|わいちょ/u;
+
 /** 히라가나가 섞인 줄을 한국어 말로 볼 최소 가나 수와, 일본어로 설명되는 비율의 상한 */
 const KOREAN_KANA_MIN = 5;
 const KOREAN_KANA_SHARE = 0.5;
@@ -244,6 +254,10 @@ export function koreanKanaIndexes(
   const isKo = (j: number) => !segments[j] || segments[j].lang === "ko";
   segments.forEach((seg, i) => {
     if (seg.lang !== "ja") return;
+    if (KOREAN_TELLS.test(normalizeJa(seg.text))) {
+      out.add(i);
+      return;
+    }
     const core = kanaCore(seg.text);
     if (!core || [...core].length < KOREAN_KANA_MIN) return;
     if (isKanaList(seg.text, core)) return;
@@ -350,9 +364,14 @@ export function placeholderText(
   momoIsPlaceholder = false,
 ): string | null {
   // 가타카나 モモ는 어느 책에서나 자리 말이다(桃를 가타카나로 적지 않는다)
-  const momo = momoIsPlaceholder ? /もも|モモ/u : /モモ/u;
+  const momo = momoIsPlaceholder ? /もも|モモ|桃/u : /モモ/u;
   if (!/ぬぐ/u.test(text) && !momo.test(text)) return null;
   return text
     .replace(/(?:ぬぐ)+/gu, "누구누구")
-    .replace(/(?:もも|モモ)(?:も|モ)*/gu, "뭐뭐");
+    .replace(
+      momoIsPlaceholder
+        ? /(?:もも|モモ|桃)(?:も|モ)*/gu
+        : /(?:もも|モモ)(?:も|モ)*/gu,
+      "뭐뭐",
+    );
 }

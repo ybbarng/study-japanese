@@ -4,7 +4,7 @@ import { contextTranscript } from "@/lib/context/build";
 import { lessonNoOfItem } from "@/lib/context/card-sources";
 import { transcriptSchema } from "@/lib/context/cues";
 import { ilmuntaLessonPairs } from "@/lib/context/ilmunta-pairs";
-import { ilmutaLessonExtras } from "@/lib/context/lesson-names-server";
+import { contextExtras } from "@/lib/context/lesson-names-server";
 import { contentDir, loadIlmuta, readJson } from "@/lib/textbook/load";
 
 // 강의·예문 자막의 일본어 구간이 소책자 문장·낱말과 얼마나 맞았는지 숫자로만 보인다.
@@ -76,8 +76,7 @@ for (const book of ["ilmuta", "ilmunta"] as const) {
     const no = lessonNoOfItem(item);
     const pairs =
       book === "ilmunta" && no !== null ? ilmuntaLessonPairs(no, dir) : null;
-    const extras =
-      book === "ilmuta" ? ilmutaLessonExtras(ilmuta, no, dir) : null;
+    const extras = contextExtras(book, item, ilmuta, dir);
     const out = contextTranscript(book, item, t, ilmuta, pairs, extras);
     const cards = out.cards ?? {};
     const key = byItem ? `${book} ${item}` : `${book} ${t.kind}`;

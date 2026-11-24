@@ -138,6 +138,10 @@ describe("문형 설명의 한국어 자리 말", () => {
     expect(placeholderText("モモないでください", true)).toBe(
       "뭐뭐ないでください",
     );
+    expect(placeholderText("桃なければならない", true)).toBe(
+      "뭐뭐なければならない",
+    );
+    expect(placeholderText("桃なければならない")).toBeNull();
   });
 });
 
@@ -172,6 +176,12 @@ describe("한국어 말을 히라가나로 받아 적은 줄", () => {
     expect(dropped(talk(ja("うくすつぬふむゆる")))).toEqual([]);
     expect(dropped(talk(ja("「あ」「い」「う」「え」「お」")))).toEqual([]);
     expect(dropped(talk(ja("「ガ」は「ガギグゲゴ」の「ガ」")))).toEqual([]);
+  });
+
+  it("한국어 어미를 옮긴 조각(~거예요 → がてよ)이 든 줄은 앞뒤가 일본어여도 찾는다", () => {
+    expect(
+      dropped([ja("山へ行く"), ja("こないがてよ"), ja("山へ行く")]),
+    ).toEqual([1]);
   });
 
   it("가나 네 글자 이하 줄은 짧은 대답일 수 있어 남긴다", () => {

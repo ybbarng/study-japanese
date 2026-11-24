@@ -88,6 +88,7 @@ export function contextTranscript(
           lessons,
           [...(pairs ?? []), ...selfPairs(clean.segments, lessons)],
           no,
+          extras,
         );
   const cards = source ? buildCards(clean.segments, source) : {};
   // 한국어 줄에 남은 한글 낱자는 그 강 부제의 가나로 채우거나 가린다

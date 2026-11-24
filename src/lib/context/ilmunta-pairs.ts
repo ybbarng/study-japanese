@@ -23,6 +23,25 @@ export function grammarExampleItem(no: number): string {
 const NONE: TranscriptPair[] = [];
 const cache = new WeakMap<Transcript, TranscriptPair[]>();
 
+/**
+ * 과의 예문 mp3(문법 예문 `-1`·읽기 글 `-2`) 자막의 일본어 줄. 강의에서 한 번만 들린 줄을
+ * 따로 받아 적은 같은 문장과 견줄 때 쓴다(fixed-cards의 ④). exceptItem 자막의 줄은 뺀다(자기와 견주지 않게).
+ */
+export function ilmuntaLessonLines(
+  no: number,
+  exceptItem: string,
+  dir?: string,
+): string[] {
+  const nn = String(no).padStart(2, "0");
+  return [`${nn}-1`, `${nn}-2`]
+    .filter((item) => item !== exceptItem)
+    .flatMap((item) =>
+      withoutNoise(loadTranscript("ilmunta", item, dir)?.segments ?? [])
+        .filter((s) => s.lang === "ja")
+        .map((s) => s.text),
+    );
+}
+
 /** 과의 짝. 자막이 없으면 빈 열(늘 같은 객체라 호출하는 쪽이 캐시 열쇠로 쓸 수 있다) */
 export function ilmuntaLessonPairs(no: number, dir?: string): TranscriptPair[] {
   const t = loadTranscript("ilmunta", grammarExampleItem(no), dir);
