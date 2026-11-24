@@ -1,20 +1,49 @@
 import { expect, type Page, test } from "@playwright/test";
+import { BASIC } from "@/lib/kana/data";
 
-/** 첫 레슨의 소개·알아보기를 아무 답으로 지나 쓰기 칸까지 간다 */
+/** 알아보기 문제 하나를 가나 자료로 맞힌다 */
+async function answerQuiz(page: Page) {
+  const main = page.locator("main");
+  const choices = main.locator("button.h-24");
+  if (await main.getByText("소리를 듣고 글자를 고르세요").count()) {
+    const show = main.getByRole("button", { name: "글로 보기" });
+    const soundText = main.locator("p.text-2xl");
+    await expect(soundText.or(show)).toBeVisible();
+    if (await show.isVisible()) await show.click();
+    // 소리 글(예: `에 e`)의 로마자로 글자를 찾는다
+    const text = (await soundText.textContent()) ?? "";
+    const romaji = text.trim().split(/\s+/).pop();
+    const sound = BASIC.find((s) => s.romaji === romaji);
+    if (!sound) throw new Error(`모르는 소리: ${text}`);
+    const chars = [sound.hira, sound.kata].filter(Boolean).join("|");
+    await choices.filter({ hasText: new RegExp(`(${chars})$`) }).click();
+  } else {
+    const char = (
+      await main.locator("span[lang=ja]").first().textContent()
+    )?.trim();
+    const sound = BASIC.find((s) => s.hira === char || s.kata === char);
+    if (!sound) throw new Error(`모르는 글자: ${char}`);
+    await choices
+      .filter({ hasText: new RegExp(`${sound.ko}${sound.romaji}$`) })
+      .click();
+  }
+}
+
+/** 첫 레슨의 소개를 넘기고 알아보기를 맞혀 쓰기 칸까지 간다 */
 async function gotoWriteStep(page: Page) {
   await page.goto("/kana/lesson/h1");
   const pad = page.getByLabel(/쓰기 칸$/);
-  for (let i = 0; i < 400 && (await pad.count()) === 0; i++) {
-    const next = page
-      .locator("main button:not([disabled])")
+  const main = page.locator("main");
+  for (let i = 0; i < 200 && (await pad.count()) === 0; i++) {
+    const next = main
+      .locator("button:not([disabled])")
       .filter({ hasText: /^(다음|연습)/ });
-    if (await next.count()) {
-      await next.first().click();
-    } else {
-      const options = page.locator("main button:not([disabled])");
-      const n = await options.count();
-      if (n > 0) await options.nth(Math.min(1, n - 1)).click();
-    }
+    if (await next.count()) await next.first().click();
+    else if (await main.locator("button.h-24:not([disabled])").count()) {
+      await answerQuiz(page);
+      // 맞히면 정답 칸이 초록으로 칠해졌다가 저절로 다음 문제로 넘어간다. 바뀐 뒤에 다음 문제를 읽는다
+      await expect(main.locator("button.h-24.border-good")).toHaveCount(0);
+    } else await page.waitForTimeout(100);
   }
   await expect(pad).toBeVisible();
   return pad;
@@ -40,6 +69,7 @@ async function drawLine(
 test("가나 쓰기: 아무 선 셋은 통과하지 못하고 까닭과 획 번호를 보인다", async ({
   page,
 }) => {
+  test.slow(); // 소개·알아보기를 지나 쓰기 칸까지 가는 데 20초쯤 걸린다
   const pad = await gotoWriteStep(page);
   await expect(page.getByText(/소리 글자를 써 보세요/)).toBeVisible();
   const box = await pad.boundingBox();
@@ -57,6 +87,7 @@ test("가나 쓰기: 아무 선 셋은 통과하지 못하고 까닭과 획 번�
 test("가나 쓰기: 본보기를 덮어 같은 획 수로 쓰면 통과한다", async ({
   page,
 }) => {
+  test.slow();
   const pad = await gotoWriteStep(page);
   const box = await pad.boundingBox();
   if (!box) throw new Error("쓰기 칸 자리를 모름");
