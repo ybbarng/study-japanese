@@ -99,7 +99,7 @@ export function LessonPlayer({
 
   const chooser =
     withTranscript.length > 1 ? (
-      <div className="flex flex-wrap justify-end gap-1">
+      <div className="flex min-w-0 flex-wrap justify-end gap-1">
         {withTranscript.map((t) => (
           <button
             key={t.item}
@@ -248,8 +248,11 @@ export function LessonPlayer({
                 className="shrink-0"
               />
             ) : null}
+            {/* 강의 칩이 많아도 제목이 한 글자 폭으로 눌리지 않게: 제목은 줄바꿈 없이 두고 칩 줄이 남은 폭을 쓴다 */}
             <div className="flex items-baseline justify-between gap-3">
-              <h2 className="font-medium">자막 읽기</h2>
+              <h2 className="shrink-0 whitespace-nowrap font-medium">
+                자막 읽기
+              </h2>
               {chooser}
             </div>
             {shown && shownTranscript ? (
