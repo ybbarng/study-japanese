@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <circle cx="32" cy="14" r="7" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.8"/>
+  <path d="M25 13c0-5 3-7 7-7s7 2 7 6c-4-2-10-2-14 1z" fill="#5e4a6e"/>
+  <path d="M26 22h12l-1 18H27z" fill="#e8553e"/>
+  <path d="M27 40l-6 20M37 40l6 20" fill="none" stroke="#3b62a8" stroke-width="5" stroke-linecap="round"/>
+  <path d="M27 24L14 18 10 8M37 24l13-6 4-10" fill="none" stroke="#f3c9a4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M2 8h16M46 8h16" fill="none" stroke="#6c7280" stroke-width="3" stroke-linecap="round"/>
+  <rect x="2" y="3" width="5" height="10" rx="1.5" fill="#a0a6b3" stroke="#7a6a62" stroke-width="1.5"/>
+  <rect x="13" y="3" width="5" height="10" rx="1.5" fill="#a0a6b3" stroke="#7a6a62" stroke-width="1.5"/>
+  <rect x="46" y="3" width="5" height="10" rx="1.5" fill="#a0a6b3" stroke="#7a6a62" stroke-width="1.5"/>
+  <rect x="57" y="3" width="5" height="10" rx="1.5" fill="#a0a6b3" stroke="#7a6a62" stroke-width="1.5"/>
+  <path d="M42 30c-2 4-2 6 0 7 2-1 2-3 0-7z" fill="#79bde8" stroke="#7a6a62" stroke-width="1"/>
+</svg>

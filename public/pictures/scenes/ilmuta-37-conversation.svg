@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200">
+  <!-- 유치원 건물 -->
+  <path d="M170 70l60-40 60 40z" fill="#e8553e" stroke="#7a6a62" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M170 70l60-40 60 40" fill="none" stroke="#f6f2ea" stroke-width="4" stroke-linejoin="round" stroke-dasharray="10 6"/>
+  <rect x="180" y="70" width="100" height="116" fill="#fbe7b0" stroke="#7a6a62" stroke-width="2.5"/>
+  <rect x="190" y="84" width="26" height="22" rx="3" fill="#79bde8" stroke="#7a6a62" stroke-width="2"/>
+  <rect x="244" y="84" width="26" height="22" rx="3" fill="#79bde8" stroke="#7a6a62" stroke-width="2"/>
+  <rect x="216" y="130" width="28" height="56" rx="3" fill="#a8714a" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M230 46l2 5 5 .5-4 3.5 1 5-4-2.5-4 2.5 1-5-4-3.5 5-.5z" fill="#f5c84c"/>
+  <!-- 쌓인 눈과 내리는 눈 -->
+  <path d="M0 192c40-8 280-8 320 0v8H0z" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M168 70c20-6 104-6 124 0" fill="none" stroke="#f6f2ea" stroke-width="6" stroke-linecap="round"/>
+  <path d="M20 17a3 3 0 1 0 0.01 0zM60 37.5a2.5 2.5 0 1 0 0.01 0zM110 13a3 3 0 1 0 0.01 0zM150 47.5a2.5 2.5 0 1 0 0.01 0zM300 21a3 3 0 1 0 0.01 0zM12 87.5a2.5 2.5 0 1 0 0.01 0zM140 97a3 3 0 1 0 0.01 0zM304 117.5a2.5 2.5 0 1 0 0.01 0zM96 63.5a2.5 2.5 0 1 0 0.01 0z" fill="#79bde8"/>
+  <path d="M60 10v14M54 13.5l12 7M54 20.5l12-7M140 22v10M135.7 24.5l8.6 5M135.7 29.5l8.6-5" fill="none" stroke="#79bde8" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- 선생님: 전화를 받는다 -->
+  <path d="M54 76c0-22 10-30 24-30s24 8 24 30v14c0 6-6 10-12 10H66c-6 0-12-4-12-10z" fill="#5e4a6e"/>
+  <path d="M44 188c0-50 14-80 34-80s34 30 34 80z" fill="#9b72c9"/>
+  <path d="M58 130h40l6 58H52z" fill="#fbe7b0" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M70 100h16v12H70z" fill="#e3a57f"/>
+  <circle cx="78" cy="78" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M58 74c2-16 12-22 20-22 10 0 19 6 21 20-10-2-20-8-24-14-4 8-10 13-17 16z" fill="#5e4a6e"/>
+  <circle cx="71" cy="80" r="2.4" fill="#3a3040"/>
+  <circle cx="85" cy="80" r="2.4" fill="#3a3040"/>
+  <path d="M73 89q4 3 8 0" fill="none" stroke="#7a6a62" stroke-width="2" stroke-linecap="round"/>
+  <path d="M52 134l-8-28 10-16" fill="none" stroke="#9b72c9" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="52" y="66" width="10" height="24" rx="3" fill="#3b62a8" stroke="#7a6a62" stroke-width="2"/>
+  <circle cx="54" cy="88" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M44 70q-7 8 0 16M36 64q-11 14 0 28" fill="none" stroke="#f5c84c" stroke-width="3" stroke-linecap="round"/>
+  <path d="M104 140l20 14" fill="none" stroke="#9b72c9" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="127" cy="156" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+  <!-- 막 도착한 아들: 가방을 메고 털모자를 썼다 -->
+  <rect x="152" y="140" width="22" height="30" rx="5" fill="#f5c84c" stroke="#7a6a62" stroke-width="2"/>
+  <path d="M120 190c0-28 6-42 18-42s18 14 18 42z" fill="#4a82d4"/>
+  <circle cx="138" cy="130" r="14" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M124 128c0-12 6-18 14-18s14 6 14 18z" fill="#e8553e" stroke="#7a6a62" stroke-width="2" stroke-linejoin="round"/>
+  <circle cx="138" cy="108" r="4" fill="#f6f2ea" stroke="#7a6a62" stroke-width="1.5"/>
+  <path d="M124 128h28" fill="none" stroke="#f6f2ea" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="133" cy="133" r="2" fill="#3a3040"/>
+  <circle cx="143" cy="133" r="2" fill="#3a3040"/>
+  <path d="M134 139q4 3 8 0" fill="none" stroke="#7a6a62" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M150 152l2 10" fill="none" stroke="#7a6a62" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

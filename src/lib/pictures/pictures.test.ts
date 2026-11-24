@@ -34,7 +34,13 @@ describe("pictureOf", () => {
   });
 
   it("그린 그림이 없으면 그림 문자, 둘 다 없으면 undefined", () => {
-    expect(pictureOf("猫")).toEqual({ kind: "emoji", emoji: EMOJI.猫 });
+    // 그림이 늘어도 깨지지 않게, 그린 그림이 없는 그림 문자 낱말을 골라 본다
+    const emojiOnly = Object.keys(EMOJI).find((ja) => !wordPictureId(ja));
+    expect(emojiOnly).toBeDefined();
+    expect(pictureOf(emojiOnly as string)).toEqual({
+      kind: "emoji",
+      emoji: EMOJI[emojiOnly as string],
+    });
     expect(pictureOf("意味")).toBeUndefined();
   });
 

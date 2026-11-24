@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200">
+  <ellipse cx="78" cy="188" rx="42" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <ellipse cx="244" cy="188" rx="42" ry="6" fill="#6c7280" fill-opacity="0.45"/>
+  <!-- 생각 풍선: 전철 안에서 열쇠를 잃어버렸다 -->
+  <path d="M150 8h140a14 14 0 0 1 14 14v42a14 14 0 0 1-14 14H150a14 14 0 0 1-14-14V22a14 14 0 0 1 14-14z" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2.5"/>
+  <circle cx="226" cy="88" r="5" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <circle cx="232" cy="98" r="3" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2"/>
+  <rect x="146" y="18" width="88" height="50" rx="8" fill="#5fb36f" stroke="#7a6a62" stroke-width="2"/>
+  <rect x="154" y="26" width="30" height="22" rx="3" fill="#79bde8"/>
+  <rect x="192" y="26" width="34" height="22" rx="3" fill="#79bde8"/>
+  <circle cx="168" cy="40" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.5"/>
+  <path d="M162 40c0-6 3-8 6-8s6 2 6 6c-4-1-8 0-12 2z" fill="#8a5a3c"/>
+  <circle cx="208" cy="40" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="1.5"/>
+  <path d="M202 42c0-8 3-10 6-10s6 2 6 10v6h-12z" fill="#5e4a6e"/>
+  <circle cx="208" cy="41" r="5" fill="#f3c9a4"/>
+  <ellipse cx="208" cy="43" rx="2" ry="2.5" fill="#b8402f"/>
+  <path d="M218 32l6-4M219 38h7" fill="none" stroke="#e8553e" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="258" cy="30" r="7" fill="#f5c84c" stroke="#7a6a62" stroke-width="2"/>
+  <circle cx="256" cy="28" r="2.2" fill="#f6f2ea"/>
+  <path d="M262 36l10 10M268 42l-3 3" fill="none" stroke="#f5c84c" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M252 48l-2 8M258 50v8M264 48l2 8" fill="none" stroke="#a0a6b3" stroke-width="2" stroke-linecap="round"/>
+  <path d="M278 22q0-6 6-6t6 6q0 4-6 6v3" fill="none" stroke="#e8553e" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="284" cy="37" r="2" fill="#e8553e"/>
+  <!-- 왼쪽: 묻는 동료 -->
+  <path d="M44 186c0-48 14-78 34-78s34 30 34 78z" fill="#a8714a"/>
+  <path d="M70 100h16v12H70z" fill="#e3a57f"/>
+  <circle cx="78" cy="78" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M58 76c0-16 10-22 20-22s20 6 20 22c-6-6-14-9-22-8-8 1-14 4-18 8z" fill="#8a5a3c"/>
+  <circle cx="71" cy="80" r="2.4" fill="#3a3040"/>
+  <circle cx="86" cy="80" r="2.4" fill="#3a3040"/>
+  <path d="M74 90h8" fill="none" stroke="#7a6a62" stroke-width="2" stroke-linecap="round"/>
+  <path d="M24 30h40a10 10 0 0 1 10 10v8a10 10 0 0 1-10 10H50l-6 8v-8H24a10 10 0 0 1-10-10v-8a10 10 0 0 1 10-10z" fill="#f6f2ea" stroke="#7a6a62" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M38 40q0-5 5-5t5 5q0 3-5 5v2" fill="none" stroke="#e8553e" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="43" cy="52" r="1.8" fill="#e8553e"/>
+  <!-- 오른쪽: 부끄러워 머리를 긁는 남편 -->
+  <path d="M210 186c0-48 14-78 34-78s34 30 34 78z" fill="#3fb0a6"/>
+  <path d="M236 100h16v12h-16z" fill="#e3a57f"/>
+  <circle cx="244" cy="80" r="20" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2.5"/>
+  <path d="M224 78c0-16 10-22 20-22s20 6 20 22c-6-6-14-9-22-8-8 1-14 4-18 8z" fill="#5e4a6e"/>
+  <path d="M233 82q4-3 8 0M248 82q4-3 8 0" fill="none" stroke="#3a3040" stroke-width="2.2" stroke-linecap="round"/>
+  <ellipse cx="231" cy="90" rx="5" ry="3" fill="#f4a0b8"/>
+  <ellipse cx="257" cy="90" rx="5" ry="3" fill="#f4a0b8"/>
+  <path d="M239 94q2-2 4 0t4 0t4 0" fill="none" stroke="#7a6a62" stroke-width="2" stroke-linecap="round"/>
+  <path d="M272 132l8-30-12-38" fill="none" stroke="#3fb0a6" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="266" cy="62" r="6" fill="#f3c9a4" stroke="#7a6a62" stroke-width="2"/>
+</svg>
