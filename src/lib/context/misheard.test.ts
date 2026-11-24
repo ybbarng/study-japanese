@@ -9,7 +9,14 @@ import {
 
 // 강사의 한국어 말을 가타카나로 받아 적은 모양의 가짜 줄을 쓴다(교재 글이 아니다)
 
-const known = new Set(["かーてん", "てれび", "ぴあの", "ふらんす", "いたりあ"]);
+// 장음 기호를 뺀 가나 낱말(knownWordForms와 같은 모양)
+const known = new Set([
+  "かてん",
+  "ぱいなっぷる",
+  "ぴあの",
+  "ふらんす",
+  "いたりあ",
+]);
 const ja = (text: string) => ({ text, lang: "ja" as const });
 const ko = (text: string) => ({ text, lang: "ko" as const });
 const hidden = (segments: { text: string; lang: "ja" | "ko" }[]) => [
@@ -38,9 +45,21 @@ describe("한국어 말을 가타카나로 받아 적은 줄", () => {
     ]);
   });
 
+  it("파일 첫 줄이 가타카나뿐이고 뒤에 한국어가 이어지면 머리말로 보고 찾는다", () => {
+    expect(hidden([ja("オール"), ko("강의를 시작합니다")])).toEqual([0]);
+    expect(hidden([ko("시작"), ja("オール"), ko("이어서")])).toEqual([]);
+  });
+
   it("교재 낱말인 외래어는 남긴다", () => {
     expect(hidden([ko("커튼"), ja("カーテン"), ko("이에요")])).toEqual([]);
+    expect(hidden([ko("이건"), ja("パイナップル"), ko("이에요")])).toEqual([]);
     expect(hidden([ja("フランスイタリア")])).toEqual([]);
+  });
+
+  it("일본어 줄 사이의 긴 가타카나 줄(외래어를 잇달아 읽음)은 남긴다", () => {
+    expect(
+      hidden([ja("山へ行く"), ja("ドイツスペイン"), ja("山へ行く")]),
+    ).toEqual([]);
   });
 
   it("일본어 줄 사이의 짧은 가타카나 줄(잘못 들은 일본어일 수 있다)은 남긴다", () => {

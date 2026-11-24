@@ -133,16 +133,21 @@ export function ilmuntaGlossary(
 }
 
 /**
- * 아는 낱말 전체의 비교용 글(표기·읽는 법). 가타카나 줄이 진짜 외래어인지 가를 때 쓴다(misheard.ts).
+ * 아는 낱말의 가나 비교용 글. 장음 기호(ー)는 뺀다. 가타카나 줄이 진짜 일본어 낱말인지 가를 때 쓴다(misheard.ts).
+ * 가나로 적는 낱말(외래어 등)은 두 글자부터, 한자 낱말의 읽는 법은 세 글자부터 넣는다
+ * (두 글자 읽는 법은 가타카나로 적힌 한국어 말과 우연히 같기 쉽다: オール → おる → 折る).
  * 일무따 출처를 볼 수 없으면 드릴 낱말만.
  */
 export function knownWordForms(lessons: IlmutaLesson[] | null): Set<string> {
   const out = new Set<string>();
-  for (const w of ilmuntaWords(lessons))
-    for (const form of [w.ja, w.reading ?? ""]) {
-      const plain = normalizeJa(form.replace(/[～~]/g, ""));
-      if ([...plain].length >= 2) out.add(plain);
-    }
+  const add = (form: string, min: number) => {
+    const plain = normalizeJa(form.replace(/[～~ー]/g, ""));
+    if ([...plain].length >= min) out.add(plain);
+  };
+  for (const w of ilmuntaWords(lessons)) {
+    if (!hasKanji(w.ja)) add(w.ja, 2);
+    else if (w.reading) add(w.reading, 3);
+  }
   return out;
 }
 

@@ -67,8 +67,9 @@ function bestEcho(phones: string, korean: string): number {
 /**
  * 한국어 말을 가타카나로 받아 적은 일본어 줄의 차례.
  * 가타카나뿐이고 아는 낱말로 덮이지 않는 줄 가운데
- * ① 단계 이름표 모양 ② 가나 7자 이상 ③ 앞뒤 한국어 줄의 한 토막과 소리가 닮음 ④ 앞뒤가 모두 한국어 줄이고 4자 이상.
- * known은 교재 낱말의 비교용 글(normalizeJa한 표기·읽는 법).
+ * ① 단계 이름표 모양 ② 가나 7자 이상 ③ 앞뒤 한국어 줄의 한 토막과 소리가 닮음 ④ 앞뒤가 모두 한국어 줄이고 4자 이상
+ * ⑤ 파일 첫 줄이고 뒤가 한국어 줄. (잡음 줄을 거른 뒤의 차례로 본다)
+ * known은 가나로만 적는 교재 낱말의 비교용 글(normalizeJa, 장음 기호 뺌. card-sources의 knownWordForms).
  */
 export function misheardKoreanIndexes(
   segments: MisheardSegment[],
@@ -92,9 +93,15 @@ export function misheardKoreanIndexes(
         );
     if (
       KOREAN_LABELS.some((re) => re.test(core)) ||
-      length >= LONG_KATAKANA ||
+      // 일본어 줄 사이(장문 읽기 등)의 긴 가타카나는 외래어를 잇달아 읽은 것일 수 있다
+      (length >= LONG_KATAKANA &&
+        !(prev?.lang === "ja" && next?.lang === "ja")) ||
       echo ||
-      (length >= BETWEEN_KOREAN && prev?.lang === "ko" && next?.lang === "ko")
+      (length >= BETWEEN_KOREAN &&
+        prev?.lang === "ko" &&
+        next?.lang === "ko") ||
+      // 파일 첫 줄 뒤에 한국어가 이어지면 머리말(책·과 이름)을 한국어로 읽은 것이다
+      (i === 0 && next?.lang === "ko")
     )
       out.add(i);
   });
