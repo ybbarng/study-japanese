@@ -43,6 +43,10 @@ test("폰 강 화면은 재생기가 위에 붙어, 내려 읽으면 한 줄로 
   await expect(
     page.locator("[data-player-bar]").locator("visible=true"),
   ).toHaveCount(1);
+  // 느린 폰(과 CI)처럼 CPU를 늦춘다. 글 끝에서 접히면 문서가 짧아져 브라우저가 스크롤을 끌어올리는데,
+  // 느린 기기에서 그 움직임을 위로 올린 것으로 읽어 접히자마자 다시 펴지던 일이 있었다
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Emulation.setCPUThrottlingRate", { rate: 6 });
 
   // 끝까지 내리면 재생기는 화면 위에 한 줄로 붙고, 마지막 글은 화면 안(재생기 아래)에 다 보인다.
   // 재생기가 접히며 높이가 바뀌면 부드러운 스크롤이 끊기므로, 볼 때마다 끝으로 곧장 옮긴다

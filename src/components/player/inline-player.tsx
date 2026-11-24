@@ -1,10 +1,16 @@
 "use client";
 
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useCachedAudio } from "@/components/offline/use-cached-audio";
 import { cn } from "@/lib/cn";
 import { usePlaybackClock } from "@/lib/player/clock";
-import { nextCollapse } from "@/lib/player/collapse";
+import { type CollapseState, nextCollapse } from "@/lib/player/collapse";
 import { usePlayerControls } from "@/lib/player/controls";
 import { currentTrack, usePlayer } from "@/lib/player/store";
 import { clock } from "@/lib/player/time";
@@ -31,11 +37,19 @@ function useHost() {
 
 /** 폰: 아래로 읽어 내려가면 접고, 위로 올리면 편다 */
 function useCollapsed(enabled: boolean): [boolean, () => void] {
-  const [state, setState] = useState({ collapsed: false, anchorY: 0 });
-  // 접고 펼 때 재생기 높이가 바뀌면 브라우저가 스크롤 위치를 보정한다. 그 움직임을 사람이
-  // 굴린 것으로 읽으면 접혔다 펴지기를 되풀이하므로, 바꾼 직후 잠깐은 무시하고 기준만 다시 잡는다
+  const [collapsed, setCollapsed] = useState(false);
+  const state = useRef<CollapseState>({ collapsed: false, anchorY: 0 });
+  // 접고 펼 때 재생기 높이가 바뀌면 브라우저가 스크롤 위치를 보정한다(글 끝에서 접히면 문서가
+  // 짧아져 위로 끌어올려진다). 그 움직임을 사람이 굴린 것으로 읽으면 접혔다 펴지기를 되풀이하므로,
+  // 바꾼 직후 잠깐은 무시하고 기준만 다시 잡는다. 무시 창은 바꾸기로 정하는 바로 그때 켠다:
+  // 그린 뒤(useEffect)에 켜면 느린 기기에서는 보정 스크롤이 먼저 와서 접히자마자 다시 펴진다
   const settleUntil = useRef(0);
-  const last = useRef(state.collapsed);
+  const apply = useCallback((next: CollapseState) => {
+    if (next.collapsed !== state.current.collapsed)
+      settleUntil.current = Date.now() + 350;
+    state.current = next;
+    setCollapsed(next.collapsed);
+  }, []);
   useEffect(() => {
     if (!enabled) return;
     // 재생기 높이가 바뀔 때 브라우저가 스크롤 위치를 보정하면(scroll anchoring) 굴려 가던
@@ -44,28 +58,24 @@ function useCollapsed(enabled: boolean): [boolean, () => void] {
     const before = root.style.overflowAnchor;
     root.style.overflowAnchor = "none";
     const onScroll = () => {
+      const y = window.scrollY;
       if (Date.now() < settleUntil.current) {
-        setState((s) => ({ ...s, anchorY: window.scrollY }));
+        state.current = { ...state.current, anchorY: y };
         return;
       }
-      setState((s) => nextCollapse(s, window.scrollY));
+      apply(nextCollapse(state.current, y));
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", onScroll);
       root.style.overflowAnchor = before;
     };
-  }, [enabled]);
-  useEffect(() => {
-    if (last.current === state.collapsed) return;
-    last.current = state.collapsed;
-    settleUntil.current = Date.now() + 350;
-  }, [state.collapsed]);
+  }, [enabled, apply]);
   const open = () => {
     settleUntil.current = Date.now() + 350;
-    setState({ collapsed: false, anchorY: window.scrollY });
+    apply({ collapsed: false, anchorY: window.scrollY });
   };
-  return [enabled && state.collapsed, open];
+  return [enabled && collapsed, open];
 }
 
 /**
