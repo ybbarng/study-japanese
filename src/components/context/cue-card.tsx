@@ -174,6 +174,35 @@ function Words({ words }: { words: CueWord[] }) {
   );
 }
 
+/**
+ * 폰의 좁은 "지금 하는 말" 칸에 쓰는 그림 띠: 그림이 있는 낱말만 한 줄로 작게(넘치면 옆으로 민다).
+ * 낱말 칩 전체를 펼칠 자리는 없지만 걸으며 들을 때도 뜻을 그림으로 잡게 한다.
+ */
+export function CuePictureStrip({ cue }: { cue: ContextCue }) {
+  const words = (cue.card?.words ?? []).filter((w) => w.picture || w.emoji);
+  if (words.length === 0) return null;
+  return (
+    <ul
+      aria-label="이 말의 낱말 그림"
+      data-cue-picture-strip
+      className="mt-2 flex gap-2 overflow-x-auto whitespace-nowrap [scrollbar-width:none]"
+    >
+      {words.map((w) => (
+        <li
+          key={w.ja}
+          className="flex shrink-0 items-center gap-1 rounded-lg bg-bg-raised px-2 py-0.5 text-xs"
+        >
+          <PictureMark picture={w.picture} emoji={w.emoji} size={22} />
+          <span lang="ja" className="font-ja-serif text-sm text-ink">
+            {w.ja}
+          </span>
+          <span className="text-ink-soft">{w.ko}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 /** 큰 글 밑에 펼칠 것: (일부만 맞췄으면) 소책자 문장, 그리고 낱말 */
 export function CueExtras({ cue }: { cue: ContextCue }) {
   const card = cue.card;

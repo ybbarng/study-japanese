@@ -12,7 +12,12 @@ import {
 } from "@/lib/context/cues";
 import { usePlaybackClock, usePositionOf } from "@/lib/player/clock";
 import { stageView } from "@/lib/player/follow";
-import { CueExtras, CueHeadline, tapSentencesOf } from "./cue-card";
+import {
+  CueExtras,
+  CueHeadline,
+  CuePictureStrip,
+  tapSentencesOf,
+} from "./cue-card";
 import { LoopButton } from "./loop-button";
 import { useCueActions } from "./use-cue-actions";
 
@@ -157,6 +162,7 @@ export function LectureContext({
         ) : null}
         {/* 큰 글은 "다시 듣기" 단추 안이라, 분석 있는 문장은 낱말 단추 줄을 따로 둔다 */}
         {held ? <CueWordTaps sentences={tapSentencesOf(held)} /> : null}
+        {held ? <CuePictureStrip cue={held} /> : null}
         {current && !heldIsCurrent ? (
           <button
             type="button"
