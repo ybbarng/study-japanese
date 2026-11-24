@@ -8,6 +8,7 @@ import { contextTranscript } from "./build";
 import { lessonNoOfItem } from "./card-sources";
 import type { Transcript } from "./cues";
 import { ilmuntaLessonPairs } from "./ilmunta-pairs";
+import { ilmutaLessonExtras } from "./lesson-names-server";
 import type { TranscriptPair } from "./transcript-pairs";
 
 // 서버에서 자막을 읽어 맥락 카드를 붙인다. 자막 API와 강·과 화면이 함께 쓴다.
@@ -51,7 +52,16 @@ export function loadContextTranscript(
   if (hit) return hit.result;
 
   // 잡음 줄(기호만, 제작진 표기, 영문)과 한국어 말을 받아 적은 가타카나 줄은 내주지 않는다
-  const withCards = contextTranscript(book, item, transcript, ilmuta, pairs);
+  // 일무따 강의는 그 강 등장인물 이름·분석 읽기도 쓴다(문형 틀 빈칸 재료)
+  const extras = book === "ilmuta" ? ilmutaLessonExtras(ilmuta, no, dir) : null;
+  const withCards = contextTranscript(
+    book,
+    item,
+    transcript,
+    ilmuta,
+    pairs,
+    extras,
+  );
   // 교재·짝이 바뀐 옛 결과는 버리고, 볼 수 있는 경우(일무따 있음·없음) 둘까지만 둔다
   cache.set(transcript, [
     ...entries

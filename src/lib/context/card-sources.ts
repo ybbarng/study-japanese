@@ -1,9 +1,11 @@
+import { skillsOfLesson } from "@/lib/ilmunta/curriculum";
 import { VERBS } from "@/lib/ilmunta/verbs";
 import { WORD_LESSONS } from "@/lib/ilmunta/word-lessons";
 import { ADJECTIVES } from "@/lib/ilmunta/words";
 import { buildGlossary, type Glossary, hasKanji } from "@/lib/ilmuta/ruby";
 import type { IlmutaLesson, Sentence } from "@/lib/textbook/schema";
 import { type CardSource, type CueWord, findWords } from "./cards";
+import { conjugatedForms } from "./conjugations";
 import { normalizeJa } from "./match";
 import type { TranscriptPair } from "./transcript-pairs";
 
@@ -67,17 +69,31 @@ export function orderedSentences(
   return example.sentences.length > 0 ? example.sentences : undefined;
 }
 
+/** 낱말 분석 파일에서 모은 그 강의 등장인물 이름과 한자 읽기(lesson-names.ts) */
+export interface LessonExtras {
+  names: CueWord[];
+  glossary: Glossary;
+}
+
 /**
  * 일무따 강의·예문: 그 강의 소책자 문장(제목·예문·회화·단어)과 맞추고,
  * 읽는 법과 낱말은 그 강까지 배운 단어로 단다. item이 예문 mp3면 읽는 차례도 넘긴다.
+ * extras가 있으면 등장인물 이름을 문형 틀 빈칸 재료로, 분석 읽기를 한자 풀이에 보탠다.
  */
 export function ilmutaCardSource(
   lessons: IlmutaLesson[],
   no: number,
   item?: string,
+  extras: LessonExtras | null = null,
 ): CardSource {
   const lesson = lessons.find((l) => l.no === no);
   const ordered = lesson && item ? orderedSentences(lesson, item) : undefined;
+  // 한글 소리로 찾을 낱말은 그 강에서 익히는 것만(많으면 한국어 말과 잘못 닮는다)
+  const focus = lesson
+    ? wordsOfLesson(lesson)
+        .map(toCueWord)
+        .filter((w): w is CueWord => w !== null)
+    : [];
   return {
     sentences: lesson
       ? [
@@ -87,14 +103,14 @@ export function ilmutaCardSource(
         ]
       : [],
     ...(ordered ? { ordered } : {}),
-    glossary: buildGlossary(lessons, no),
+    glossary: { ...(extras?.glossary ?? {}), ...buildGlossary(lessons, no) },
     words: ilmutaWords(lessons, no),
-    // 한글 소리로 찾을 낱말은 그 강에서 익히는 것만(많으면 한국어 말과 잘못 닮는다)
-    focus: lesson
-      ? wordsOfLesson(lesson)
-          .map(toCueWord)
-          .filter((w): w is CueWord => w !== null)
-      : [],
+    focus,
+    fixed: {
+      frames: lesson?.examples.flatMap((e) => e.patterns ?? []) ?? [],
+      fillers: [...focus, ...(extras?.names ?? [])],
+      conjugations: conjugatedForms(),
+    },
   };
 }
 
@@ -213,5 +229,13 @@ export function ilmuntaCardSource(
     glossary,
     words,
     focus,
+    // 강사가 그 과의 활용형을 즉석에서 말한 줄을 드릴 활용형 표로 알아본다
+    fixed: {
+      conjugations: conjugatedForms(),
+      lessonSkills:
+        lessonNo === null
+          ? undefined
+          : new Set(skillsOfLesson(lessonNo).map((s) => s.key)),
+    },
   };
 }

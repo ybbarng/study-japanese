@@ -5,6 +5,7 @@ import {
   ilmuntaGlossary,
   ilmutaCardSource,
   knownWordForms,
+  type LessonExtras,
   lessonNoOfItem,
   looksLikeMeaning,
 } from "./card-sources";
@@ -41,7 +42,8 @@ function selfPairs(
 }
 
 /**
- * ilmuta는 일무따 교재(볼 수 없으면 null), pairs는 일문따 그 과의 문장 짝.
+ * ilmuta는 일무따 교재(볼 수 없으면 null), pairs는 일문따 그 과의 문장 짝,
+ * extras는 일무따 그 강의 등장인물 이름·분석 읽기(lesson-names-server.ts).
  * 카드 열쇠(segments 차례)가 어긋나지 않게 거른 뒤에 카드를 붙인다.
  */
 export function contextTranscript(
@@ -50,6 +52,7 @@ export function contextTranscript(
   transcript: Transcript,
   ilmuta: Ilmuta | null,
   pairs: TranscriptPair[] | null,
+  extras: LessonExtras | null = null,
 ): Transcript {
   const lessons = ilmuta?.lessons ?? null;
   // 문형 설명의 한국어 자리 말(누구누구·뭐뭐)을 가나로 받아 적은 줄과 한글이 섞인 줄은
@@ -79,7 +82,7 @@ export function contextTranscript(
   const source =
     book === "ilmuta"
       ? lessons && no !== null
-        ? ilmutaCardSource(lessons, no, item)
+        ? ilmutaCardSource(lessons, no, item, extras)
         : null
       : ilmuntaCardSource(
           lessons,

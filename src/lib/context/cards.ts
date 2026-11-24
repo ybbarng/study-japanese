@@ -9,6 +9,7 @@ import {
 import { pictureOf } from "@/lib/pictures";
 import type { Sentence } from "@/lib/textbook/schema";
 import { alignInOrder, undoubled } from "./align";
+import { type FixedSource, fixedCards } from "./fixed-cards";
 import {
   bestCandidate,
   type MatchCandidate,
@@ -80,6 +81,8 @@ export interface CardSource {
   focus?: CueWord[];
   /** 예문 mp3가 소책자 문장을 읽는 차례. 있으면 차례로 한 번 더 맞춘다(align.ts) */
   ordered?: Sentence[];
+  /** 맞추지 못한 짧은 줄을 알아볼 정해진 재료(대답·문형 틀·활용형, fixed-cards.ts) */
+  fixed?: FixedSource;
 }
 
 /** 한 구간에 보일 낱말은 이만큼까지 */
@@ -188,9 +191,10 @@ export function buildCards(
         sentenceCard(sentences, source),
       )
     : direct;
-  const cards = source.focus
+  const repaired = source.focus
     ? repairCards(segments, matched, source.focus, toKana)
     : matched;
+  const cards = fixedCards(segments, repaired, source.fixed ?? {}, toKana);
   // 앞뒤 맥락으로 찾은 카드의 낱말까지 그림을 붙인다
   return Object.fromEntries(
     Object.entries(cards).map(([k, c]) => [

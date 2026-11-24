@@ -31,6 +31,8 @@ export interface ConjugatedForm {
   /** 활용형 이름(예: 사역형)과 그 꼴의 한국어 틀(예: ~하게 하다) */
   label: string;
   formKo: string;
+  /** 기술표(curriculum.ts)의 열쇠와 같은 꼴: `verb:<꼴>:<갈래>`·`adj:<꼴>:<갈래>` */
+  skill: string;
 }
 
 function forms(c: Conjugation): Form[] {
@@ -56,6 +58,7 @@ function build(): ConjugatedForm[] {
           ko: v.ko,
           label: VERB_FORM_INFO[form].label,
           formKo: VERB_FORM_INFO[form].ko,
+          skill: `verb:${form}:${v.group}`,
         });
     }
   for (const a of ADJECTIVES)
@@ -69,6 +72,7 @@ function build(): ConjugatedForm[] {
           ko: a.ko,
           label: ADJ_FORM_INFO[form].label,
           formKo: ADJ_FORM_INFO[form].ko,
+          skill: `adj:${form}:${a.kind}`,
         });
     }
   return out;
