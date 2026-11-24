@@ -37,6 +37,14 @@ const SHAPES = ["path", "circle", "ellipse", "rect", "polygon", "polyline"];
 
 const COLOR_ATTRS = ["fill", "stroke", "stop-color", "color"];
 
+// 그림이 천 장 넘게 쌓이므로 정규식은 파일·요소마다 새로 만들지 않고 한 번만 만든다
+const FORBIDDEN_RES = FORBIDDEN_TAGS.map(
+  (tag) => [tag, new RegExp(`<${tag}[\\s>/]`)] as const,
+);
+const COLOR_RES = COLOR_ATTRS.map(
+  (a) => [a, new RegExp(`\\s${a}="([^"]*)"`, "g")] as const,
+);
+
 export function checkSvg(text: string, kind: PictureKind): string[] {
   const problems: string[] = [];
   const body = text.replace(/<!--[\s\S]*?-->/g, "");
@@ -57,9 +65,8 @@ export function checkSvg(text: string, kind: PictureKind): string[] {
       problems.push("svg에 width·height를 적지 않는다(화면이 크기를 정한다)");
   }
 
-  for (const tag of FORBIDDEN_TAGS)
-    if (new RegExp(`<${tag}[\\s>/]`).test(body))
-      problems.push(`<${tag}>를 쓰지 않는다`);
+  for (const [tag, re] of FORBIDDEN_RES)
+    if (re.test(body)) problems.push(`<${tag}>를 쓰지 않는다`);
   if (/\son[a-z]+=/i.test(body)) problems.push("on… 이벤트 속성을 쓰지 않는다");
   for (const m of body.matchAll(/(?:xlink:)?href="([^"]*)"/g))
     if (!m[1].startsWith("#"))
@@ -78,8 +85,8 @@ export function checkSvg(text: string, kind: PictureKind): string[] {
     const [, tag, attrs] = m;
     if (SHAPES.includes(tag) && !/\sfill="/.test(attrs))
       problems.push(`<${tag}>에 fill이 없다(선만이면 fill="none")`);
-    for (const a of COLOR_ATTRS)
-      for (const c of attrs.matchAll(new RegExp(`\\s${a}="([^"]*)"`, "g"))) {
+    for (const [a, re] of COLOR_RES)
+      for (const c of attrs.matchAll(re)) {
         const v = c[1].toLowerCase();
         if (v !== "none" && !PALETTE_COLORS.has(v))
           problems.push(`${a}="${c[1]}"는 팔레트에 없는 색이다`);
