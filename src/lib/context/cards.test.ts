@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { wordPictureId } from "@/lib/pictures";
 import {
   buildCards,
   type CardSource,
   candidateForms,
   findWords,
 } from "./cards";
+import { EMOJI } from "./emoji";
 
 // 교재 문장이 아니라 모양만 같은 가짜 문장을 쓴다(저장소 규칙)
 
@@ -73,15 +75,27 @@ describe("소책자 문장 카드", () => {
     expect(card.words.map((w) => w.ja)).toEqual(["山", "今日"]);
   });
 
-  it("구체적인 낱말 카드에는 그림 문자를 붙이고, 그림이 없는 낱말은 그대로 둔다", () => {
+  it("구체적인 낱말 카드에는 그림을 붙이고, 그림이 없는 낱말은 그대로 둔다", () => {
     const card = buildCards(
       [ja("山は高い。今日はまったくべつのはなし。")],
       source,
     )["0"];
     expect(card.words).toEqual([
-      { ja: "山", reading: "やま", ko: "산", emoji: "⛰️" },
+      { ja: "山", reading: "やま", ko: "산", picture: "mountain" },
       { ja: "今日", reading: "きょう", ko: "오늘" },
     ]);
+  });
+
+  it("그린 그림이 없는 낱말에는 그림 문자를 붙인다", () => {
+    // 그림이 늘어도 깨지지 않게, 그린 그림이 없는 그림 문자 낱말을 골라 본다
+    const word = Object.keys(EMOJI).find(
+      (w) => [...w].length >= 2 && !wordPictureId(w),
+    ) as string;
+    const card = buildCards([ja(`${word}はまったくべつのはなし。`)], {
+      ...source,
+      words: [{ ja: word, ko: "뜻" }],
+    })["0"];
+    expect(card.words).toEqual([{ ja: word, ko: "뜻", emoji: EMOJI[word] }]);
   });
 
   it("그린 그림이 있는 낱말에는 그림 문자 대신 그림 id를 붙인다", () => {

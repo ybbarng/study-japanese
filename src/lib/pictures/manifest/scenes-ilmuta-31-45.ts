@@ -54,4 +54,28 @@ export const SCENES: ScenePictureMap = {
     label:
       "역 승강장에서 한 사람이 떨어진 표를 주워 건네고, 다른 사람은 주머니를 뒤지며 놀란다.",
   },
+  "ilmuta-41-conversation": {
+    id: "ilmuta-41-conversation",
+    label: "집에서 아들이 새 운동화를 자랑하고, 엄마는 값표를 떠올리며 놀란다.",
+  },
+  "ilmuta-42-conversation": {
+    id: "ilmuta-42-conversation",
+    label:
+      "한 사람이 밤에 산꼭대기에 올라 해돋이를 본 일을 떠올리며 이야기하고, 다른 사람이 궁금해 한다.",
+  },
+  "ilmuta-43-conversation": {
+    id: "ilmuta-43-conversation",
+    label:
+      "맑은 날 교정에서 여자가 점심 먹고 영화를 보자고 하고, 남자가 엄지를 들어 좋다고 한다.",
+  },
+  "ilmuta-44-conversation": {
+    id: "ilmuta-44-conversation",
+    label:
+      "안경을 쓴 친구에게 다른 친구가 까닭을 묻고, 안경 쓴 친구는 수영장에 다녀온 뒤 렌즈를 낄 생각을 한다.",
+  },
+  "ilmuta-45-conversation": {
+    id: "ilmuta-45-conversation",
+    label:
+      "새로 연 소품 가게에 친구가 꽃을 들고 와 깎아 달라고 빌고, 계산대의 주인은 두 팔로 X를 만든다. 선반에 인형·열쇠고리·라이터가 있다.",
+  },
 };
