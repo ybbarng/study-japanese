@@ -20,6 +20,8 @@ import {
 } from "./match";
 import { type RepairSegment, repairCards, wordSentence } from "./repair";
 import {
+  counterFitsAt,
+  inflectedFitsAt,
   kanjiCompounds,
   verifiedRubySegments,
   wordFitsAt,
@@ -40,6 +42,15 @@ export {
   cueWordSchema,
 } from "./card-schema";
 
+/**
+ * 낱말의 다른 꼴(활용한 꼴): 받아 적은 글에 form이 나오면 word(사전형) 칩을 단다.
+ * 활용 엔진이 만든 꼴만 쓴다(conjugations.ts). 받아 적은 글을 엄격하게 볼 때만 찾는다
+ */
+export interface InflectedWord {
+  form: string;
+  word: CueWord;
+}
+
 /** 카드를 만들 재료 */
 export interface CardSource {
   /** 맞출 문장(소책자 문장, 또는 자막에서 받아 적은 짝) */
@@ -56,6 +67,12 @@ export interface CardSource {
   ordered?: Sentence[];
   /** 맞추지 못한 짧은 줄을 알아볼 정해진 재료(대답·문형 틀·활용형, fixed-cards.ts) */
   fixed?: FixedSource;
+  /** 받아 적은 글에서 찾을 낱말의 활용한 꼴 */
+  inflected?: InflectedWord[];
+  /** 받아 적은 글에서만 더 찾을 낱말(사전 색인). words에 같은 표기가 있으면 words가 먼저다 */
+  heardOnlyWords?: CueWord[];
+  /** 소책자에 원문이 없는 오디오인가(맞추지 못한 일본어 줄에 noBookText를 단다) */
+  noBookText?: boolean;
 }
 
 /** 한 구간에 보일 낱말은 이만큼까지 */
@@ -70,14 +87,58 @@ function rubyOf(s: Sentence, source: CardSource): RubySegment[] {
     : rubySegments(s.ja, source.glossary);
 }
 
-/** 받아 적은 글로 만든 카드면 낱말 칩도 자리가 확인된 것만 */
+/** 문장 글 속 낱말. 받아 적은 글로 만든 카드면 낱말 칩도 자리가 확인된 것만(활용한 꼴까지) */
 function wordsIn(text: string, source: CardSource): CueWord[] {
+  return source.origin === "transcript"
+    ? heardWords(text, source)
+    : findWords(text, source.words, MAX_WORDS);
+}
+
+/** 받아 적은 자막 글 속 낱말: 출처와 상관없이 늘 자리가 확인된 것만, 활용한 꼴까지 찾는다 */
+function heardWords(text: string, source: CardSource): CueWord[] {
   return findWords(
     text,
-    source.words,
+    heardVocabulary(source),
     MAX_WORDS,
-    source.origin === "transcript",
+    true,
+    source.inflected,
   );
+}
+
+const heardCache = new WeakMap<CardSource, CueWord[]>();
+
+/** 받아 적은 글에서 찾을 낱말: words에 사전 색인 낱말을 겹치지 않게 보탠다(재료마다 한 번) */
+function heardVocabulary(source: CardSource): CueWord[] {
+  if (!source.heardOnlyWords?.length) return source.words;
+  const hit = heardCache.get(source);
+  if (hit) return hit;
+  const have = new Set(source.words.map((w) => w.ja));
+  const out = [
+    ...source.words,
+    ...source.heardOnlyWords.filter((w) => !have.has(w.ja)),
+  ];
+  heardCache.set(source, out);
+  return out;
+}
+
+/** 두 낱말 목록을 겹치지 않게 잇는다(MAX_WORDS까지) */
+function joinWords(a: CueWord[], b: CueWord[]): CueWord[] {
+  const out = [...a];
+  for (const w of b) if (!out.some((x) => x.ja === w.ja)) out.push(w);
+  return out.slice(0, MAX_WORDS);
+}
+
+/** 문장 꼴로 볼 만한 받아쓰기의 최소 글자 수(부호 빼고). 짧은 소리(さあ·イル)는 잡음이 많다 */
+const MIN_HEARD_SENTENCE = 6;
+
+/**
+ * 원문이 없는 오디오의 맞추지 못한 일본어 줄을 "받아 적은 글"로 보일 만한가:
+ * 자리가 확인된 낱말이 있거나, 히라가나가 든 충분히 긴 문장 꼴이다.
+ */
+export function heardLineWorthShowing(text: string, words: CueWord[]) {
+  if (words.length > 0) return true;
+  const plain = normalizeJa(text);
+  return [...plain].length >= MIN_HEARD_SENTENCE && /[ぁ-ゖ]/u.test(text);
 }
 
 /** 한자 낱말을 읽는 법으로 푼 글(비교용) */
@@ -127,23 +188,31 @@ function wordWorthShowing(w: CueWord): boolean {
 
 /**
  * 글 속에서 앞에서부터 가장 긴 낱말을 찾는다(겹치는 짧은 낱말은 건너뛴다).
- * strict면 자리가 확인된 낱말만(word-bounds.ts: 이름·합성어·외래어의 일부, 다른 낱말의 어간은 뺀다)
+ * strict면 자리가 확인된 낱말만(word-bounds.ts: 이름·합성어·외래어의 일부, 다른 낱말의 어간은 뺀다).
+ * inflected는 strict일 때만 보는 활용한 꼴(한자가 든 두 글자 이상만: 가나만인 꼴은 다른 말과 겹친다).
+ * 활용한 꼴이 나오면 그 사전형 칩을 단다(食べました → 食べる).
  */
 export function findWords(
   text: string,
   words: CueWord[],
   max: number = MAX_WORDS,
   strict = false,
+  inflected: InflectedWord[] = [],
 ): CueWord[] {
-  const byFirst = new Map<string, CueWord[]>();
-  for (const w of words) {
-    if (!wordWorthShowing(w)) continue;
-    const list = byFirst.get(w.ja[0]) ?? [];
-    list.push(w);
-    byFirst.set(w.ja[0], list);
+  const forms: InflectedWord[] = [
+    ...words.filter(wordWorthShowing).map((w) => ({ form: w.ja, word: w })),
+    ...(strict
+      ? inflected.filter((f) => hasKanji(f.form) && [...f.form].length >= 2)
+      : []),
+  ];
+  const byFirst = new Map<string, InflectedWord[]>();
+  for (const f of forms) {
+    const list = byFirst.get(f.form[0]) ?? [];
+    list.push(f);
+    byFirst.set(f.form[0], list);
   }
   for (const list of byFirst.values())
-    list.sort((a, b) => b.ja.length - a.ja.length);
+    list.sort((a, b) => b.form.length - a.form.length);
   const compounds = strict ? kanjiCompounds(words.map((w) => w.ja)) : undefined;
   const out: CueWord[] = [];
   const seen = new Set<string>();
@@ -152,14 +221,17 @@ export function findWords(
     const hit = byFirst
       .get(text[i])
       ?.find(
-        (w) =>
-          text.startsWith(w.ja, i) &&
-          (!strict || wordFitsAt(text, i, w.ja, compounds)),
+        (f) =>
+          text.startsWith(f.form, i) &&
+          (!strict ||
+            (wordFitsAt(text, i, f.form, compounds) &&
+              counterFitsAt(text, i, f.form, f.word.ko) &&
+              (f.form === f.word.ja || inflectedFitsAt(text, i, f.form)))),
       );
     if (hit) {
-      if (!seen.has(hit.ja)) out.push(hit);
-      seen.add(hit.ja);
-      i += hit.ja.length;
+      if (!seen.has(hit.word.ja)) out.push(hit.word);
+      seen.add(hit.word.ja);
+      i += hit.form.length;
     } else i++;
   }
   return out;
@@ -188,8 +260,15 @@ export function buildCards(
         sentenceCard(sentences, source),
       )
     : direct;
+  // 한글 소리로 찾는 낱말은 낱말 목록(words)에 든 것만(사전 색인 낱말은 받아 적은 글의 칩에만 쓴다)
   const repaired = source.focus
-    ? repairCards(segments, matched, source.focus, toKana)
+    ? repairCards(
+        segments,
+        matched,
+        source.focus,
+        toKana,
+        new Set(source.words.map((w) => w.ja)),
+      )
     : matched;
   const cards = fixedCards(
     segments,
@@ -198,6 +277,7 @@ export function buildCards(
     toKana,
     (s) => sentenceCard([s], source),
   );
+  if (source.noBookText) markHeardLines(segments, cards);
   // 앞뒤 맥락으로 찾은 카드의 낱말까지 그림을 붙인다
   return Object.fromEntries(
     Object.entries(cards).map(([k, c]) => [
@@ -205,6 +285,26 @@ export function buildCards(
       c.words.length ? { ...c, words: c.words.map(withPicture) } : c,
     ]),
   );
+}
+
+/**
+ * 원문이 없는 오디오: 문장 카드가 끝내 붙지 않은 일본어 줄 가운데 일본어로 볼 만한 줄에
+ * noBookText를 단다(heardLineWorthShowing). 맥락·소리로 찾은 단계까지 다 거친 뒤에 본다
+ */
+function markHeardLines(
+  segments: RepairSegment[],
+  cards: Record<string, CueCard>,
+): void {
+  segments.forEach((seg, i) => {
+    if (seg.lang !== "ja" || seg.text.trim() === "") return;
+    const card: CueCard | undefined = cards[String(i)];
+    if (card?.sentences.length) return;
+    if (!heardLineWorthShowing(card?.text ?? seg.text, card?.words ?? []))
+      return;
+    cards[String(i)] = card
+      ? { ...card, noBookText: true }
+      : { sentences: [], whole: false, words: [], noBookText: true };
+  });
 }
 
 /**
@@ -321,15 +421,17 @@ function matchCards(
       if (s && !matched.includes(s)) matched.push(s);
     }
     const whole = pieces.length > 0 && pieces.every((p) => p.index >= 0);
-    // 낱말은 정확한 소책자 글에서 찾는다(맞추지 못한 조각은 자막 글에서)
-    const wordText = [
-      ...matched.map((s) => s.ja),
+    // 낱말은 정확한 소책자 글에서 찾는다. 맞추지 못한 조각은 받아 적은 자막 글이라 자리가 확인된 것만
+    const heardText = [
       ...pieces.filter((p) => p.index < 0).map((p) => p.piece),
       ...(pieces.length === 0 ? [seg.text] : []),
     ].join("　");
     // 문장이 곧 그 낱말이면(단어 코너) 낱말 칸에 다시 두지 않는다
     const own = new Set(matched.map((s) => s.ja));
-    const words = wordsIn(wordText, source).filter((w) => !own.has(w.ja));
+    const words = joinWords(
+      wordsIn(matched.map((s) => s.ja).join("　"), source),
+      heardText === "" ? [] : heardWords(heardText, source),
+    ).filter((w) => !own.has(w.ja));
     if (matched.length === 0 && words.length === 0) return;
     out[String(i)] = {
       // 받아 적은 글로 만든 문장이면 화면이 "교재와 다를 수 있음"을 보이도록 표시한다

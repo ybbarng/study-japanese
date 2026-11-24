@@ -9,6 +9,7 @@ import {
   phoneSimilarity,
 } from "./phonetic";
 import { betterTranscription } from "./transcript-pairs";
+import { hiraganaStartFits } from "./word-bounds";
 
 // 소책자 문장과 바로 맞추지 못한 자막 구간을 앞뒤 맥락과 소리로 한 번 더 살핀다. 화면을 모르는 순수 함수다.
 // whisper는 강사가 일본어를 말하는 순간에 자주 틀린다.
@@ -350,9 +351,48 @@ function kanaWords(text: string, words: CueWord[]): CueWord[] {
   const plain = normalizeJa(text);
   return focusOf(words)
     .filter(
-      (f) => [...f.kana].length >= 3 && plain.includes(normalizeJa(f.kana)),
+      (f) =>
+        [...f.kana].length >= 3 &&
+        plain.includes(normalizeJa(f.kana)) &&
+        kanaFits(text, f.kana),
     )
     .map((f) => f.word);
+}
+
+const KATAKANA_CHAR = /[ァ-ヺー]/u;
+
+/**
+ * 읽는 법 kana가 글 속에 낱말로 나오나. 가타카나로 적힌 곳은 앞뒤에 가타카나가 붙으면
+ * 더 긴 외래어의 일부다(ノートパソコン 속 パソコン). 히라가나로 적힌 곳은 앞 글자가 조사이거나 경계여야 한다.
+ */
+export function kanaFits(text: string, kana: string): boolean {
+  const t = text.normalize("NFKC");
+  const hira = t.replace(/[ァ-ヶ]/gu, (c) =>
+    String.fromCharCode(c.charCodeAt(0) - 0x60),
+  );
+  const target = normalizeJa(kana);
+  if (target === "") return false;
+  for (
+    let at = hira.indexOf(target);
+    at >= 0;
+    at = hira.indexOf(target, at + 1)
+  ) {
+    const end = at + target.length;
+    const before = t[at - 1];
+    // 히라가나로 적힌 곳은 앞 글자가 조사이거나 경계일 때만(word-bounds.ts의 ④)
+    if (!/[ァ-ヺ]/u.test(t.slice(at, end))) {
+      if (hiraganaStartFits(before)) return true;
+      continue;
+    }
+    const after = t[end];
+    if (
+      !(before && KATAKANA_CHAR.test(before)) &&
+      !(after && KATAKANA_CHAR.test(after))
+    )
+      return true;
+  }
+  // 부호를 사이에 두고 나뉘어 적힌 곳(normalizeJa로만 이어지는 곳)은 가타카나가 아니면 받는다
+  return !hira.includes(target) && !/[ァ-ヺ]/u.test(t);
 }
 
 /** 맞추지 못한 일본어 구간에 읽는 법으로 찾은 낱말 칩을 더한다 */
@@ -400,16 +440,23 @@ function unifyRepeats(
 /**
  * 맞춘 카드(buildCards의 결과)를 맥락과 소리로 보탠 새 카드 묶음.
  * words는 이 강·과에서 익히는 낱말(한글 소리·가나 읽기로 찾는다).
+ * known이 있으면 카드에서 이미 찾은 낱말 가운데 그 표기만 소리로 찾는다(받아 적은 글에서만 찾는
+ * 사전 색인 낱말이 한국어 줄의 한글 소리와 잘못 닮지 않게).
  */
 export function repairCards(
   segments: RepairSegment[],
   cards: Record<string, CueCard>,
   words: CueWord[],
   toKana: (t: string) => string,
+  known?: ReadonlySet<string>,
 ): Record<string, CueCard> {
   const out = { ...cards };
   // 이 자막의 일본어 구간에서 이미 찾은 낱말도 이 강의에서 다루는 낱말이다
-  const focus = [...words, ...Object.values(cards).flatMap((c) => c.words)];
+  const found = Object.values(cards).flatMap((c) => c.words);
+  const focus = [
+    ...words,
+    ...(known ? found.filter((w) => known.has(w.ja)) : found),
+  ];
   fillFromNeighbors(segments, out, toKana);
   fillHangul(segments, out, focus);
   addKanaWords(segments, out, focus);

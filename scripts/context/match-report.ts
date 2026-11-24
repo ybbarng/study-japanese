@@ -2,7 +2,10 @@ import { readdirSync } from "node:fs";
 import path from "node:path";
 import { contextTranscript } from "@/lib/context/build";
 import { transcriptSchema } from "@/lib/context/card-schema";
-import { lessonNoOfItem } from "@/lib/context/card-sources";
+import {
+  itemWithoutBookText,
+  lessonNoOfItem,
+} from "@/lib/context/card-sources";
 import { ilmuntaLessonPairs } from "@/lib/context/ilmunta-pairs";
 import { contextExtras } from "@/lib/context/lesson-names-server";
 import { contentDir, loadIlmuta, readJson } from "@/lib/textbook/load";
@@ -12,11 +15,20 @@ import { contentDir, loadIlmuta, readJson } from "@/lib/textbook/load";
 // 교재 글을 찍지 않는다(저장소 규칙).
 //   `CONTENT_DIR=<content 폴더> pnpm context:report`            묶음별
 //   `CONTENT_DIR=<content 폴더> pnpm context:report -- --items`  자막 파일별
+//   `CONTENT_DIR=<content 폴더> pnpm context:report -- --no-text` 소책자에 원문이 없는 오디오만
+//                                                               (일문따 -2, 일무따 -5·-6 묶음별)
 //   `TRANSCRIPTS=transcripts-next ...`                          다른 자막 폴더(다시 받아 적은 것)를 센다
 
 const dir = contentDir();
 const folder = process.env.TRANSCRIPTS ?? "transcripts";
 const byItem = process.argv.includes("--items");
+const noTextOnly = process.argv.includes("--no-text");
+
+/** --no-text 묶음 이름: 일문따 `-2`, 일무따 `-5`·`-6` */
+function noTextGroup(book: string, item: string): string | null {
+  if (!itemWithoutBookText(book, item)) return null;
+  return `${book} ${item.slice(item.lastIndexOf("-"))}`;
+}
 const ilmuta = loadIlmuta(dir);
 if (!ilmuta) {
   console.error(`일무따 교재가 없습니다: ${dir}/textbook/ilmuta.json`);
@@ -39,6 +51,8 @@ type Tally = {
   distinctEmoji: Set<string>;
   /** 바로 맞추지 못하고 차례·앞뒤 맥락·소리로 채운 일본어 구간(align.ts·repair.ts) */
   inferred: number;
+  /** 원문 없는 오디오에서 흐림 대신 "받아 적은 글"로 보이는 일본어 구간(cards.ts의 noBookText) */
+  heard: number;
   /** 한국어 줄이 통째로 낱말 카드가 된 수, 표기를 덧붙인 수 */
   koWhole: number;
   koAnnotated: number;
@@ -55,6 +69,7 @@ const blank = (): Tally => ({
   distinct: new Set(),
   distinctEmoji: new Set(),
   inferred: 0,
+  heard: 0,
   koWhole: 0,
   koAnnotated: 0,
 });
@@ -71,6 +86,8 @@ for (const book of ["ilmuta", "ilmunta"] as const) {
   }
   for (const file of files) {
     const item = file.replace(/\.json$/, "");
+    const group = noTextGroup(book, item);
+    if (noTextOnly && !group) continue;
     const t = readJson(path.join(dir, folder, book, file), transcriptSchema);
     if (!t) continue;
     const no = lessonNoOfItem(item);
@@ -79,7 +96,11 @@ for (const book of ["ilmuta", "ilmunta"] as const) {
     const extras = contextExtras(book, item, ilmuta, dir);
     const out = contextTranscript(book, item, t, ilmuta, pairs, extras);
     const cards = out.cards ?? {};
-    const key = byItem ? `${book} ${item}` : `${book} ${t.kind}`;
+    const key = byItem
+      ? `${book} ${item}`
+      : noTextOnly && group
+        ? group
+        : `${book} ${t.kind}`;
     tallies[key] ??= blank();
     const tally = tallies[key];
     tally.files++;
@@ -95,6 +116,7 @@ for (const book of ["ilmuta", "ilmunta"] as const) {
       if (card?.inferred) tally.inferred++;
       if (card?.sentences.length) tally.sentence++;
       if (card?.whole) tally.whole++;
+      else if (card?.noBookText) tally.heard++;
       if (card?.words.length) tally.word++;
       for (const w of card?.words ?? []) {
         tally.chips++;
@@ -111,7 +133,7 @@ for (const book of ["ilmuta", "ilmunta"] as const) {
 const pct = (n: number, d: number) =>
   d === 0 ? "-" : `${Math.round((n / d) * 100)}%`;
 console.log(
-  "묶음\t파일\t일본어 구간(원래→내줌)\t문장 맞춤\t구간 전체 맞춤\t낱말 있음\t그림 붙은 칩\t그림 붙은 낱말(서로 다른)\t맥락으로 채움\t받아쓰기로 남음\t한국어 줄→낱말\t한국어 줄 표기 덧붙임",
+  "묶음\t파일\t일본어 구간(원래→내줌)\t문장 맞춤\t구간 전체 맞춤\t낱말 있음\t그림 붙은 칩\t그림 붙은 낱말(서로 다른)\t맥락으로 채움\t받아쓰기로 남음\t그중 받아 적은 글(뜻 없음)\t흐림\t한국어 줄→낱말\t한국어 줄 표기 덧붙임",
 );
 for (const [key, t] of Object.entries(tallies))
   console.log(
@@ -126,6 +148,8 @@ for (const [key, t] of Object.entries(tallies))
       `${t.distinctEmoji.size}/${t.distinct.size} (${pct(t.distinctEmoji.size, t.distinct.size)})`,
       `${t.inferred} (${pct(t.inferred, t.ja)})`,
       `${t.ja - t.whole} (${pct(t.ja - t.whole, t.ja)})`,
+      `${t.heard} (${pct(t.heard, t.ja)})`,
+      `${t.ja - t.whole - t.heard} (${pct(t.ja - t.whole - t.heard, t.ja)})`,
       t.koWhole,
       t.koAnnotated,
     ].join("\t"),

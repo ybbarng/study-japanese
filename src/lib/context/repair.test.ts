@@ -3,12 +3,25 @@ import type { CueCard, CueWord } from "./cards";
 import {
   annotate,
   findHangulWords,
+  kanaFits,
   type RepairSegment,
   repairCards,
   wordSentence,
 } from "./repair";
 
 // 교재 글이 아니라 모양만 같은 가짜 낱말·문장을 쓴다(저장소 규칙)
+
+describe("읽는 법으로 찾은 가나 낱말의 자리", () => {
+  it("가타카나로 적힌 곳은 앞뒤에 가타카나가 붙으면 더 긴 외래어의 일부로 본다", () => {
+    expect(kanaFits("新しいノートパソコン", "パソコン")).toBe(false);
+    expect(kanaFits("パソコンを買う", "パソコン")).toBe(true);
+  });
+
+  it("히라가나로 적힌 곳은 앞 글자가 조사이거나 경계일 때만 받는다", () => {
+    expect(kanaFits("朝ごはんを食べる", "ごはん")).toBe(true);
+    expect(kanaFits("見えないくらい遠い", "いくら")).toBe(false);
+  });
+});
 
 const egg: CueWord = { ja: "卵", reading: "たまご", ko: "달걀" };
 const train: CueWord = { ja: "電車", reading: "でんしゃ", ko: "전철" };

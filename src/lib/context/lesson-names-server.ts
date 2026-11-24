@@ -1,3 +1,4 @@
+import { dictionaryIndex } from "@/lib/dictionary/index-server";
 import type { Ilmuta } from "@/lib/textbook/schema";
 import {
   lessonSentences,
@@ -5,6 +6,7 @@ import {
 } from "@/lib/word-tap/analysis";
 import { loadTextbookAnalysis } from "@/lib/word-tap/analysis-file";
 import { type LessonExtras, lessonNoOfItem } from "./card-sources";
+import { type DictChips, dictChips } from "./dict-words";
 import { ilmuntaLessonLines } from "./ilmunta-pairs";
 import { analysisGlossary, lessonNames } from "./lesson-names";
 
@@ -18,10 +20,26 @@ export function contextExtras(
   dir?: string,
 ): LessonExtras | null {
   const no = lessonNoOfItem(item);
-  if (book === "ilmuta") return ilmutaLessonExtras(ilmuta, no, dir);
+  if (book === "ilmuta") {
+    const extras = ilmutaLessonExtras(ilmuta, no, dir);
+    // 받아 적은 글의 칩: 사전 색인 가운데 그 강까지 나온 낱말
+    return extras && no !== null
+      ? { ...extras, dict: lessonDictChips(ilmuta, no) }
+      : extras;
+  }
   if (book === "ilmunta" && no !== null)
-    return { echoes: ilmuntaLessonLines(no, item, dir) };
+    return {
+      echoes: ilmuntaLessonLines(no, item, dir),
+      // 일문따는 일무따(1분기)를 마친 뒤라 일무따 낱말을 모두 안다고 본다
+      dict: lessonDictChips(ilmuta),
+    };
   return null;
+}
+
+/** 사전 색인에서 고른 칩(upto 강까지). 일무따 교재를 볼 수 없으면 드릴 낱말만 */
+function lessonDictChips(ilmuta: Ilmuta | null, upto?: number): DictChips {
+  const index = dictionaryIndex(ilmuta);
+  return dictChips(index.entries, index.inflections, upto);
 }
 
 export function ilmutaLessonExtras(

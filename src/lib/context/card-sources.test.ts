@@ -3,9 +3,45 @@ import { fakeExample, fakeLesson } from "@/lib/ilmuta/__fixtures__/lesson";
 import {
   ilmuntaCardSource,
   ilmutaCardSource,
+  inflectedWords,
+  itemWithoutBookText,
   lessonNoOfItem,
   looksLikeMeaning,
 } from "./card-sources";
+
+describe("소책자에 원문이 없는 예문 mp3", () => {
+  it("일무따 연습 문제·장문과 일문따 읽기 글이다", () => {
+    expect(itemWithoutBookText("ilmuta", "12-5")).toBe(true);
+    expect(itemWithoutBookText("ilmuta", "40-6")).toBe(true);
+    expect(itemWithoutBookText("ilmunta", "05-2")).toBe(true);
+  });
+
+  it("소책자 글이 있는 예문·강의는 아니다", () => {
+    expect(itemWithoutBookText("ilmuta", "12-1")).toBe(false);
+    expect(itemWithoutBookText("ilmuta", "12-4-1")).toBe(false);
+    expect(itemWithoutBookText("ilmunta", "05-1")).toBe(false);
+    expect(itemWithoutBookText("ilmuta", "L12")).toBe(false);
+  });
+});
+
+describe("드릴 낱말의 활용한 꼴", () => {
+  it("활용 엔진이 만든 꼴을 사전형 칩으로 잇고, 사전형과 같은 꼴은 두지 않는다", () => {
+    const eat = inflectedWords((d) => d === "食べる");
+    expect(eat.find((f) => f.form === "食べました")?.word).toEqual({
+      ja: "食べる",
+      reading: "たべる",
+      ko: "먹다",
+    });
+    expect(eat.some((f) => f.form === "食べる")).toBe(false);
+  });
+
+  it("고른 낱말의 꼴만 낸다", () => {
+    const dicts = new Set(
+      inflectedWords((d) => d === "書く").map((f) => f.word.ja),
+    );
+    expect([...dicts]).toEqual(["書く"]);
+  });
+});
 
 describe("강의 되풀이 사이 한국어 줄이 뜻인가", () => {
   it("일본어 문장을 옮긴 말이면 뜻으로 본다", () => {

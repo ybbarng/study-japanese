@@ -4,6 +4,7 @@ import {
   ilmuntaCardSource,
   ilmuntaGlossary,
   ilmutaCardSource,
+  itemWithoutBookText,
   knownWordForms,
   type LessonExtras,
   lessonNoOfItem,
@@ -88,7 +89,7 @@ export function contextTranscript(
       ? transcript
       : { ...transcript, segments };
   const no = lessonNoOfItem(item);
-  const source =
+  const base =
     book === "ilmuta"
       ? lessons && no !== null
         ? ilmutaCardSource(lessons, no, item, extras)
@@ -99,6 +100,11 @@ export function contextTranscript(
           no,
           extras,
         );
+  // 소책자에 원문이 없는 오디오는 맞추지 못한 줄도 받아 적은 글로 보인다(낱말 칩만, 뜻 없음)
+  const source =
+    base && itemWithoutBookText(book, item)
+      ? { ...base, noBookText: true }
+      : base;
   const cards = source ? buildCards(clean.segments, source) : {};
   // 한국어 줄에 남은 한글 낱자는 그 강이 다루는 가나·조사로 채우고(못 채우면 가린다),
   // 로마자로 적힌 일본어(조사 no 등)는 가나로 바꾼다

@@ -4,8 +4,14 @@ import { WORD_LESSONS } from "@/lib/ilmunta/word-lessons";
 import { ADJECTIVES } from "@/lib/ilmunta/words";
 import { buildGlossary, type Glossary, hasKanji } from "@/lib/ilmuta/ruby";
 import type { IlmutaLesson, Sentence } from "@/lib/textbook/schema";
-import { type CardSource, type CueWord, findWords } from "./cards";
+import {
+  type CardSource,
+  type CueWord,
+  findWords,
+  type InflectedWord,
+} from "./cards";
 import { conjugatedForms } from "./conjugations";
+import type { DictChips } from "./dict-words";
 import { normalizeJa } from "./match";
 import { repairMeaning } from "./meaning";
 import type { TranscriptPair } from "./transcript-pairs";
@@ -71,6 +77,44 @@ export function orderedSentences(
 }
 
 /**
+ * 소책자에 원문이 없는 예문 mp3인가: 일무따 연습 문제(`-5`)·장문(`-6`), 일문따 읽기 글(`-2`).
+ * 이 오디오의 맞추지 못한 일본어 줄은 잡음보다 받아 적은 글로 보인다(cards.ts의 noBookText)
+ */
+export function itemWithoutBookText(book: string, item: string): boolean {
+  if (book === "ilmuta") return /^\d{1,3}-[56]$/.test(item);
+  if (book === "ilmunta") return /^\d{1,3}-2$/.test(item);
+  return false;
+}
+
+let allInflected: InflectedWord[] | null = null;
+
+/**
+ * 드릴 낱말의 활용한 꼴 → 사전형 칩(받아 적은 글에서 食べました를 食べる로 알아본다).
+ * allowed로 낱말을 고른다(일무따는 그 강까지 배운 것만). 두 낱말에 같은 꼴이 있으면(開いて: あく·ひらく)
+ * 어느 쪽인지 모르니 뺀다. 사전형과 같은 꼴은 낱말 목록이 이미 찾는다.
+ */
+export function inflectedWords(
+  allowed?: (dict: string) => boolean,
+): InflectedWord[] {
+  if (!allowed) {
+    allInflected ??= inflectedWords(() => true);
+    return allInflected;
+  }
+  const byForm = new Map<string, InflectedWord | null>();
+  for (const f of conjugatedForms()) {
+    if (!allowed(f.dict) || f.kanji === f.dict) continue;
+    const word: CueWord =
+      f.dictReading !== f.dict
+        ? { ja: f.dict, reading: f.dictReading, ko: f.ko }
+        : { ja: f.dict, ko: f.ko };
+    const had = byForm.get(f.kanji);
+    if (had === undefined) byForm.set(f.kanji, { form: f.kanji, word });
+    else if (had !== null && had.word.ja !== f.dict) byForm.set(f.kanji, null);
+  }
+  return [...byForm.values()].filter((f): f is InflectedWord => f !== null);
+}
+
+/**
  * 파일에서 모은 그 강·과의 덧붙일 재료. 일무따: 낱말 분석의 등장인물 이름과 한자 읽기(lesson-names.ts).
  * 일문따: 같은 과 예문 mp3 자막의 일본어 줄(ilmunta-pairs.ts의 ilmuntaLessonLines).
  */
@@ -78,6 +122,16 @@ export interface LessonExtras {
   names?: CueWord[];
   glossary?: Glossary;
   echoes?: string[];
+  /** 사전 색인에서 고른 칩 낱말(dict-words.ts). 받아 적은 글에서만 더 찾는다 */
+  dict?: DictChips;
+}
+
+/** 받아 적은 글에서 찾을 낱말의 활용한 꼴: 드릴 활용형과 사전 색인(예문 분석)의 꼴 */
+function heardInflected(
+  drill: InflectedWord[],
+  extras: LessonExtras | null,
+): InflectedWord[] {
+  return [...drill, ...(extras?.dict?.inflected ?? [])];
 }
 
 /**
@@ -93,6 +147,10 @@ export function ilmutaCardSource(
 ): CardSource {
   const lesson = lessons.find((l) => l.no === no);
   const ordered = lesson && item ? orderedSentences(lesson, item) : undefined;
+  const learnedInIlmuta = (dict: string) => {
+    const first = WORD_LESSONS[dict]?.ilmuta;
+    return first !== undefined && first <= no;
+  };
   // 한글 소리로 찾을 낱말은 그 강에서 익히는 것만(많으면 한국어 말과 잘못 닮는다)
   const focus = lesson
     ? wordsOfLesson(lesson)
@@ -110,6 +168,9 @@ export function ilmutaCardSource(
     ...(ordered ? { ordered } : {}),
     glossary: { ...(extras?.glossary ?? {}), ...buildGlossary(lessons, no) },
     words: ilmutaWords(lessons, no),
+    // 받아 적은 글 속 활용한 꼴은 그 강까지 일무따에 나온 드릴 낱말만
+    inflected: heardInflected(inflectedWords(learnedInIlmuta), extras),
+    heardOnlyWords: extras?.dict?.words,
     focus,
     fixed: {
       frames: lesson?.examples.flatMap((e) => e.patterns ?? []) ?? [],
@@ -252,6 +313,8 @@ export function ilmuntaCardSource(
     origin: "transcript",
     glossary,
     words,
+    inflected: heardInflected(inflectedWords(), extras),
+    heardOnlyWords: extras?.dict?.words,
     focus,
     // 강사가 그 과의 활용형을 즉석에서 말한 줄을 드릴 활용형 표로 알아본다
     fixed: {

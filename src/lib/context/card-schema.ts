@@ -44,6 +44,12 @@ export const cueCardSchema = z.object({
   text: z.string().optional(),
   /** 바로 맞추지 못하고 앞뒤 맥락·소리로 찾은 카드(repair.ts) */
   inferred: z.boolean().optional(),
+  /**
+   * 소책자에 원문이 없는 오디오(일문따 읽기 글, 일무따 연습 문제·장문)에서 받아 적은 일본어 줄.
+   * 맞춘 문장은 없지만 일본어로 볼 만하다(자리가 확인된 낱말이 있거나 문장 꼴이다). 화면은 잡음 같은
+   * 흐린 받아쓰기보다 조금 진하게 "받아 적은 글 · 뜻 없음"으로 보인다
+   */
+  noBookText: z.boolean().optional(),
 });
 export type CueCard = z.infer<typeof cueCardSchema>;
 

@@ -5,6 +5,7 @@ import {
   type CardSource,
   candidateForms,
   findWords,
+  heardLineWorthShowing,
   wordLineMatcher,
 } from "./cards";
 import { EMOJI } from "./emoji";
@@ -246,5 +247,82 @@ describe("받아 적은 글로 만든 카드의 읽는 법·낱말 칩", () => {
   it("소책자 문장 카드는 예전처럼 사전 낱말을 모두 찾는다(확인 모드는 받아 적은 글만)", () => {
     const card = buildCards([ja(sentence.ja)], base)["0"];
     expect(card?.words.map((w) => w.ja)).toEqual(["花", "子", "花瓶", "下"]);
+  });
+
+  it("소책자 카드라도 맞추지 못한 받아쓰기 조각의 낱말은 자리가 확인된 것만 단다", () => {
+    const card = buildCards([ja("花子は来なかった")], base)["0"];
+    expect(card).toBeUndefined();
+  });
+});
+
+describe("활용한 꼴로 찾는 낱말 칩", () => {
+  const eat = { ja: "食べる", reading: "たべる", ko: "먹다" };
+  const inflected = [
+    { form: "食べました", word: eat },
+    { form: "食べ", word: eat },
+  ];
+
+  it("받아 적은 글(엄격)에서는 활용한 꼴이 나오면 사전형 칩을 단다", () => {
+    expect(findWords("朝ご飯を食べました", [], 6, true, inflected)).toEqual([
+      eat,
+    ]);
+  });
+
+  it("엄격하지 않으면 활용한 꼴을 보지 않는다", () => {
+    expect(findWords("朝ご飯を食べました", [], 6, false, inflected)).toEqual(
+      [],
+    );
+  });
+
+  it("활용한 꼴도 뒤에 한자가 붙으면(합성어) 그 낱말로 보지 않는다", () => {
+    expect(findWords("食べ物が好き", [], 6, true, inflected)).toEqual([]);
+  });
+});
+
+describe("원문이 없는 오디오의 받아 적은 줄", () => {
+  const heard: CardSource = {
+    sentences: [],
+    glossary: {},
+    words: [{ ja: "今日", reading: "きょう", ko: "오늘" }],
+    noBookText: true,
+  };
+
+  it("낱말이 확인된 줄은 받아 적은 글(뜻 없음)로 표시하고 칩을 단다", () => {
+    const card = buildCards([ja("今日はいい天気")], heard)["0"];
+    expect(card).toMatchObject({ noBookText: true, sentences: [] });
+    expect(card.words.map((w) => w.ja)).toEqual(["今日"]);
+  });
+
+  it("낱말이 없어도 히라가나가 든 긴 문장 꼴이면 받아 적은 글로 표시한다", () => {
+    expect(buildCards([ja("それはとてもいいです")], heard)["0"]).toEqual({
+      sentences: [],
+      whole: false,
+      words: [],
+      noBookText: true,
+    });
+  });
+
+  it("짧은 소리나 가타카나만인 줄은 흐린 받아쓰기로 둔다", () => {
+    expect(buildCards([ja("さあ。"), ja("イル")], heard)).toEqual({});
+  });
+
+  it("원문이 있는 오디오에서는 표시하지 않는다", () => {
+    const card = buildCards([ja("今日はいい天気")], {
+      ...heard,
+      noBookText: false,
+    })["0"];
+    expect(card.noBookText).toBeUndefined();
+  });
+});
+
+describe("받아 적은 줄로 볼 만한가", () => {
+  it("낱말이 있으면 짧아도 받는다", () => {
+    expect(heardLineWorthShowing("山", [{ ja: "山", ko: "산" }])).toBe(true);
+  });
+
+  it("낱말이 없으면 여섯 글자 이상이고 히라가나가 있어야 한다", () => {
+    expect(heardLineWorthShowing("それはいいです", [])).toBe(true);
+    expect(heardLineWorthShowing("いいです", [])).toBe(false);
+    expect(heardLineWorthShowing("アイウエオカキ", [])).toBe(false);
   });
 });
