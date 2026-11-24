@@ -1,15 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { type ComponentType, type ReactNode, useEffect, useState } from "react";
+import {
+  type ComponentType,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { OfflineButton } from "@/components/offline/offline-button";
 import { StickyPanel } from "@/components/shell/page-frame";
-import { cn } from "@/lib/cn";
+import { followStep } from "@/lib/ilmuta/follow-step";
 import { lessonLabel, registerLabel } from "@/lib/ilmuta/labels";
+import { currentSection } from "@/lib/ilmuta/sections";
 import type { LessonData } from "@/lib/ilmuta/server-data";
 import { STEP_LABEL, type StepId } from "@/lib/ilmuta/steps";
 import { ilmutaPack } from "@/lib/offline/pack";
-import { LessonAside } from "./lesson-aside";
+import { LessonAside, LessonPlayerTop } from "./lesson-aside";
 import type { StepProps } from "./lesson-types";
 import { StepConversation } from "./step-conversation";
 import { StepLecture } from "./step-lecture";
@@ -19,7 +27,7 @@ import { StepPatterns } from "./step-patterns";
 import { StepShadowing } from "./step-shadowing";
 import { StepWords } from "./step-words";
 import { StepWriting } from "./step-writing";
-import { useListenIndex, usePlayerBarVisible } from "./use-player-bridge";
+import { useListenIndex, useNowPlaying } from "./use-player-bridge";
 
 const STEP_VIEW: Record<StepId, ComponentType<StepProps>> = {
   lecture: StepLecture,
@@ -31,56 +39,118 @@ const STEP_VIEW: Record<StepId, ComponentType<StepProps>> = {
   writing: StepWriting,
 };
 
-// 폰 아래 단추 영역의 아래쪽 여백. 재생 막대(MiniBar, 약 5.25rem)가 뜨면 그만큼 더 둔다
-const BOTTOM_PAD = "pb-[max(env(safe-area-inset-bottom),0.75rem)]";
-const BOTTOM_PAD_WITH_BAR =
-  "pb-[calc(max(env(safe-area-inset-bottom),0.75rem)+5.25rem)]";
-// 끝까지 내렸을 때 마지막 글이 단추 영역에 가리지 않게 비우는 높이
-// (단추 영역 = 위 여백 0.75rem + 단추 3.5rem + 아래 여백).
-// 재생 막대 몫(6rem)은 NowPlaying이 페이지 끝에 따로 비운다
-const SPACER = "h-[calc(max(env(safe-area-inset-bottom),0.75rem)+4.25rem)]";
+/** 구역 머리가 이 선(화면 위에서부터)을 넘으면 그 구역을 읽는 중으로 본다(위에 붙은 재생기 아래쯤) */
+const SECTION_LINE = 0.3;
 
-interface Props {
-  data: LessonData;
-  steps: StepId[];
-  initialStep: StepId;
-  /** 강 내용 아래 붙는 것(출처 표시). 폰 아래 단추 자리 비우기보다 위에 놓인다 */
-  footer?: ReactNode;
+function sectionEl(s: StepId): HTMLElement | null {
+  return document.getElementById(`step-${s}`);
 }
 
 /**
- * 한 강의 학습 흐름.
- * 폰: 위에 단계 표, 가운데 한 단계, 아래 엄지 자리에 이전·다음.
- * PC(lg): 왼쪽 단계 내용, 오른쪽 고정 곁칸에 강의 재생·자막(쓰기 단계면 쓰기 참고).
- * 넓은 PC(xl): 단계 표가 맨 왼쪽 세로 목차가 된다.
+ * 한 강의 교재 영역. 단계별 화면을 넘기지 않고 강의 → 단어 → … → 쓰기를 한 장으로 이어 읽는다
+ * (나중에 퀴즈·드릴을 그 자리에 끼워 넣을 수 있게 구역마다 이어 붙인다).
+ * 재생기는 늘 보인다: 폰은 화면 위에 붙고(내려 읽으면 한 줄로 접힌다), PC(lg)는 오른쪽 고정 칸 맨 위에
+ * 재생기와 지금 하는 말·자막을 두고 가운데를 교재로 넓게 쓴다. 넓은 PC(xl)는 단계 표가 왼쪽 세로 목차가 된다.
+ * 단계 표는 그 구역으로 굴려 가는 목차이고, 지금 읽는 구역을 표시한다.
  */
-export function LessonFlow({ data, steps, initialStep, footer }: Props) {
+export function LessonFlow({
+  data,
+  steps,
+  initialStep,
+  footer,
+}: {
+  data: LessonData;
+  steps: StepId[];
+  initialStep: StepId;
+  /** 강 내용 아래 붙는 것(출처 표시) */
+  footer?: ReactNode;
+}) {
   const { lesson } = data;
-  const [step, setStep] = useState<StepId>(initialStep);
+  const [current, setCurrent] = useState<StepId>(initialStep);
   const listens = useListenIndex(data.listens);
-  const barVisible = usePlayerBarVisible();
-  const at = steps.indexOf(step);
-  const prev = at > 0 ? steps[at - 1] : null;
-  const next = at < steps.length - 1 ? steps[at + 1] : null;
-  const View = STEP_VIEW[step];
   const register = registerLabel(lesson.register);
 
-  // 단계 표에서 지금 단계가 화면 밖이면 보이게 민다(가로 단계 표일 때)
+  // 지금 읽는 구역: 굴릴 때마다 구역 머리 위치로 정한다
   useEffect(() => {
-    document
-      .querySelector(`[data-step="${step}"]`)
-      ?.scrollIntoView({ inline: "center", block: "nearest" });
-  }, [step]);
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      const tops = steps.map(
+        (s) => sectionEl(s)?.getBoundingClientRect().top ?? 0,
+      );
+      const atBottom =
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 4;
+      const i = currentSection(
+        tops,
+        window.innerHeight * SECTION_LINE,
+        atBottom,
+      );
+      if (i >= 0) setCurrent(steps[i]);
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(measure);
+    };
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
+  }, [steps]);
 
-  const go = (s: StepId) => {
-    setStep(s);
+  // 단계 표에서 지금 구역이 가로 목록 밖이면 보이게 민다(가로 단계 표일 때).
+  // scrollIntoView는 창도 세로로 굴려 읽던 자리를 단계 표 쪽으로 끌어올리므로 목록만 가로로 굴린다
+  useEffect(() => {
+    const btn = document.querySelector<HTMLElement>(`[data-step="${current}"]`);
+    const nav = btn?.parentElement;
+    if (!btn || !nav || nav.scrollWidth <= nav.clientWidth) return;
+    const offset =
+      btn.getBoundingClientRect().left - nav.getBoundingClientRect().left;
+    nav.scrollTo({
+      left: nav.scrollLeft + offset - nav.clientWidth / 2 + btn.clientWidth / 2,
+      behavior: "smooth",
+    });
+  }, [current]);
+
+  const go = useCallback((s: StepId, smooth = true) => {
+    setCurrent(s);
     window.history.replaceState(null, "", `?step=${s}`);
-    window.scrollTo({ top: 0 });
-  };
+    sectionEl(s)?.scrollIntoView({
+      block: "start",
+      behavior: smooth ? "smooth" : "auto",
+    });
+  }, []);
+
+  // ?step=으로 들어오면 그 구역부터 보인다
+  // biome-ignore lint/correctness/useExhaustiveDependencies: 처음 한 번만
+  useEffect(() => {
+    if (initialStep !== steps[0]) go(initialStep, false);
+  }, []);
+
+  // 강의가 끝나 대기열이 이 강 예문으로 넘어가면, 소리를 따라 보고 있던 화면도 그 예문 구역으로 굴려 간다
+  const playingItem = useNowPlaying().item;
+  const lastItem = useRef(playingItem);
+  const currentRef = useRef(current);
+  currentRef.current = current;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: 재생 항목이 바뀔 때만 본다
+  useEffect(() => {
+    const prevItem = lastItem.current;
+    lastItem.current = playingItem;
+    const target = followStep(
+      lesson,
+      steps,
+      currentRef.current,
+      prevItem,
+      playingItem,
+    );
+    if (target) go(target);
+  }, [playingItem]);
 
   return (
     <>
-      <main className="mx-auto max-w-md px-5 pt-[max(env(safe-area-inset-top),1.25rem)] lg:grid lg:max-w-[96rem] lg:grid-cols-[minmax(0,1fr)_20rem] lg:grid-rows-[auto_auto_auto_1fr] lg:gap-x-8 lg:px-10 lg:pt-8 xl:grid-cols-[8.5rem_minmax(0,1fr)_22rem] 2xl:grid-cols-[9rem_minmax(0,1fr)_24rem] xl:grid-rows-[auto_auto_1fr]">
+      <main className="mx-auto max-w-md px-5 pt-[max(env(safe-area-inset-top),1.25rem)] lg:grid lg:max-w-[100rem] lg:grid-cols-[minmax(0,1fr)_24rem] lg:grid-rows-[auto_auto_1fr] lg:gap-x-8 lg:px-10 lg:pt-8 xl:grid-cols-[8.5rem_minmax(0,1fr)_26rem] xl:grid-rows-[auto_1fr] 2xl:grid-cols-[9rem_minmax(0,1fr)_30rem]">
         <header className="lg:col-start-1 lg:row-start-1 xl:col-start-2">
           <Link href="/ilmuta" className="text-sm text-ink-faint lg:hidden">
             ← 60강 지도
@@ -123,81 +193,78 @@ export function LessonFlow({ data, steps, initialStep, footer }: Props) {
           </div>
         </header>
 
+        {/* 폰: 재생기를 화면 위에 붙인다. 내려 읽으면 한 줄로 접힌다 */}
+        <div className="contents lg:hidden">
+          <LessonPlayerTop data={data} className="mt-4" />
+        </div>
+
         {steps.length > 1 ? (
           <StepNav
             steps={steps}
-            current={step}
-            onGo={go}
-            className="lg:col-start-1 lg:row-start-2 xl:row-span-3 xl:row-start-1"
+            current={current}
+            onGo={(s) => go(s)}
+            className="lg:col-start-1 lg:row-start-2 xl:row-span-2 xl:row-start-1"
           />
         ) : null}
 
-        <section className="mt-5 lg:col-start-1 lg:row-start-3 lg:mt-6 xl:col-start-2 xl:row-start-2">
-          <View data={data} listens={listens} />
-        </section>
+        <div className="lg:col-start-1 lg:row-start-3 xl:col-start-2 xl:row-start-2">
+          {steps.map((s, i) => {
+            const View = STEP_VIEW[s];
+            return (
+              <section
+                key={s}
+                id={`step-${s}`}
+                data-step-section={s}
+                aria-labelledby={`step-${s}-title`}
+                // 위에 붙은 재생기(폰)·여백(PC) 아래에 구역 머리가 오게
+                className="scroll-mt-24 pt-8 first:pt-5 lg:scroll-mt-6 lg:pt-12 lg:first:pt-6"
+              >
+                {steps.length > 1 ? (
+                  <h2
+                    id={`step-${s}-title`}
+                    className="mb-4 text-sm font-medium text-ink-faint"
+                  >
+                    {i + 1}. {STEP_LABEL[s]}
+                  </h2>
+                ) : (
+                  <h2 id={`step-${s}-title`} className="sr-only">
+                    {STEP_LABEL[s]}
+                  </h2>
+                )}
+                <View data={data} listens={listens} />
+              </section>
+            );
+          })}
 
-        {/* 폰: 화면 맨 아래까지 불투명한 바탕으로 덮는다. 재생 막대가 뜨면 그 자리만큼 아래를 비워
-          단추를 막대 위에 올린다(막대는 z-40으로 이 바탕 위에 놓인다). 단추 틈·막대와의 틈으로 글이 비치지 않게 */}
-        <div
-          data-bottom-nav
-          className={cn(
-            "fixed inset-x-0 bottom-0 z-30 bg-bg px-4 pt-3 lg:static lg:col-start-1 lg:row-start-4 lg:mt-10 lg:self-start lg:bg-transparent lg:px-0 lg:pt-0 lg:pb-10 xl:col-start-2 xl:row-start-3",
-            barVisible ? BOTTOM_PAD_WITH_BAR : BOTTOM_PAD,
-          )}
-        >
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 -top-6 h-6 bg-gradient-to-t from-bg to-transparent lg:hidden"
-          />
-          <div className="mx-auto flex max-w-md gap-2 lg:max-w-none">
-            {prev ? (
-              <button
-                type="button"
-                onClick={() => go(prev)}
-                className="h-14 rounded-2xl border border-line bg-bg px-4 text-ink-soft lg:hover:bg-bg-raised"
-                aria-label={`이전 단계: ${STEP_LABEL[prev]}`}
-              >
-                ←
-              </button>
-            ) : null}
-            {next ? (
-              <button
-                type="button"
-                onClick={() => go(next)}
-                className="h-14 flex-1 rounded-2xl border border-line bg-bg-raised text-lg lg:hover:border-accent"
-              >
-                다음: {STEP_LABEL[next]} →
-              </button>
-            ) : data.nextNo !== null ? (
+          <nav aria-label="다음 강" className="mt-12 mb-10">
+            {data.nextNo !== null ? (
               <Link
                 href={`/ilmuta/${data.nextNo}`}
-                className="grid h-14 flex-1 place-items-center rounded-2xl border border-line bg-bg-raised text-lg lg:hover:border-accent"
+                className="grid h-14 place-items-center rounded-2xl border border-line bg-bg-raised text-lg lg:hover:border-accent"
               >
                 다음 강: {lessonLabel(data.nextNo)} →
               </Link>
             ) : (
               <Link
                 href="/ilmuta"
-                className="grid h-14 flex-1 place-items-center rounded-2xl border border-line bg-bg-raised text-lg"
+                className="grid h-14 place-items-center rounded-2xl border border-line bg-bg-raised text-lg"
               >
                 지도로
               </Link>
             )}
-          </div>
+          </nav>
         </div>
 
         <aside
-          aria-label={step === "writing" ? "쓰기 참고" : "강의와 자막"}
-          className="hidden lg:col-start-2 lg:row-span-4 lg:row-start-1 lg:block xl:col-start-3 xl:row-span-3"
+          aria-label={current === "writing" ? "쓰기 참고" : "강의와 자막"}
+          className="hidden lg:col-start-2 lg:row-span-3 lg:row-start-1 lg:block xl:col-start-3 xl:row-span-2"
         >
-          <StickyPanel className="top-8 max-h-[calc(100dvh-8rem)]">
-            <LessonAside data={data} listens={listens} step={step} />
+          <StickyPanel className="top-8 max-h-[calc(100dvh-4rem)]">
+            <LessonAside data={data} section={current} />
           </StickyPanel>
         </aside>
       </main>
       {footer}
-      {/* 아래 단추(와 재생 막대)만큼 자리 비우기(폰) */}
-      <div aria-hidden className={cn("lg:hidden", SPACER)} />
     </>
   );
 }

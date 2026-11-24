@@ -50,6 +50,11 @@ export function PlayCard({
       <span className="min-w-0 flex-1">
         <span className={cn("block font-medium", big && "text-lg")}>
           {title}
+          {playing && !big ? (
+            <span className="ml-2 rounded-full bg-accent px-2 py-0.5 align-middle text-xs font-normal text-white">
+              재생 중 · 누르면 멈춤
+            </span>
+          ) : null}
         </span>
         {note ? (
           <span

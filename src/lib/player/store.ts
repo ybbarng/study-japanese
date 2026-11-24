@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { AbLoop } from "./ab-loop";
 import type { CueLoop } from "./cue-loop";
 import type { RepeatMode, Track } from "./queue";
 
@@ -19,9 +20,12 @@ interface PlayerState {
   shadowGap: boolean;
   expanded: boolean;
   /** 이 위치(초)로 옮겨 달라는 요청. token이 바뀔 때마다 GlobalPlayer가 따른다 */
-  seekRequest: { sec: number; token: number } | null;
+  seekRequest: { sec: number; token: number; at: number } | null;
   /** 한 문장 반복 중인 자막 구간(저장하지 않는다) */
   cueLoop: CueLoop | null;
+  /** A–B 구간 반복(저장하지 않는다). 한 문장 반복과 함께 걸리지 않는다 */
+  abLoop: AbLoop | null;
+  setAbLoop: (loop: AbLoop | null) => void;
 
   setCueLoop: (loop: CueLoop | null) => void;
   playQueue: (tracks: Track[], start?: number) => void;
@@ -50,11 +54,20 @@ export const usePlayer = create<PlayerState>()(
       expanded: false,
       seekRequest: null,
       cueLoop: null,
+      abLoop: null,
 
-      setCueLoop: (cueLoop) => set({ cueLoop }),
+      setCueLoop: (cueLoop) =>
+        set(cueLoop ? { cueLoop, abLoop: null } : { cueLoop }),
+      setAbLoop: (abLoop) =>
+        set(abLoop ? { abLoop, cueLoop: null } : { abLoop }),
       seekTo: (sec) =>
         set((s) => ({
-          seekRequest: { sec, token: (s.seekRequest?.token ?? 0) + 1 },
+          seekRequest: {
+            sec,
+            token: (s.seekRequest?.token ?? 0) + 1,
+            // "이 문장 반복"이 방금 누른 줄을 잡도록 언제 옮겼는지도 둔다
+            at: Date.now(),
+          },
           wantPlaying: true,
         })),
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCachedAudio } from "@/components/offline/use-cached-audio";
+import { usePlayerControls } from "@/lib/player/controls";
 import { usePlayer } from "@/lib/player/store";
 import { progressOf } from "@/lib/player/time";
 import { DockBar } from "./dock-bar";
@@ -14,6 +15,13 @@ export function NowPlaying(p: PlayerViewProps) {
   const setExpanded = usePlayer((s) => s.setExpanded);
   const cached = useCachedAudio(p.track.src);
   const progress = progressOf(p.pos, p.duration, p.gap);
+  // 강 화면처럼 화면 안에 재생기가 붙어 있으면 아래 막대는 감춘다(시간·진행은 한 곳에만)
+  const inline = usePlayerControls((s) => s.hosts > 0);
+
+  if (inline)
+    return expanded ? (
+      <ExpandedPlayer p={p} onClose={() => setExpanded(false)} />
+    ) : null;
 
   return (
     <>

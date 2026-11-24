@@ -1,5 +1,6 @@
 "use client";
 
+import { clock } from "@/lib/player/time";
 import type { PlayerViewProps } from "./player-view";
 
 /** 폰 아래 작은 막대: 제목(누르면 펼침)·재생·다음. PC에서는 감추고 DockBar를 쓴다 */
@@ -34,7 +35,18 @@ export function MiniBar({
             aria-label="재생 화면 펼치기"
           >
             <p className="truncate font-medium">{p.track.title}</p>
-            <TrackSub p={p} cached={cached} />
+            <div className="flex min-w-0 items-baseline gap-2">
+              {/* 본문 단추로 틀어도 지금 어디쯤인지 여기서 늘어나는 것이 보이게 */}
+              <span
+                data-player-time
+                className="shrink-0 text-xs text-ink tabular-nums"
+              >
+                {clock(p.pos)} / {p.gap ? clock(p.gap) : clock(p.duration)}
+              </span>
+              <span className="min-w-0 flex-1">
+                <TrackSub p={p} cached={cached} />
+              </span>
+            </div>
           </button>
           <button
             type="button"

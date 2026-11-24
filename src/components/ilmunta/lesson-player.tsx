@@ -3,6 +3,7 @@
 import { type ReactNode, useMemo, useState } from "react";
 import { LectureContext } from "@/components/context/lecture-context";
 import { TranscriptList } from "@/components/context/transcript-list";
+import { InlinePlayer } from "@/components/player/inline-player";
 import { StickyPanel } from "@/components/shell/page-frame";
 import { cn } from "@/lib/cn";
 import type { Transcript } from "@/lib/context/cues";
@@ -42,6 +43,11 @@ export function LessonPlayer({
     const t = currentTrack(s);
     return t?.book === "ilmunta" && s.wantPlaying ? t.item : null;
   });
+  // 멈춰 있어도 재생기에 올라 있는 이 과 트랙(지금 하는 말 칸이 따라간다)
+  const loaded = usePlayer((s) => {
+    const t = currentTrack(s);
+    return t?.book === "ilmunta" ? t.item : null;
+  });
   const playQueue = usePlayer((s) => s.playQueue);
   const heardSet = new Set(heard);
   const durations = [
@@ -50,6 +56,12 @@ export function LessonPlayer({
   ];
   const withTranscript = tracks.filter((t) => transcripts[t.item]);
   const [chosen, setChosen] = useState<string | null>(null);
+  // 재생이 다음 트랙으로 넘어가면(강의 1/5 → 2/5 등) 자막도 지금 소리 나는 트랙을 따라간다
+  const [lastPlaying, setLastPlaying] = useState(playing);
+  if (playing !== lastPlaying) {
+    setLastPlaying(playing);
+    if (playing && transcripts[playing]) setChosen(null);
+  }
   // 고른 강의가 없으면 지금 재생 중인 강의, 그것도 아니면 자막 있는 첫 강의
   const shown =
     chosen ??
@@ -61,6 +73,12 @@ export function LessonPlayer({
     0,
     tracks.findIndex((t) => t.kind === "lecture" && !heardSet.has(t.item)),
   );
+
+  // 재생기에 아무것도 없을 때 큰 단추: 아직 안 들은 강의부터 차례로
+  const idle = {
+    label: "이 과 듣기",
+    onStart: () => playQueue(tracks, firstUnheard),
+  };
 
   /** 자막 줄을 눌렀는데 그 강의가 소리 나고 있지 않으면: 올라 있으면 이어서, 아니면 그 강의부터 */
   const startShown = () => {
@@ -101,6 +119,36 @@ export function LessonPlayer({
   return (
     <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_26rem] lg:gap-10">
       <div className="flex min-w-0 flex-col gap-6">
+        {/* 폰: 재생기를 화면 위에 붙인다(내려 읽으면 한 줄로 접힌다). PC는 오른쪽 칸 맨 위 */}
+        <div className="contents lg:hidden">
+          <InlinePlayer
+            variant="top"
+            idle={idle}
+            collapsedChildren={
+              shown && loaded === shown ? (
+                <LectureContext
+                  key={`lines-${shown}`}
+                  transcript={shownTranscript}
+                  book="ilmunta"
+                  item={shown}
+                  lines
+                  className="mt-1.5"
+                />
+              ) : null
+            }
+          >
+            {shown && loaded === shown ? (
+              <LectureContext
+                key={shown}
+                transcript={shownTranscript}
+                book="ilmunta"
+                item={shown}
+                compact
+                className="mt-2"
+              />
+            ) : null}
+          </InlinePlayer>
+        </div>
         {before}
         <section className="flex flex-col gap-4" aria-label="강의와 예문">
           <button
@@ -128,7 +176,11 @@ export function LessonPlayer({
                   <button
                     type="button"
                     onClick={() => {
-                      playQueue(tracks, i);
+                      // 지금 올라 있는 트랙을 다시 누르면 멈추거나 이어서 듣는다(처음으로 돌리지 않게)
+                      const st = usePlayer.getState();
+                      if (currentTrack(st)?.item === t.item)
+                        st.setPlaying(!st.wantPlaying);
+                      else playQueue(tracks, i);
                       if (transcripts[t.item]) setChosen(t.item);
                     }}
                     className={cn(
@@ -146,10 +198,17 @@ export function LessonPlayer({
                       )}
                       aria-hidden
                     >
-                      {isPlaying ? "♪" : "▶"}
+                      {isPlaying ? "❚❚" : "▶"}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate">{t.title}</span>
+                      <span className="block truncate">
+                        {t.title}
+                        {isPlaying ? (
+                          <span className="ml-2 text-xs text-accent">
+                            재생 중
+                          </span>
+                        ) : null}
+                      </span>
                       <span className="text-xs text-ink-faint">
                         {formatDuration(durations[i] ?? 0)}
                         {transcripts[t.item] ? " · 자막" : ""}
@@ -166,27 +225,22 @@ export function LessonPlayer({
               );
             })}
           </ol>
-
-          {/* 폰: 지금 하는 말 한 줄. PC는 오른쪽 곁칸에 자막 전체 */}
-          {shown ? (
-            <div className="flex flex-col gap-2 lg:hidden">
-              <div className="flex items-baseline justify-between">
-                <h2 className="font-medium">자막 읽기</h2>
-                {chooser}
-              </div>
-              <LectureContext
-                transcript={shownTranscript}
-                book="ilmunta"
-                item={shown}
-              />
-            </div>
-          ) : null}
         </section>
         {after}
       </div>
 
       <aside aria-label="강의 자막" className="hidden lg:block">
-        <StickyPanel>
+        <StickyPanel className="max-h-[calc(100dvh-4rem)]">
+          <InlinePlayer variant="panel" idle={idle} />
+          {shown && loaded === shown ? (
+            <LectureContext
+              key={`ctx-${shown}`}
+              transcript={shownTranscript}
+              book="ilmunta"
+              item={shown}
+              className="shrink-0"
+            />
+          ) : null}
           <div className="flex items-baseline justify-between gap-3">
             <h2 className="font-medium">자막 읽기</h2>
             {chooser}
@@ -197,7 +251,9 @@ export function LessonPlayer({
               book="ilmunta"
               item={shown}
               onStart={startShown}
-              className="min-h-0 flex-1"
+              // 이 강의가 재생기에 올라 있으면 위 칸이 지금 하는 말을 펼쳐 보이니 목록은 지금 줄만 강조한다
+              expand={loaded !== shown}
+              className="min-h-40 flex-1"
             />
           ) : (
             <p className="rounded-2xl border border-dashed border-line p-4 text-sm text-ink-faint">

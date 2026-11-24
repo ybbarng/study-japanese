@@ -1,9 +1,18 @@
 "use client";
 
+import { type ReactNode, useMemo } from "react";
+import {
+  useFollowIndex,
+  useFollowScroll,
+} from "@/components/context/use-follow";
 import { cn } from "@/lib/cn";
-import { conversationScripts, speakerSides } from "@/lib/ilmuta/conversation";
+import {
+  conversationScripts,
+  type Script,
+  speakerSides,
+} from "@/lib/ilmuta/conversation";
 import { exampleTrack } from "@/lib/ilmuta/tracks";
-import type { Example } from "@/lib/textbook/schema";
+import type { Example, Sentence } from "@/lib/textbook/schema";
 import type { StepProps } from "./lesson-types";
 import { PlayCard } from "./play-card";
 import { RubyText } from "./ruby-text";
@@ -46,13 +55,15 @@ export function StepConversation({ data, listens }: StepProps) {
               ))}
             </div>
             {si === 0 ? chips : null}
-            <ol className="space-y-3">
-              {script.sentences.map((s, i) => {
+            <ScriptBubbles
+              script={script}
+              render={(s, i, isCurrent) => {
                 const key = `${script.examples[0].id}-${i}`;
                 const side = s.speaker ? sides.get(s.speaker) : "left";
                 return (
                   <li
                     key={key}
+                    aria-current={isCurrent ? "true" : undefined}
                     className={cn(
                       "flex flex-col",
                       side === "right" ? "items-end" : "items-start",
@@ -68,10 +79,11 @@ export function StepConversation({ data, listens }: StepProps) {
                     ) : null}
                     <div
                       className={cn(
-                        "max-w-[85%] rounded-2xl px-4 py-3 lg:max-w-[75%] lg:px-6 lg:py-4",
+                        "max-w-[85%] rounded-2xl px-4 py-3 transition-shadow lg:max-w-[75%] lg:px-6 lg:py-4",
                         side === "right"
                           ? "rounded-tr-sm bg-accent-soft"
                           : "rounded-tl-sm bg-bg-raised",
+                        isCurrent && "ring-2 ring-accent",
                       )}
                     >
                       <SentenceView
@@ -85,8 +97,8 @@ export function StepConversation({ data, listens }: StepProps) {
                     </div>
                   </li>
                 );
-              })}
-            </ol>
+              }}
+            />
           </section>
         );
       })}
@@ -112,5 +124,31 @@ export function StepConversation({ data, listens }: StepProps) {
         </section>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * 대본 말풍선 목록. 이 대본을 읽는 오디오(Basic·Advanced)를 틀면 지금 대사가 강조되고
+ * 화면이 그 대사를 따라간다.
+ */
+function ScriptBubbles({
+  script,
+  render,
+}: {
+  script: Script;
+  render: (s: Sentence, i: number, isCurrent: boolean) => ReactNode;
+}) {
+  const ids = script.examples.map((e) => e.id).join(",");
+  const items = useMemo(() => ids.split(","), [ids]);
+  const current = useFollowIndex("ilmuta", items, script.sentences);
+  const id = script.examples[0].id;
+  useFollowScroll(
+    current >= 0 ? `${id}-${current}` : null,
+    `[data-follow="${id}"] > [aria-current="true"]`,
+  );
+  return (
+    <ol data-follow={id} className="space-y-3">
+      {script.sentences.map((s, i) => render(s, i, i === current))}
+    </ol>
   );
 }
