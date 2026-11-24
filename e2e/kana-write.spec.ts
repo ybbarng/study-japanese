@@ -8,8 +8,12 @@ async function answerQuiz(page: Page) {
   if (await main.getByText("소리를 듣고 글자를 고르세요").count()) {
     const show = main.getByRole("button", { name: "글로 보기" });
     const soundText = main.locator("p.text-2xl");
-    await expect(soundText.or(show)).toBeVisible();
-    if (await show.isVisible()) await show.click();
+    // 소리 파일이 없으면 화면이 "글로 보기" 단추를 저절로 소리 글로 바꾼다. 단추를 본 직후 바뀌면
+    // 사라진 단추를 끝없이 누르려 하므로, 누르기는 짧게 해 보고 소리 글이 보일 때까지 되풀이한다
+    await expect(async () => {
+      if (await show.isVisible()) await show.click({ timeout: 1_000 });
+      await expect(soundText).toBeVisible({ timeout: 1_000 });
+    }).toPass();
     // 소리 글(예: `에 e`)의 로마자로 글자를 찾는다
     const text = (await soundText.textContent()) ?? "";
     const romaji = text.trim().split(/\s+/).pop();
@@ -29,8 +33,14 @@ async function answerQuiz(page: Page) {
   }
 }
 
+/** 알아보기에서 맞힌 뒤 다음 문제로 넘어가기까지(quiz-runner.tsx의 650ms보다 조금 길게) */
+const QUIZ_ADVANCE_MS = 700;
+
 /** 첫 레슨의 소개를 넘기고 알아보기를 맞혀 쓰기 칸까지 간다 */
 async function gotoWriteStep(page: Page) {
+  // 맞힌 뒤 저절로 넘어가는 타이머(650ms)를 기다리지 않고 바로 돌린다. 문제가 스무 개쯤이라
+  // 그냥 기다리면 이 단계만 15초가 넘게 걸렸다. 시계는 그 밖에는 실제 시간대로 흐른다
+  await page.clock.install();
   await page.goto("/kana/lesson/h1");
   const pad = page.getByLabel(/쓰기 칸$/);
   const main = page.locator("main");
@@ -41,6 +51,7 @@ async function gotoWriteStep(page: Page) {
     if (await next.count()) await next.first().click();
     else if (await main.locator("button.h-24:not([disabled])").count()) {
       await answerQuiz(page);
+      await page.clock.runFor(QUIZ_ADVANCE_MS);
       // 맞히면 정답 칸이 초록으로 칠해졌다가 저절로 다음 문제로 넘어간다. 바뀐 뒤에 다음 문제를 읽는다
       await expect(main.locator("button.h-24.border-good")).toHaveCount(0);
     } else await page.waitForTimeout(100);
@@ -69,7 +80,7 @@ async function drawLine(
 test("가나 쓰기: 아무 선 셋은 통과하지 못하고 까닭과 획 번호를 보인다", async ({
   page,
 }) => {
-  test.slow(); // 소개·알아보기를 지나 쓰기 칸까지 가는 데 20초쯤 걸린다
+  test.slow(); // 소개·알아보기를 지나 쓰기 칸까지 가는 데 10초쯤 걸린다(부하가 크면 그 몇 배)
   const pad = await gotoWriteStep(page);
   await expect(page.getByText(/소리 글자를 써 보세요/)).toBeVisible();
   const box = await pad.boundingBox();
