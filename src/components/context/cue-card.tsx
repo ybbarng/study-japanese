@@ -1,3 +1,4 @@
+import { CueWordTaps } from "@/components/word-tap/cue-word-taps";
 import { cn } from "@/lib/cn";
 import type { CueSentence, CueWord } from "@/lib/context/cards";
 import { type ContextCue, cueText } from "@/lib/context/cues";
@@ -150,9 +151,16 @@ export function CueExtras({ cue }: { cue: ContextCue }) {
   const card = cue.card;
   if (!card) return null;
   const sentences = leads(cue) ? [] : card.sentences;
-  if (sentences.length === 0 && card.words.length === 0) return null;
+  // 낱말 누르기(분석이 있는 소책자 문장만, 강 화면 안에서만 그린다)
+  const taps = (
+    <CueWordTaps
+      sentences={fromTranscript(cue) ? [] : card.sentences.map((s) => s.ja)}
+    />
+  );
+  if (sentences.length === 0 && card.words.length === 0) return taps;
   return (
     <div>
+      {taps}
       {sentences.length > 0 ? (
         <div className="mt-3 border-l-2 border-accent pl-3">
           <p className="text-xs text-ink-faint">

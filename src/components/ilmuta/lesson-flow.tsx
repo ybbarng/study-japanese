@@ -4,6 +4,7 @@ import Link from "next/link";
 import { type ComponentType, type ReactNode, useEffect, useState } from "react";
 import { OfflineButton } from "@/components/offline/offline-button";
 import { StickyPanel } from "@/components/shell/page-frame";
+import { WordTapProvider } from "@/components/word-tap/word-tap-provider";
 import { cn } from "@/lib/cn";
 import { lessonLabel, registerLabel } from "@/lib/ilmuta/labels";
 import type { LessonData } from "@/lib/ilmuta/server-data";
@@ -79,7 +80,7 @@ export function LessonFlow({ data, steps, initialStep, footer }: Props) {
   };
 
   return (
-    <>
+    <WordTapProvider data={data.wordTap}>
       <main className="mx-auto max-w-md px-5 pt-[max(env(safe-area-inset-top),1.25rem)] lg:grid lg:max-w-[96rem] lg:grid-cols-[minmax(0,1fr)_20rem] lg:grid-rows-[auto_auto_auto_1fr] lg:gap-x-8 lg:px-10 lg:pt-8 xl:grid-cols-[8.5rem_minmax(0,1fr)_22rem] 2xl:grid-cols-[9rem_minmax(0,1fr)_24rem] xl:grid-rows-[auto_auto_1fr]">
         <header className="lg:col-start-1 lg:row-start-1 xl:col-start-2">
           <Link href="/ilmuta" className="text-sm text-ink-faint lg:hidden">
@@ -198,6 +199,6 @@ export function LessonFlow({ data, steps, initialStep, footer }: Props) {
       {footer}
       {/* 아래 단추(와 재생 막대)만큼 자리 비우기(폰) */}
       <div aria-hidden className={cn("lg:hidden", SPACER)} />
-    </>
+    </WordTapProvider>
   );
 }
