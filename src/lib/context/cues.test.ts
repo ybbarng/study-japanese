@@ -3,6 +3,7 @@ import {
   cueIndexAt,
   cueIndexBefore,
   cueText,
+  cueUnsure,
   type Transcript,
   transcriptCues,
 } from "./cues";
@@ -52,6 +53,41 @@ describe("맥락 카드 붙이기", () => {
     });
     expect(cueText(cue)).toBe("やあ。");
     expect(cueText({ ...cue, card: { ...card, whole: false } })).toBe("やー");
+  });
+
+  it("서버가 고친 글이 있으면 받아 적은 글 대신 그것을 보인다", () => {
+    const [cue] = transcriptCues({
+      ...transcript,
+      segments: [{ start: 0, end: 1, text: "야마는 산", lang: "ko" }],
+      cards: {
+        "0": { sentences: [], whole: false, words: [], text: "야마(山)는 산" },
+      },
+    });
+    expect(cueText(cue)).toBe("야마(山)는 산");
+  });
+});
+
+describe("받아쓰기 일본어 줄", () => {
+  const card = {
+    sentences: [{ ja: "やあ。", ko: "안녕.", ruby: [{ text: "やあ。" }] }],
+    whole: true,
+    words: [],
+  };
+  const cue = (lang: "ko" | "ja", c?: typeof card) =>
+    transcriptCues({
+      ...transcript,
+      segments: [{ start: 0, end: 1, text: "やー", lang }],
+      ...(c ? { cards: { "0": c } } : {}),
+    })[0];
+
+  it("교재 문장과 통째로 맞추지 못한 일본어 줄은 정확하지 않을 수 있는 줄이다", () => {
+    expect(cueUnsure(cue("ja"))).toBe(true);
+    expect(cueUnsure(cue("ja", { ...card, whole: false }))).toBe(true);
+  });
+
+  it("교재 문장과 맞춘 줄과 한국어 줄은 그렇지 않다", () => {
+    expect(cueUnsure(cue("ja", card))).toBe(false);
+    expect(cueUnsure(cue("ko"))).toBe(false);
   });
 });
 

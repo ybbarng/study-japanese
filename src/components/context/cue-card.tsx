@@ -1,10 +1,10 @@
 import { cn } from "@/lib/cn";
 import type { CueSentence, CueWord } from "@/lib/context/cards";
-import { type ContextCue, cueText } from "@/lib/context/cues";
+import { type ContextCue, cueText, cueUnsure } from "@/lib/context/cues";
 
 // 자막 구간 하나를 그리는 조각. 소책자 문장과 구간 전체를 맞췄으면 받아 적은 글 대신 정확한 소책자 글을
 // 읽는 법·뜻과 함께 크게 보이고(CueHeadline), 일부만 맞췄으면 받아 적은 글 아래에 소책자 문장을 붙인다
-// (CueExtras). 맞춘 것이 없으면 받아 적은 자막만 보인다(짧은 낱말이 한글로 적힌 곳 등).
+// (CueExtras). 맞춘 것이 없는 일본어 줄은 받아쓰기라 흐리게 보이고 "정확하지 않을 수 있음"을 붙인다.
 // 일문따는 소책자 대신 예문 자막에서 찾은 짝을 쓰므로(origin transcript) "교재와 다를 수 있음"을 작게 붙인다.
 
 export type CueSize = "list" | "card" | "stage";
@@ -38,6 +38,9 @@ function fromTranscript(cue: ContextCue): boolean {
 
 /** 받아 적은 글로 만든 문장임을 작게 알린다 */
 export const TRANSCRIPT_NOTE = "자막에서 받아 적은 글 — 교재와 다를 수 있음";
+
+/** 교재와 맞추지 못한 일본어 줄에 붙이는 알림 */
+export const UNSURE_NOTE = "받아쓰기 — 정확하지 않을 수 있음";
 
 function TranscriptNote() {
   return (
@@ -100,6 +103,23 @@ export function CueHeadline({
           </span>
         ))}
         {fromTranscript(cue) ? <TranscriptNote /> : null}
+      </span>
+    );
+  // 교재와 맞추지 못한 일본어 줄은 받아쓰기라 틀릴 수 있다: 작고 흐리게, 지금 줄이면 알림을 붙인다
+  if (cueUnsure(cue))
+    return (
+      <span className="block">
+        <span
+          lang="ja"
+          className={cn("block leading-relaxed text-ink-faint", KO_SIZE[size])}
+        >
+          {cueText(cue)}
+        </span>
+        {detail ? (
+          <span className="mt-1 block text-xs text-ink-faint">
+            {UNSURE_NOTE}
+          </span>
+        ) : null}
       </span>
     );
   return (

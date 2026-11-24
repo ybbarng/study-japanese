@@ -53,11 +53,29 @@ export function transcriptCues(t: Transcript): ContextCue[] {
     .sort((a, b) => a.start - b.start);
 }
 
-/** 화면에 보일 글: 구간 전체를 소책자 문장과 맞췄으면 정확한 소책자 글, 아니면 받아 적은 자막 */
+/** 구간 전체를 교재 문장(또는 짝)과 맞췄는지 */
+function leadsWithSentences(cue: ContextCue): boolean {
+  return !!cue.card?.whole && cue.card.sentences.length > 0;
+}
+
+/**
+ * 화면에 보일 글: 구간 전체를 소책자 문장과 맞췄으면 정확한 소책자 글,
+ * 서버가 고친 글이 있으면 그것(한글로 적힌 일본어에 표기를 덧붙인 글 등), 아니면 받아 적은 자막
+ */
 export function cueText(cue: ContextCue): string {
-  if (cue.card?.whole && cue.card.sentences.length > 0)
+  if (cue.card && leadsWithSentences(cue))
     return cue.card.sentences.map((s) => s.ja).join(" ");
-  return cue.text;
+  return cue.card?.text ?? cue.text;
+}
+
+/**
+ * 교재와 맞추지 못한 일본어 줄인가. whisper가 일본어를 자주 틀리게 받아 적어서(엉뚱한 가나·틀린 읽기),
+ * 화면은 이 줄을 흐리게 보이고 "정확하지 않을 수 있음"을 붙인다. 일본어를 모르는 학습자가
+ * 틀린 글을 정답으로 익히지 않게 하려는 것이다. 숨기지 않는 까닭: 그 순간 일본어가 들리는데 자막이
+ * 비면 고장처럼 보이고, 줄을 눌러 그 말을 다시 듣는 손잡이도 사라진다.
+ */
+export function cueUnsure(cue: ContextCue): boolean {
+  return cue.lang === "ja" && !leadsWithSentences(cue);
 }
 
 /**
