@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   coveredByWords,
+  fillJamo,
+  kanaHints,
   misheardKoreanIndexes,
   placeholderText,
 } from "./misheard";
@@ -63,6 +65,40 @@ describe("아는 낱말로 빈틈없이 덮기", () => {
 
   it("모르는 조각이 남으면 덮이지 않는다", () => {
     expect(coveredByWords("ふらんすこりあ", known)).toBe(false);
+  });
+});
+
+describe("한국어 줄에 남은 한글 낱자", () => {
+  it("강 부제의 가나 가운데 소리 갈래가 맞는 것을 차례대로 채운다", () => {
+    expect(fillJamo("ㄱ, ㄱ로 끝나는 동사", ["く", "ぐ", "う"])).toBe(
+      "く, ぐ로 끝나는 동사",
+    );
+  });
+
+  it("맞는 가나가 없으면 …로 가린다", () => {
+    expect(fillJamo("조사는 ㄱ라고 합니다", [])).toBe("조사는 …라고 합니다");
+    expect(fillJamo("ㄴ로 끝나는", ["く"])).toBe("…로 끝나는");
+  });
+
+  it("끝소리를 말하는 줄이 아니면 가나로 채우지 않고 가린다(한국어 어미일 수 있다)", () => {
+    expect(fillJamo("부정은 ㄴ다라고 해요", ["ぬ"])).toBe(
+      "부정은 …다라고 해요",
+    );
+  });
+
+  it("한글 자모를 설명하는 곳과 낱자가 없는 줄은 그대로 둔다", () => {
+    expect(fillJamo("ㅈ의 발음은 어렵습니다", [])).toBeNull();
+    expect(fillJamo("끝나는 동사", ["く"])).toBeNull();
+  });
+
+  it("강 부제에서 가나 하나짜리 낱말만 뽑는다", () => {
+    expect(kanaHints("끝소리가 く, ぐ와 う인 동사")).toEqual([
+      "く",
+      "ぐ",
+      "う",
+    ]);
+    expect(kanaHints("ます형 만들기")).toEqual([]);
+    expect(kanaHints(undefined)).toEqual([]);
   });
 });
 

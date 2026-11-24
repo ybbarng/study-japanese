@@ -8,7 +8,12 @@ import {
 } from "./card-sources";
 import { buildCards } from "./cards";
 import type { Transcript } from "./cues";
-import { placeholderText, withoutMisheardKorean } from "./misheard";
+import {
+  fillJamo,
+  kanaHints,
+  placeholderText,
+  withoutMisheardKorean,
+} from "./misheard";
 import type { TranscriptPair } from "./transcript-pairs";
 
 // 자막 하나를 내줄 모양으로 만든다: 잡음 줄과 한국어 말을 받아 적은 가타카나 줄을 거르고 카드를 붙인다.
@@ -49,7 +54,19 @@ export function contextTranscript(
         ? ilmutaCardSource(lessons, no, item)
         : null
       : ilmuntaCardSource(lessons, pairs ?? [], no);
-  return source
-    ? { ...clean, cards: buildCards(clean.segments, source) }
-    : clean;
+  const cards = source ? buildCards(clean.segments, source) : {};
+  // 한국어 줄에 남은 한글 낱자는 그 강 부제의 가나로 채우거나 가린다
+  const hints = kanaHints(
+    book === "ilmuta" ? lessons?.find((l) => l.no === no)?.subtitle : undefined,
+  );
+  clean.segments.forEach((s, i) => {
+    if (s.lang !== "ko") return;
+    const card = cards[String(i)];
+    const text = fillJamo(card?.text ?? s.text, hints);
+    if (text === null) return;
+    cards[String(i)] = card
+      ? { ...card, text }
+      : { sentences: [], whole: false, words: [], text, inferred: true };
+  });
+  return Object.keys(cards).length > 0 || source ? { ...clean, cards } : clean;
 }

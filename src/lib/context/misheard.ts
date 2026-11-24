@@ -110,6 +110,63 @@ export function withoutMisheardKorean<T extends MisheardSegment>(
   return drop.size === 0 ? segments : segments.filter((_, i) => !drop.has(i));
 }
 
+/** 한글 자음 낱자 → 소리 갈래(phonetic.ts 자모열의 첫 글자. 모음으로 시작하면 "") */
+const JAMO_CLASS: Record<string, string> = {
+  ㄱ: "K",
+  ㄲ: "K",
+  ㅋ: "K",
+  ㄴ: "n",
+  ㄷ: "T",
+  ㄸ: "T",
+  ㅌ: "T",
+  ㄹ: "r",
+  ㅁ: "m",
+  ㅂ: "P",
+  ㅃ: "P",
+  ㅍ: "P",
+  ㅅ: "S",
+  ㅆ: "S",
+  ㅈ: "S",
+  ㅉ: "S",
+  ㅊ: "S",
+  ㅇ: "",
+  ㅎ: "h",
+};
+const LONE_JAMO = /[ㄱ-ㅎ](?!의\s*발음)/gu;
+
+function kanaClass(kana: string): string {
+  const first = kanaPhones(kana)[0] ?? "";
+  return /[aiueo]/.test(first) ? "" : first;
+}
+
+/**
+ * 한국어 줄 속에 남은 한글 낱자(일본어 가나 소리를 글자로 옮기지 못한 자리: 「ㄱ, ㄱ로 끝나는」).
+ * hints는 그 강이 다루는 가나(강 부제의 く·ぐ 등). 낱자의 소리 갈래가 맞는 가나를 차례대로 채우고,
+ * 못 채우면 "…"로 가린다. 낱자가 없으면 null. 한글 자모 자체를 설명하는 곳(ㅈ의 발음)은 남긴다.
+ */
+export function fillJamo(text: string, hints: string[]): string | null {
+  if (!LONE_JAMO.test(text)) return null;
+  LONE_JAMO.lastIndex = 0;
+  // 가나로 채우는 것은 끝소리를 말하는 줄(「~로 끝나는」)만. 다른 줄의 낱자는 한국어 어미(ㄴ다)일 수 있다
+  const usable = /끝나/u.test(text) ? hints : [];
+  let next = 0;
+  return text.replace(LONE_JAMO, (jamo) => {
+    for (let k = next; k < usable.length; k++)
+      if (kanaClass(usable[k]) === JAMO_CLASS[jamo]) {
+        next = k + 1;
+        return usable[k];
+      }
+    return "…";
+  });
+}
+
+/** 강 부제에 적힌 가나 하나짜리 낱말들(「끝소리가 く, ぐ와 う…」 → く·ぐ·う) */
+export function kanaHints(subtitle: string | undefined): string[] {
+  return [...(subtitle ?? "").matchAll(/(?<![ぁ-ゖ])[ぁ-ゖ](?![ぁ-ゖ])/gu)].map(
+    (m) => m[0],
+  );
+}
+
 /**
  * 강사가 문형을 설명할 때 쓰는 한국어 자리 말(누구누구·뭐뭐)을 가나로 받아 적은 줄(ぬぐぬぐの…)을
  * 들린 대로 한국어 자리 말로 돌린 글. ぬぐ가 없는 줄은 일본어일 수 있어 null(もも는 桃일 수도 있다).
