@@ -12,6 +12,9 @@ describe("safeNextPath", () => {
     "https://evil.example",
     "//evil.example",
     "/\\evil.example",
+    "/\t/evil.example",
+    "/\n/evil.example",
+    "\t//evil.example",
     "ilmuta",
     "",
   ])("다른 사이트로 갈 수 있는 %j는 첫 화면으로 바꾼다", (next) => {

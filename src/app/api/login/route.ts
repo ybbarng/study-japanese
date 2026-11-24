@@ -5,9 +5,9 @@ import { loginLockout } from "@/lib/auth/lockout";
 import { safeNextPath } from "@/lib/auth/safe-next";
 import {
   createSessionToken,
+  passwordMatches,
   SESSION_COOKIE,
   SESSION_TTL_MS,
-  timingSafeEqual,
 } from "@/lib/auth/session";
 
 const FAILURE_DELAY_MS = 800;
@@ -29,6 +29,10 @@ export async function POST(request: Request) {
   const password = String(form.get("password") ?? "");
   const next = safeNextPath(String(form.get("next") ?? "/"));
 
+  // 암호 비교(await)를 먼저 끝낸 뒤, 잠금 확인과 실패 기록은 await 없이 이어서 한다.
+  // 사이에 await가 끼면 한꺼번에 보낸 요청이 모두 잠금 확인을 지나 상한보다 많이 시도할 수 있다.
+  const matched = await passwordMatches(password, config.password);
+
   // 실패가 몰려 잠겨 있으면 맞는 암호여도 받지 않는다(잠긴 동안 대입이 통하지 않게).
   // 이미 로그인된 기기는 쿠키로 들어오므로 영향이 없다.
   const now = Date.now();
@@ -39,7 +43,7 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!timingSafeEqual(password, config.password)) {
+  if (!matched) {
     loginLockout.fail(now);
     // 실패마다 늦춰 대입 속도도 떨어뜨린다. 주된 방어는 긴 암호와 전체 잠금이다.
     await new Promise((r) => setTimeout(r, FAILURE_DELAY_MS));

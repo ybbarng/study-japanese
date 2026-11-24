@@ -36,6 +36,20 @@ export function timingSafeEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
+/**
+ * 입력한 암호가 맞는지. 둘 다 SHA-256으로 같은 길이로 만든 뒤 견줘서, 걸린 시간으로
+ * 암호 길이도 짐작하지 못하게 한다(timingSafeEqual은 길이가 다르면 바로 돌아온다).
+ */
+export async function passwordMatches(
+  input: string,
+  expected: string,
+): Promise<boolean> {
+  const digest = async (s: string) =>
+    toBase64Url(await crypto.subtle.digest("SHA-256", encoder.encode(s)));
+  const [a, b] = await Promise.all([digest(input), digest(expected)]);
+  return timingSafeEqual(a, b);
+}
+
 export async function createSessionToken(
   secret: string,
   now: number,

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   createSessionToken,
+  passwordMatches,
   timingSafeEqual,
   verifySessionToken,
 } from "./session";
@@ -50,4 +51,19 @@ describe("timingSafeEqual", () => {
     expect(timingSafeEqual("abc", "abd")).toBe(false);
     expect(timingSafeEqual("abc", "abcd")).toBe(false);
   });
+});
+
+describe("passwordMatches", () => {
+  const PASSWORD = "correct horse battery staple";
+
+  it("같은 암호면 true", async () => {
+    expect(await passwordMatches(PASSWORD, PASSWORD)).toBe(true);
+  });
+
+  it.each(["", "correct horse battery stapl", `${PASSWORD} `, "CORRECT"])(
+    "다른 암호 %j면 길이와 상관없이 false",
+    async (input) => {
+      expect(await passwordMatches(input, PASSWORD)).toBe(false);
+    },
+  );
 });
