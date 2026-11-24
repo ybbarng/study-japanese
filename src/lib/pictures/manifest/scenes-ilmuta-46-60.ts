@@ -29,4 +29,29 @@ export const SCENES: ScenePictureMap = {
     label:
       "찻집 탁자를 사이에 두고 두 사람이 이야기한다. 한 사람은 동생 둘을, 다른 사람은 집에 있는 개·고양이·새를 떠올린다.",
   },
+  "ilmuta-51-conversation": {
+    id: "ilmuta-51-conversation",
+    label:
+      "한 사람이 생일 선물을 받았는지 묻고, 팔짱을 낀 친구는 시무룩하다. 깨진 하트가 다툰 것을 보인다.",
+  },
+  "ilmuta-52-conversation": {
+    id: "ilmuta-52-conversation",
+    label:
+      "선반 위 기모노 차림 사진을 한 사람이 가리키고, 사진의 주인공이 기뻐한다. 옆에 꽃을 꽂은 꽃병이 있다.",
+  },
+  "ilmuta-53-conversation": {
+    id: "ilmuta-53-conversation",
+    label:
+      "술잔과 안주가 놓인 탁자에서 한 사람이 속이 안 좋아 입을 막고, 친구가 걱정하며 뒤의 화장실 문을 가리킨다.",
+  },
+  "ilmuta-54-conversation": {
+    id: "ilmuta-54-conversation",
+    label:
+      "한 사람이 새로 산 스마트폰을 내보이고, 다른 사람은 지갑과 동전을 떠올리며 요금을 걱정한다.",
+  },
+  "ilmuta-55-conversation": {
+    id: "ilmuta-55-conversation",
+    label:
+      "교실 칠판 앞에서 한 학생은 예습한 공책을 펼쳐 두고, 옆자리 학생은 깜짝 놀란다.",
+  },
 };
