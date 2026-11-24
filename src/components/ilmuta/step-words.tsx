@@ -1,6 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import {
+  useFollowIndex,
+  useFollowScroll,
+} from "@/components/context/use-follow";
 import { cn } from "@/lib/cn";
 import { KIND_LABEL } from "@/lib/ilmuta/labels";
 import { examplesOf } from "@/lib/ilmuta/steps";
@@ -56,20 +60,15 @@ export function StepWords({ data, listens }: StepProps) {
                 </span>
               ) : null}
             </div>
-            <ul className="grid grid-cols-2 gap-3 lg:grid-cols-3 2xl:grid-cols-4">
-              {example.sentences.map((w) => (
-                <li key={w.ja}>
-                  <WordCard
-                    word={w}
-                    showMeaning={!hideMeaning || revealed.has(w.ja)}
-                    onPress={() => {
-                      setRevealed((s) => new Set(s).add(w.ja));
-                      play([track], 0, false);
-                    }}
-                  />
-                </li>
-              ))}
-            </ul>
+            <WordGrid
+              id={example.id}
+              words={example.sentences}
+              showMeaning={(w) => !hideMeaning || revealed.has(w.ja)}
+              onPress={(w) => {
+                setRevealed((s) => new Set(s).add(w.ja));
+                play([track], 0, false);
+              }}
+            />
           </section>
         );
       })}
@@ -77,12 +76,51 @@ export function StepWords({ data, listens }: StepProps) {
   );
 }
 
+/** 단어 카드 묶음. 단어 오디오를 틀면 지금 소리 나는 낱말이 강조되고 화면이 그 낱말을 따라간다 */
+function WordGrid({
+  id,
+  words,
+  showMeaning,
+  onPress,
+}: {
+  id: string;
+  words: Sentence[];
+  showMeaning: (w: Sentence) => boolean;
+  onPress: (w: Sentence) => void;
+}) {
+  const items = useMemo(() => [id], [id]);
+  const current = useFollowIndex("ilmuta", items, words);
+  useFollowScroll(
+    current >= 0 ? `${id}-${current}` : null,
+    `[data-follow="${id}"] [aria-current="true"]`,
+  );
+  return (
+    <ul
+      data-follow={id}
+      className="grid grid-cols-2 gap-3 lg:grid-cols-3 2xl:grid-cols-4"
+    >
+      {words.map((w, i) => (
+        <li key={w.ja}>
+          <WordCard
+            word={w}
+            current={i === current}
+            showMeaning={showMeaning(w)}
+            onPress={() => onPress(w)}
+          />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function WordCard({
   word,
+  current,
   showMeaning,
   onPress,
 }: {
   word: Sentence;
+  current: boolean;
   showMeaning: boolean;
   onPress: () => void;
 }) {
@@ -90,7 +128,13 @@ function WordCard({
     <button
       type="button"
       onClick={onPress}
-      className="flex h-full min-h-32 w-full flex-col items-center justify-center rounded-2xl bg-bg-raised px-2 py-4 text-center active:bg-bg-sunken lg:min-h-40 lg:hover:ring-1 lg:hover:ring-accent/50"
+      aria-current={current ? "true" : undefined}
+      className={cn(
+        "flex h-full min-h-32 w-full flex-col items-center justify-center rounded-2xl px-2 py-4 text-center transition-colors active:bg-bg-sunken lg:min-h-40",
+        current
+          ? "bg-accent-soft ring-2 ring-accent"
+          : "bg-bg-raised lg:hover:ring-1 lg:hover:ring-accent/50",
+      )}
     >
       <RubyText
         text={word.ja}
