@@ -62,16 +62,21 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # 배포 뒤 점검이 /api/version으로 새 커밋이 떴는지 본다
+          build-args: |
+            GIT_SHA=${{ github.sha }}
           cache-from: type=gha,scope=study-ja
           cache-to: type=gha,scope=study-ja,mode=max
 
   # 서버의 배포 키는 forced-command로 servers 저장소의 apps/study-ja/deploy.sh만 실행한다.
   # 이미지를 받을 토큰은 이 실행의 GITHUB_TOKEN을 표준입력으로 넘긴다(서버에 남지 않는다).
+  # 배포 뒤 같은 job에서 운영 점검(pnpm check:prod)을 돈다. 같은 deploy 동시 실행 묶음 안이라
+  # 다음 배포가 끼어들기 전에 이 커밋을 점검한다. 점검이 실패하면 워크플로가 실패로 보인다.
   deploy:
     needs: build
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     concurrency:
       group: deploy
       cancel-in-progress: false
@@ -80,6 +85,7 @@ jobs:
       packages: read
     steps:
       - name: SSH → deploy.sh
+        id: ssh
         env:
           KEY: ${{ secrets.SERVER_SSH_KEY }}
           HOST: ${{ secrets.SERVER_HOST }}
@@ -100,3 +106,21 @@ jobs:
             -o BatchMode=yes -o ConnectTimeout=20 -o IdentitiesOnly=yes \
             "$USER@$HOST" "deploy $GITHUB_SHA"
           rm -f ~/.ssh/deploy_key
+          echo "deployed=true" >> "$GITHUB_OUTPUT"
+
+      # 운영 점검: 새 커밋이 /api/version에 뜰 때까지 기다린 뒤 화면·교재 미디어·자막·노래 접근을 GET으로 확인한다.
+      # 교재 글은 저장소에 없으므로 운영 강 화면에서 미디어 경로를 뽑는다(scripts/check-prod.ts 머리 참고).
+      - if: steps.ssh.outputs.deployed == 'true'
+        uses: actions/checkout@v7
+      - if: steps.ssh.outputs.deployed == 'true'
+        uses: pnpm/action-setup@v6
+      - if: steps.ssh.outputs.deployed == 'true'
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - if: steps.ssh.outputs.deployed == 'true'
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: 운영 점검
+        if: steps.ssh.outputs.deployed == 'true'
+        run: pnpm check:prod --wait-sha "$GITHUB_SHA" --wait-timeout 600

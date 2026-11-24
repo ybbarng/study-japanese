@@ -28,6 +28,9 @@ COPY --from=build --chown=node:node /app/.next/standalone ./
 COPY --from=build --chown=node:node /app/.next/static ./.next/static
 COPY --from=build --chown=node:node /app/public ./public
 RUN mkdir -p /app/data && chown node:node /app/data
+# 배포 뒤 점검이 새 커밋이 떴는지 보는 값(/api/version). 맨 끝 단계에 두어 빌드 캐시를 깨지 않는다
+ARG GIT_SHA=""
+ENV GIT_SHA=$GIT_SHA
 USER node
 EXPOSE 3000
 CMD ["node", "server.js"]
