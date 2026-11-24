@@ -71,3 +71,21 @@ describe("koNoun", () => {
     expect(koNoun("학생", "naru")).toBe("학생이 된다");
   });
 });
+
+describe("반말(일본어 보통체 회화의 뜻)", () => {
+  it("동사·형용사는 아/어 꼴로 끝낸다", () => {
+    expect(koPredicate(EAT, "casual", "verb")).toBe("먹어");
+    expect(koPredicate(COLD, "casual", "adj")).toBe("추워");
+    expect(koPredicate(SEE, "casualPast", "verb")).toBe("봤어");
+    expect(koPredicate(EAT, "casualNeg", "verb")).toBe("먹지 않아");
+    expect(koPredicate(COLD, "casualPastNeg", "adj")).toBe("춥지 않았어");
+  });
+
+  it("명사는 ~(이)야로 끝내고 받침이 없으면 이를 줄인다", () => {
+    expect(koNoun("학생", "casual")).toBe("학생이야");
+    expect(koNoun("의사", "casual")).toBe("의사야");
+    expect(koNoun("의사", "casualPast")).toBe("의사였어");
+    expect(koNoun("학생", "casualNeg")).toBe("학생이 아니야");
+    expect(koNoun("의사", "casualPastNeg")).toBe("의사가 아니었어");
+  });
+});

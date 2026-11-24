@@ -13,6 +13,8 @@ import type { SceneId } from "./sentence-words";
  *
  * 시제·정중함·부정은 문장이 알려 준다:
  * - 정중체 틀은 「先生、」「～でしたが」처럼 정중한 말이 함께 있고, 보통체 틀은 「ねえ、」「～だけど」가 있다.
+ * - 한국어 뜻도 말투를 맞춘다: 정중체 틀은 ~습니다, 보통체 회화 틀은 반말(casual 꼴: 먹어·학생이야).
+ *   보통체를 글말 ~다(먹는다·학생이다)로 옮기면 반말과 평서문을 가르지 못하게 된다.
  * - 부정 틀은 あまり나 뒤 문장(「弟が医者です」)이 알려 준다. 과거 틀은 昨日·前は·昔가 알려 준다.
  */
 export type Frame = {
@@ -138,7 +140,7 @@ export const FRAMES: readonly Frame[] = [
     "daily",
     "ねえ、[私|わたし]は[毎日|まいにち]{pre}{_}よ。",
     "있잖아, 나는 매일 {pre} {v}.",
-    "plain",
+    "casual",
   ),
   verb(
     "nai-busy",
@@ -146,7 +148,7 @@ export const FRAMES: readonly Frame[] = [
     "daily",
     `[最近|さいきん]は${BUSY}いから、あまり{pre}{_}。`,
     "요즘은 바빠서 별로 {pre} {v}.",
-    "neg",
+    "casualNeg",
   ),
   verb(
     "nai-nee",
@@ -154,7 +156,7 @@ export const FRAMES: readonly Frame[] = [
     "daily",
     "ねえ、[私|わたし]は[休|やす]みの[日|ひ]、あまり{pre}{_}よ。",
     "있잖아, 나는 쉬는 날에 별로 {pre} {v}.",
-    "neg",
+    "casualNeg",
   ),
   verb(
     "ta-rain",
@@ -162,7 +164,7 @@ export const FRAMES: readonly Frame[] = [
     "daily",
     "[昨日|きのう]は[雨|あめ]だったけど、{pre}{_}。",
     "어제는 비가 왔지만 {pre} {v}.",
-    "past",
+    "casualPast",
   ),
   verb(
     "ta-nee",
@@ -170,7 +172,7 @@ export const FRAMES: readonly Frame[] = [
     "daily",
     "ねえ、[昨日|きのう]、{pre}{_}よ。",
     "있잖아, 어제 {pre} {v}.",
-    "past",
+    "casualPast",
   ),
   verb(
     "nakatta-busy",
@@ -178,7 +180,7 @@ export const FRAMES: readonly Frame[] = [
     "daily",
     `[昨日|きのう]は${BUSY}かったから、あまり{pre}{_}。`,
     "어제는 바빠서 별로 {pre} {v}.",
-    "pastNeg",
+    "casualPastNeg",
   ),
   // ── て형·たら·ば ──
   verb(
@@ -294,28 +296,28 @@ export const FRAMES: readonly Frame[] = [
     "plain",
     "ねえ、{pre}とても{_}よ。",
     "있잖아, {pre} 아주 {v}.",
-    "plain",
+    "casual",
   ),
   adj(
     "adj-plain-neg",
     "plainNeg",
     "ねえ、{pre}あまり{_}よ。",
     "있잖아, {pre} 별로 {v}.",
-    "neg",
+    "casualNeg",
   ),
   adj(
     "adj-plain-past",
     "plainPast",
     `ねえ、{pre}${MAE}とても{_}よ。`,
     "있잖아, {pre} 전에는 아주 {v}.",
-    "past",
+    "casualPast",
   ),
   adj(
     "adj-plain-past-neg",
     "plainPastNeg",
     `ねえ、{pre}${MAE}あまり{_}よ。`,
     "있잖아, {pre} 전에는 별로 {v}.",
-    "pastNeg",
+    "casualPastNeg",
   ),
   adj(
     "adj-polite",
@@ -383,28 +385,28 @@ export const FRAMES: readonly Frame[] = [
     "plain",
     "ねえ、[兄|あに]は{_}よ。",
     "있잖아, 형은 {v}.",
-    "plain",
+    "casual",
   ),
   noun(
     "noun-plain-neg",
     "plainNeg",
     "ねえ、[兄|あに]は{_}よ。[弟|おとうと]が{word}だよ。",
-    "있잖아, 형은 {v}. 남동생이 {w:plain}.",
-    "neg",
+    "있잖아, 형은 {v}. 남동생이 {w:casual}.",
+    "casualNeg",
   ),
   noun(
     "noun-plain-past",
     "plainPast",
     "ねえ、[父|ちち]は[昔|むかし]{_}よ。",
     "있잖아, 아버지는 옛날에 {v}.",
-    "past",
+    "casualPast",
   ),
   noun(
     "noun-plain-past-neg",
     "plainPastNeg",
     "ねえ、[父|ちち]は[昔|むかし]{_}よ。[母|はは]が{word}だったよ。",
-    "있잖아, 아버지는 옛날에 {v}. 엄마가 {w:past}.",
-    "pastNeg",
+    "있잖아, 아버지는 옛날에 {v}. 엄마가 {w:casualPast}.",
+    "casualPastNeg",
   ),
   noun(
     "noun-polite",

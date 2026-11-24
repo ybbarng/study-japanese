@@ -28,7 +28,13 @@ export type KoForm =
   | "imp" // 먹어라
   | "jima" // 먹지 마
   | "jil" // 추워질(거예요 앞) · 좋아하게 될
-  | "naru"; // 학생이 된다
+  | "naru" // 학생이 된다
+  // 반말(해체): 일본어 보통체 회화(ねえ、～よ / ～から / ～けど)는 한국어 반말로 옮긴다.
+  // 위 plain·neg·past·pastNeg(~다)는 글말이라 회화 보통체 뜻으로 쓰지 않는다
+  | "casual" // 먹어 · 추워 · 학생이야
+  | "casualNeg" // 먹지 않아 · 학생이 아니야
+  | "casualPast" // 먹었어 · 학생이었어
+  | "casualPastNeg"; // 먹지 않았어 · 학생이 아니었어
 
 /** 서술어의 갈래: 동사(먹다), 형용사(춥다), 명사(학생 + 이다) */
 export type KoKind = "verb" | "adj" | "noun";
@@ -137,6 +143,14 @@ export function koPredicate(
       return kind === "verb" ? `${stem}게 될` : `${aeo}질`;
     case "naru":
       return `${stem}게 된다`;
+    case "casual":
+      return aeo;
+    case "casualNeg":
+      return `${stem}지 않아`;
+    case "casualPast":
+      return `${pastStem(ko)}어`;
+    case "casualPastNeg":
+      return `${stem}지 않았어`;
   }
 }
 
@@ -165,6 +179,14 @@ export function koNoun(noun: string, form: KoForm): string {
       return b ? `${noun}이고` : `${noun}고`;
     case "naru":
       return `${noun}${ga} 된다`;
+    case "casual":
+      return b ? `${noun}이야` : `${noun}야`;
+    case "casualNeg":
+      return `${noun}${ga} 아니야`;
+    case "casualPast":
+      return b ? `${noun}이었어` : `${noun}였어`;
+    case "casualPastNeg":
+      return `${noun}${ga} 아니었어`;
     default:
       throw new Error(`명사에는 ${form} 꼴을 쓰지 않음`);
   }

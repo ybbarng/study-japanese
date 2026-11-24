@@ -88,6 +88,26 @@ describe("문장 틀과 낱말 자료", () => {
     expect(wrong).toEqual([]);
   });
 
+  it("보통체 회화 틀(ねえ·から·けど)의 한국어 뜻은 반말로, 정중체 틀은 ~습니다로 옮긴다", () => {
+    const PLAIN_TALK =
+      /^(dict|nai|ta|nakatta|plain|plainNeg|plainPast|plainPastNeg)$/;
+    const POLITE =
+      /^(masu|masen|mashita|masendeshita|polite|politeNeg|politePast|politePastNeg)$/;
+    const wrong = FRAMES.filter(
+      (f) =>
+        (PLAIN_TALK.test(f.form) && !f.koForm.startsWith("casual")) ||
+        (POLITE.test(f.form) && !/olite$/.test(f.koForm)),
+    ).map((f) => `${f.id}:${f.koForm}`);
+    expect(wrong).toEqual([]);
+  });
+
+  it("보통체 명사 틀은 '~이다'가 아니라 '~(이)야'로 옮긴다", () => {
+    const notCasual = many("adj:plain:noun", 20)
+      .map((q) => q.sentence.ko)
+      .filter((ko) => !/야\.$/.test(ko));
+    expect(notCasual).toEqual([]);
+  });
+
   it("부정 틀에는 あまり나 같은 낱말을 다시 쓰는 뒤 문장이 있다", () => {
     const NEG =
       /^(masen|masendeshita|nai|nakatta|plainNeg|plainPastNeg|politeNeg|politePastNeg)$/;
@@ -164,7 +184,8 @@ describe("makeSentenceQuestion", () => {
     for (const q of many("adj:plainNeg:noun", 30)) {
       const noun = q.id.split("|")[1];
       expect(rubyPlain(q.sentence.after)).toContain(`${noun}だよ`);
-      expect(q.sentence.ko).toMatch(/아니다\. 남동생이 .+다\.$/);
+      // 보통체 회화라 반말로 옮긴다(아니야 … 야)
+      expect(q.sentence.ko).toMatch(/아니야\. 남동생이 .+야\.$/);
     }
   });
 
