@@ -16,7 +16,7 @@ import {
 } from "@/lib/ilmuta/conversation";
 import { exampleTrack } from "@/lib/ilmuta/tracks";
 import type { Example, Sentence } from "@/lib/textbook/schema";
-import { speakerReading } from "@/lib/word-tap/speaker";
+import { speakerRuby } from "@/lib/word-tap/speaker";
 import type { StepProps } from "./lesson-types";
 import { PlayCard } from "./play-card";
 import { RubyText } from "./ruby-text";
@@ -147,19 +147,25 @@ function SpeakerTag({
   showReading: boolean;
 }) {
   const tap = useWordTap();
-  const reading = tap
-    ? speakerReading(
+  const segments = tap
+    ? speakerRuby(
         speaker,
         sentences.map((s) => tap.tokensOf(s.ja)),
       )
-    : null;
+    : [{ text: speaker }];
   return (
-    <RubyText
-      text={speaker}
-      reading={reading ?? undefined}
-      showReading={showReading}
-      className="mb-1 px-2 text-xs leading-loose text-ink-faint [&_rt]:text-[0.7em]"
-    />
+    <span lang="ja" className="mb-1 px-2 text-xs leading-loose text-ink-faint">
+      {segments.map((seg, i) => (
+        <RubyText
+          // biome-ignore lint/suspicious/noArrayIndexKey: 이름표 마디 차례가 곧 열쇠다
+          key={i}
+          text={seg.text}
+          reading={seg.reading}
+          showReading={showReading}
+          className="[&_rt]:text-[0.7em]"
+        />
+      ))}
+    </span>
   );
 }
 
