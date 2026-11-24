@@ -65,11 +65,13 @@ export function LessonPlayer({
     setLastPlaying(playing);
     if (playing && transcripts[playing]) setChosen(null);
   }
-  // 고른 강의가 없으면 지금 재생 중인 강의, 그것도 아니면 자막 있는 첫 강의
+  // 고른 강의가 없으면 지금 재생 중인 트랙, 멈췄으면 재생기에 올라 있는 트랙(멈춰도 그 자막을 두고 읽는다),
+  // 그것도 아니면 자막 있는 첫 강의
+  const onPlayer = playing ?? loaded;
   const shown =
     chosen ??
-    (playing && transcripts[playing]
-      ? playing
+    (onPlayer && transcripts[onPlayer]
+      ? onPlayer
       : (withTranscript[0]?.item ?? null));
   const shownTranscript = shown ? (transcripts[shown] ?? null) : null;
   const firstUnheard = Math.max(
