@@ -15,7 +15,9 @@ import type { Transcript } from "./cues";
 import {
   fillJamo,
   isKoreanMixed,
+  kanaForRomaji,
   kanaHints,
+  particlesOfFrames,
   placeholderText,
   withoutMisheardKorean,
 } from "./misheard";
@@ -23,6 +25,12 @@ import { findRepeatPairs, type TranscriptPair } from "./transcript-pairs";
 
 // 자막 하나를 내줄 모양으로 만든다: 잡음 줄과 한국어 말을 받아 적은 가타카나 줄을 거르고 카드를 붙인다.
 // 파일을 읽지 않는 순수 함수다. 서버(server.ts)와 숫자 보고(scripts/context/match-report.ts)가 함께 쓴다.
+
+/**
+ * 강 부제에 가나가 없으면(일문따, 부제 없는 일무따 강) 끝소리를 말하는 줄(「ㄱ, ㄱ로 끝나는」)의
+ * 낱자를 5단 동사 끝소리로 채운다
+ */
+const GODAN_ENDINGS = [..."うくぐすつぬぶむる"];
 
 /**
  * 일문따 강의가 스스로 되풀이한 문장(일본어 → 한국어 → 같은 일본어). 두 번 받아 적은 글이 닮았으니
@@ -91,15 +99,22 @@ export function contextTranscript(
           extras,
         );
   const cards = source ? buildCards(clean.segments, source) : {};
-  // 한국어 줄에 남은 한글 낱자는 그 강 부제의 가나로 채우거나 가린다
-  const hints = kanaHints(
-    book === "ilmuta" ? lessons?.find((l) => l.no === no)?.subtitle : undefined,
+  // 한국어 줄에 남은 한글 낱자는 그 강이 다루는 가나·조사로 채우고(못 채우면 가린다),
+  // 로마자로 적힌 일본어(조사 no 등)는 가나로 바꾼다
+  const lesson =
+    book === "ilmuta" ? lessons?.find((l) => l.no === no) : undefined;
+  const subtitleKana = kanaHints(lesson?.subtitle);
+  const hints = subtitleKana.length > 0 ? subtitleKana : GODAN_ENDINGS;
+  const particles = particlesOfFrames(
+    lesson?.examples.flatMap((e) => e.patterns ?? []) ?? [],
   );
   clean.segments.forEach((s, i) => {
     if (s.lang !== "ko") return;
     const card = cards[String(i)];
-    const text = fillJamo(card?.text ?? s.text, hints);
-    if (text === null) return;
+    const before = card?.text ?? s.text;
+    const jamo = fillJamo(before, hints, particles) ?? before;
+    const text = kanaForRomaji(jamo) ?? jamo;
+    if (text === before) return;
     cards[String(i)] = card
       ? { ...card, text }
       : { sentences: [], whole: false, words: [], text, inferred: true };

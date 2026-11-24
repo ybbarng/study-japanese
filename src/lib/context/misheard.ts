@@ -1,3 +1,4 @@
+import { romajiToKana } from "@/lib/kana/text";
 import { normalizeJa } from "./match";
 import { hangulPhones, kanaPhones, phoneSimilarity } from "./phonetic";
 
@@ -326,25 +327,119 @@ function kanaClass(kana: string): string {
   return /[aiueo]/.test(first) ? "" : first;
 }
 
+/** 그 강에서 다루는 조사: 일본어(は)와 그에 해당하는 한국어(은·는) */
+export interface LessonParticles {
+  ja: string[];
+  ko: string[];
+}
+
+/** 받침에 따라 바뀌는 한국어 조사의 짝 */
+const KO_PARTICLE_PAIR: Record<string, string> = {
+  는: "은",
+  은: "는",
+  가: "이",
+  이: "가",
+  를: "을",
+  을: "를",
+  와: "과",
+  과: "와",
+};
+const AFTER_BATCHIM_FORMS = new Set(["은", "이", "을", "과"]);
+
 /**
- * 한국어 줄 속에 남은 한글 낱자(일본어 가나 소리를 글자로 옮기지 못한 자리: 「ㄱ, ㄱ로 끝나는」).
- * hints는 그 강이 다루는 가나(강 부제의 く·ぐ 등). 낱자의 소리 갈래가 맞는 가나를 차례대로 채우고,
- * 못 채우면 "…"로 가린다. 낱자가 없으면 null. 한글 자모 자체를 설명하는 곳(ㅈ의 발음)은 남긴다.
+ * 문형 틀(～は～。 / ~는 ~야.)에서 빈칸 바로 뒤의 조사. 일본어는 가나 한 글자, 한국어는 한 글자와 그 짝.
  */
-export function fillJamo(text: string, hints: string[]): string | null {
+export function particlesOfFrames(
+  frames: { ja: string; ko: string }[],
+): LessonParticles {
+  const ja = new Set<string>();
+  const ko = new Set<string>();
+  for (const f of frames) {
+    // 틀의 첫 빈칸 뒤 조사끼리 짝짓는다(~가 아니야의 가는 は의 짝이 아니다)
+    const jm = f.ja.match(/[～~]([ぁ-ゖ])(?=[～~])/u);
+    const km = f.ko.match(/[～~]([가-힣])(?=\s)/u);
+    if (!jm || !km) continue;
+    ja.add(jm[1]);
+    const pair = KO_PARTICLE_PAIR[km[1]];
+    if (!pair) continue;
+    // 받침 있는 말 뒤 꼴을 앞에(은, 는)
+    const order = AFTER_BATCHIM_FORMS.has(km[1])
+      ? [km[1], pair]
+      : [pair, km[1]];
+    for (const p of order) ko.add(p);
+  }
+  return { ja: [...ja], ko: [...ko] };
+}
+
+/**
+ * 한국어 줄 속에 남은 한글 낱자(가나·조사 소리를 글자로 옮기지 못한 자리)를 채운 글. 낱자가 없으면 null.
+ * ① 끝소리를 말하는 줄(「ㄱ, ㄱ로 끝나는」): 「끝나」 앞 낱자만 hints(그 강이 다루는 가나) 가운데
+ *    소리 갈래가 맞는 것으로 차례대로 채운다.
+ * ② 조사 이름을 대는 줄(「ㄴ, ㄴ에 해당되는 조사는 일본어로 ㄱ라고」): 「일본어로」 뒤 낱자는 그 강의
+ *    일본어 조사로, 앞 낱자 목록은 그 강의 한국어 조사로(같은 것이 잇따르면 한 번만) 채운다.
+ * ③ 「ㅂ니다」처럼 한국어 어미를 적은 곳(낱자 바로 뒤 「니다」)은 ㅂ으로 바로잡는다.
+ * 채울 것이 없는 낱자는 "…"로 가린다. 한글 자모 자체를 설명하는 곳(ㅈ의 발음)은 남긴다.
+ */
+export function fillJamo(
+  text: string,
+  hints: string[],
+  particles: LessonParticles = { ja: [], ko: [] },
+): string | null {
   if (!LONE_JAMO.test(text)) return null;
   LONE_JAMO.lastIndex = 0;
-  // 가나로 채우는 것은 끝소리를 말하는 줄(「~로 끝나는」)만. 다른 줄의 낱자는 한국어 어미(ㄴ다)일 수 있다
-  const usable = /끝나/u.test(text) ? hints : [];
-  let next = 0;
-  return text.replace(LONE_JAMO, (jamo) => {
-    for (let k = next; k < usable.length; k++)
-      if (kanaClass(usable[k]) === JAMO_CLASS[jamo]) {
-        next = k + 1;
-        return usable[k];
-      }
-    return "…";
-  });
+  let out = text.replace(/[ㄱ-ㅎ](?=니다)/gu, "ㅂ");
+  if (/조사/u.test(out) && (particles.ja.length || particles.ko.length)) {
+    const at = out.search(/일본어로/u);
+    const before = at < 0 ? out : out.slice(0, at);
+    const after = at < 0 ? "" : out.slice(at);
+    // 낱자를 쉼표로 늘어놓은 목록은 한국어 조사 목록 하나로
+    const koList = particles.ko.join(", ");
+    const filledBefore = koList
+      ? before.replace(/[ㄱ-ㅎ](?:\s*,\s*[ㄱ-ㅎ])*/gu, koList)
+      : before;
+    let n = 0;
+    const filledAfter = after.replace(/[ㄱ-ㅎ]/gu, (j) =>
+      n < particles.ja.length ? particles.ja[n++] : j,
+    );
+    out = filledBefore + filledAfter;
+  } else if (/끝나/u.test(out)) {
+    const at = out.search(/끝나/u);
+    let next = 0;
+    out =
+      out.slice(0, at).replace(LONE_JAMO, (jamo) => {
+        for (let k = next; k < hints.length; k++)
+          if (kanaClass(hints[k]) === JAMO_CLASS[jamo]) {
+            next = k + 1;
+            return hints[k];
+          }
+        return jamo;
+      }) + out.slice(at);
+  }
+  return out.replace(/[ㄱ-ㅎ](?!의\s*발음)(?!니다)/gu, "…");
+}
+
+const LATIN_TOKEN = /[A-Za-z]+(?:-[A-Za-z]+)*/gu;
+
+/**
+ * 로마자 한 토막을 가나로. 가나로 다 바뀌지 않으면(영어 낱말) null.
+ * 모음 한 글자 마디(-e·i)는 한국어 조사(에·이)를 적은 것일 수 있어 바꾸지 않는다(null).
+ */
+function romajiKana(token: string): string | null {
+  const pieces = token.split("-").filter((p) => p !== "");
+  if (pieces.some((p) => /^[aiueo]$/iu.test(p))) return null;
+  const kana = pieces.map((p) => romajiToKana(p, "hira", true)).join("");
+  return /^[ぁ-ゖー]+$/u.test(kana) ? kana : null;
+}
+
+/**
+ * 한국어 줄에 로마자로 적힌 일본어(조사 'no', 'desu-ka', 'ikanai')를 가나로 바꾼 글.
+ * 로마자가 없거나, 가나로 다 바뀌지 않는 토막(yes·TV 같은 영어)이 하나라도 있으면 null(줄 전체를 그대로 둔다).
+ */
+export function kanaForRomaji(text: string): string | null {
+  const tokens = text.match(LATIN_TOKEN);
+  if (!tokens) return null;
+  if (tokens.some((t) => romajiKana(t) === null)) return null;
+  return text.replace(LATIN_TOKEN, (t) => romajiKana(t) ?? t);
 }
 
 /** 강 부제에 적힌 가나 하나짜리 낱말들(「끝소리가 く, ぐ와 う…」 → く·ぐ·う) */

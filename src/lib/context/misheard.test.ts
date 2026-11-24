@@ -4,9 +4,11 @@ import {
   fillJamo,
   isKoreanMixed,
   japaneseShare,
+  kanaForRomaji,
   kanaHints,
   koreanKanaIndexes,
   misheardKoreanIndexes,
+  particlesOfFrames,
   placeholderText,
 } from "./misheard";
 
@@ -108,6 +110,27 @@ describe("한국어 줄에 남은 한글 낱자", () => {
     );
   });
 
+  it("「끝나」 뒤의 낱자는 끝소리가 아니라 가나로 채우지 않는다", () => {
+    expect(fillJamo("ㄱ으로 끝나는 것은 ㄱ가", ["く", "ぐ"])).toBe(
+      "く으로 끝나는 것은 …가",
+    );
+  });
+
+  it("조사 이름을 대는 줄은 그 강의 한국어 조사 목록과 일본어 조사로 채운다", () => {
+    expect(
+      fillJamo("ㄴ, ㄴ, ㄴ에 해당되는 조사는 일본어로 ㄱ라고 합니다.", [], {
+        ja: ["が"],
+        ko: ["이", "가"],
+      }),
+    ).toBe("이, 가에 해당되는 조사는 일본어로 が라고 합니다.");
+  });
+
+  it("「니다」 앞 낱자는 한국어 어미 ㅂ으로 바로잡는다", () => {
+    expect(fillJamo("마스가 ㄱ니다에 해당돼요", [])).toBe(
+      "마스가 ㅂ니다에 해당돼요",
+    );
+  });
+
   it("한글 자모를 설명하는 곳과 낱자가 없는 줄은 그대로 둔다", () => {
     expect(fillJamo("ㅈ의 발음은 어렵습니다", [])).toBeNull();
     expect(fillJamo("끝나는 동사", ["く"])).toBeNull();
@@ -121,6 +144,34 @@ describe("한국어 줄에 남은 한글 낱자", () => {
     ]);
     expect(kanaHints("ます형 만들기")).toEqual([]);
     expect(kanaHints(undefined)).toEqual([]);
+  });
+});
+
+describe("문형 틀의 조사", () => {
+  it("첫 빈칸 뒤 조사끼리 짝짓고, 한국어는 받침 있는 꼴을 앞에 둔다", () => {
+    expect(
+      particlesOfFrames([
+        { ja: "～が～。", ko: "~가 ~야." },
+        { ja: "～が～じゃない。", ko: "~가 ~가 아니야." },
+      ]),
+    ).toEqual({ ja: ["が"], ko: ["이", "가"] });
+  });
+});
+
+describe("한국어 줄의 로마자 일본어", () => {
+  it("조사·활용형 로마자를 가나로 바꾼다", () => {
+    expect(kanaForRomaji("명사 뒤에 no를 붙여요")).toBe(
+      "명사 뒤에 の를 붙여요",
+    );
+    expect(kanaForRomaji("'desu-ka'로 물어요")).toBe("'ですか'로 물어요");
+  });
+
+  it("가나로 다 바뀌지 않는 영어가 섞이면 줄을 그대로 둔다", () => {
+    expect(kanaForRomaji('"yes, no"로 대답해요')).toBeNull();
+  });
+
+  it("모음 한 글자 마디(한국어 조사 에·이일 수 있다)는 바꾸지 않는다", () => {
+    expect(kanaForRomaji("'-e'를 써요")).toBeNull();
   });
 });
 
