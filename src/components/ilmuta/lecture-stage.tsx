@@ -5,6 +5,7 @@ import { create } from "zustand";
 import { LectureContext } from "@/components/context/lecture-context";
 import type { LessonData } from "@/lib/ilmuta/server-data";
 import { lectureItem } from "@/lib/ilmuta/tracks";
+import { stageScrollBy } from "@/lib/player/follow";
 import { useNowPlaying } from "./use-player-bridge";
 
 /**
@@ -30,6 +31,25 @@ export function LectureStage({ data }: { data: LessonData }) {
   const staged = now.item === item && data.transcript !== null;
   const ref = useRef<HTMLDivElement>(null);
   const setVisible = useLectureStage((s) => s.setVisible);
+
+  // 강의를 막 틀었을 때(무대가 새로 생길 때) PC에서 무대가 한 화면에 들어오게 굴린다.
+  // 무대는 강 머리·받아 두기·재생 카드 아래(1440×900에서 약 430px)에서 시작해 아래가 화면 밖이었다.
+  // 이미 재생 중인 강 화면을 열었을 때나 폰(무대 없음)에서는 굴리지 않는다
+  const wasStaged = useRef(staged);
+  useEffect(() => {
+    const started = staged && !wasStaged.current;
+    wasStaged.current = staged;
+    if (!started) return;
+    const frame = requestAnimationFrame(() => {
+      const el = ref.current;
+      if (!el || el.offsetParent === null) return;
+      const box = el.getBoundingClientRect();
+      const anchor = el.previousElementSibling?.getBoundingClientRect() ?? box;
+      const by = stageScrollBy(anchor.top, box.top, window.innerHeight);
+      if (by > 0) window.scrollBy({ top: by, behavior: "smooth" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [staged]);
 
   useEffect(() => {
     const el = ref.current;

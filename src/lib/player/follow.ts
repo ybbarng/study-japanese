@@ -109,6 +109,48 @@ export function stageView(cues: ContextCue[], pos: number): StageView {
   return { at, prev, next, held };
 }
 
+/**
+ * 지금 칸의 반복 단추. 붙든 일본어 줄과 지금 말(한국어 설명)이 함께 보이면 단추가 무엇을
+ * 반복하는지 헷갈리므로 둘로 나눈다: 붙든 일본어 줄 반복(그 줄 아래), 지금 말 반복(L 키와 같은 규칙).
+ * 붙든 줄은 heldStillFresh 안에서만 보이므로(맞춘 줄 25초·흐린 줄 4초) 일본어 반복이 몇 분 전으로
+ * 끌려가지 않는다. 하나만 보일 때는 그 줄을 잡는 "이 문장 반복" 하나다.
+ */
+export function stageLoops(v: StageView): {
+  /** 붙든 일본어 줄 반복 단추를 따로 둘지 */
+  held: boolean;
+  /** 지금 줄(L 키) 단추의 글 */
+  hereLabel: string;
+} {
+  const split = v.held >= 0 && v.held !== v.at;
+  if (!split) return { held: false, hereLabel: "이 문장 반복" };
+  return { held: true, hereLabel: v.at >= 0 ? "지금 말 반복" : "방금 말 반복" };
+}
+
+/** 이 강 강의를 틀었을 때 PC 무대가 한 화면에 들어오게 굴릴 거리(px, 0이면 굴리지 않는다) */
+export function stageScrollBy(
+  /** 재생 단추 카드(무대 바로 위)의 화면 속 위치 */
+  anchorTop: number,
+  /** 무대의 화면 속 위치 */
+  stageTop: number,
+  viewHeight: number,
+  /** 일본어·뜻·낱말·그림·앞뒤 줄이 다 찼을 때 무대 높이 */
+  stageHeight = STAGE_FULL_PX,
+  margin = 24,
+): number {
+  const bottomLine = viewHeight - margin;
+  if (stageTop + stageHeight <= bottomLine) return 0;
+  // 재생 단추 카드도 함께 보이게 올리되, 그러면 무대가 안 들어가면 무대를 맨 위로
+  const withCard = anchorTop - margin;
+  const by =
+    stageTop - withCard + stageHeight <= bottomLine
+      ? withCard
+      : stageTop - margin;
+  return Math.max(0, Math.round(by));
+}
+
+/** PC 무대가 다 찼을 때의 대략 높이(1440×900에서 잰 값) */
+export const STAGE_FULL_PX = 560;
+
 /** 화면을 굴려 지금 문장을 보여야 하는지: 보기 좋은 띠(위쪽 12%~아래 가림 위) 밖이면 */
 export function needsScroll(
   box: { top: number; bottom: number },

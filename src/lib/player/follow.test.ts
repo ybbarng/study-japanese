@@ -4,6 +4,8 @@ import {
   followIndexAt,
   needsScroll,
   sentenceTimeline,
+  stageLoops,
+  stageScrollBy,
   stageView,
 } from "./follow";
 
@@ -119,6 +121,51 @@ describe("지금 하는 말 칸", () => {
 
   it("아직 일본어가 없었으면 붙들 줄도 없다", () => {
     expect(stageView(EXAMPLE_CUES, 1).held).toBe(-1);
+  });
+});
+
+describe("지금 칸의 반복 단추", () => {
+  it("일본어 줄을 듣는 중이면 그 줄을 잡는 단추 하나다", () => {
+    expect(stageLoops(stageView(EXAMPLE_CUES, 3.5))).toEqual({
+      held: false,
+      hereLabel: "이 문장 반복",
+    });
+  });
+
+  it("붙든 일본어와 지금 한국어 설명이 함께 보이면 둘을 나눠 무엇을 반복하는지 적는다", () => {
+    expect(stageLoops(stageView(EXAMPLE_CUES, 5))).toEqual({
+      held: true,
+      hereLabel: "지금 말 반복",
+    });
+  });
+
+  it("흐린 받아쓰기 줄은 4초가 지나 놓이면 일본어 반복 단추도 사라진다", () => {
+    // 0강처럼: 흐린 줄 뒤 한국어 설명이 길게 이어진다
+    const lecture = [
+      cue(400, 401, "あいまいなおと", "ja"),
+      cue(401.5, 404, "설명 하나", "ko"),
+      cue(406, 409, "설명 둘", "ko"),
+    ];
+    expect(stageLoops(stageView(lecture, 402)).held).toBe(true);
+    expect(stageLoops(stageView(lecture, 407))).toEqual({
+      held: false,
+      hereLabel: "이 문장 반복",
+    });
+  });
+});
+
+describe("강의를 틀 때 PC 무대로 굴리기", () => {
+  it("무대가 한 화면에 들어가면 굴리지 않는다", () => {
+    expect(stageScrollBy(80, 200, 900, 560)).toBe(0);
+  });
+
+  it("무대 아래가 화면 밖이면 재생 카드가 맨 위에 오도록 올린다", () => {
+    // 1440×900: 재생 카드 308px, 무대 430px에서 시작
+    expect(stageScrollBy(308, 430, 900, 560)).toBe(284);
+  });
+
+  it("카드까지 함께 올려도 무대가 넘치면 무대를 맨 위로", () => {
+    expect(stageScrollBy(308, 430, 700, 560)).toBe(406);
   });
 });
 

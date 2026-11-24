@@ -11,7 +11,7 @@ import {
   transcriptCues,
 } from "@/lib/context/cues";
 import { usePlaybackClock, usePositionOf } from "@/lib/player/clock";
-import { stageView } from "@/lib/player/follow";
+import { stageLoops, stageView } from "@/lib/player/follow";
 import {
   CueExtras,
   CueHeadline,
@@ -134,13 +134,32 @@ export function LectureContext({
   const next = view.next >= 0 ? cues[view.next] : null;
   // 반복 단추는 지금 들리는 줄을 잡는다(L 키와 같은 규칙). 그래서 지금 줄 바로 아래에 둔다:
   // 지금 줄이 일본어면 큰 글 아래, 한국어 설명 중이면 그 설명 줄 아래.
-  // 붙들어 보이는 일본어 줄은 그 글을 눌러 다시 듣는다
+  // 붙든 일본어 줄과 지금 설명이 함께 보이면 단추를 둘로 나누고 무엇을 반복하는지 적는다(stageLoops)
+  const loops = stageLoops(view);
+  const heldLoop =
+    held && loops.held ? (
+      <LoopButton
+        label="이 일본어 반복"
+        hint=""
+        active={actions.isLooping(held)}
+        onClick={() => actions.toggle(held)}
+      />
+    ) : null;
+  const pause =
+    loopPause && actions.looping ? (
+      <span className="animate-pulse text-accent">따라 말해 보세요</span>
+    ) : null;
   const loopRow = focus ? (
-    <div className="mt-3 flex items-center gap-3">
-      <LoopButton active={actions.looping} onClick={actions.toggleHere} />
-      {loopPause && actions.looping ? (
-        <span className="animate-pulse text-accent">따라 말해 보세요</span>
-      ) : null}
+    <div className="mt-3 flex flex-wrap items-center gap-2">
+      {compact ? heldLoop : null}
+      <LoopButton
+        label={loops.hereLabel}
+        active={
+          actions.looping && !(held && loops.held && actions.isLooping(held))
+        }
+        onClick={actions.toggleHere}
+      />
+      {pause}
     </div>
   ) : null;
 
@@ -200,6 +219,7 @@ export function LectureContext({
             <CueHeadline cue={held} size={size} detail />
           </button>
           <CueExtras cue={held} />
+          {heldLoop ? <div className="mt-3">{heldLoop}</div> : null}
         </div>
       ) : null}
 
@@ -211,7 +231,11 @@ export function LectureContext({
           size === "stage" && "min-h-[7.5rem]",
         )}
       >
-        {prev ? <Dim cue={prev} onSeek={actions.seek} /> : null}
+        {/* 앞뒤 줄은 "앞"·"다음"을 붙여, 앞 일본어 줄과 다음 한국어 줄이 한 문장과 그 뜻처럼 읽히지 않게 */}
+        {prev ? <Dim cue={prev} tag="앞" onSeek={actions.seek} /> : null}
+        {current && !heldIsCurrent && held ? (
+          <p className="mt-2 text-xs text-ink-faint">지금 말</p>
+        ) : null}
         {current && !heldIsCurrent ? (
           <button
             type="button"
@@ -231,7 +255,7 @@ export function LectureContext({
         ) : null}
         {current && !heldIsCurrent ? <CueExtras cue={current} /> : null}
         {held && heldIsCurrent ? null : loopRow}
-        {next ? <Dim cue={next} onSeek={actions.seek} /> : null}
+        {next ? <Dim cue={next} tag="다음" onSeek={actions.seek} /> : null}
       </div>
       <p className="mt-3 text-xs text-ink-faint">
         못 알아들었으면 자막을 눌러 그 말부터 다시 들으세요.
@@ -242,20 +266,28 @@ export function LectureContext({
 
 function Dim({
   cue,
+  tag,
   onSeek,
 }: {
   cue: ContextCue;
+  /** 앞 줄인지 다음 줄인지 */
+  tag: "앞" | "다음";
   onSeek: (cue: ContextCue) => void;
 }) {
   return (
     <button
       type="button"
-      lang={cue.lang}
+      data-dim={tag === "앞" ? "prev" : "next"}
       onClick={() => onSeek(cue)}
       title="이 말부터 다시 듣기"
-      className="my-2 block w-full truncate text-left text-sm text-ink-faint active:opacity-60"
+      className="my-2 flex w-full items-baseline gap-2 text-left text-sm text-ink-faint active:opacity-60"
     >
-      {cueText(cue)}
+      <span className="w-8 shrink-0 rounded bg-bg-raised px-1 text-center text-[11px] leading-5">
+        {tag}
+      </span>
+      <span lang={cue.lang} className="min-w-0 truncate">
+        {cueText(cue)}
+      </span>
     </button>
   );
 }
