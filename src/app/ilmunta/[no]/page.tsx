@@ -9,6 +9,7 @@ import {
 } from "@/components/ilmunta/lesson-side";
 import { NoIlmunta, PageShell } from "@/components/ilmunta/page-shell";
 import { OfflineButton } from "@/components/offline/offline-button";
+import { DrillQuiz } from "@/components/quiz/drill-quiz";
 import { SourceCredit } from "@/components/sources/source-credit";
 import { loadIlmuntaLesson } from "@/lib/ilmunta/server-data";
 import { ilmuntaPack } from "@/lib/offline/pack";
@@ -58,6 +59,7 @@ export default async function IlmuntaLessonPage({
         }
         after={
           <>
+            <DrillQuiz lesson={lesson.no} />
             <LessonDrillLink no={lesson.no} />
             <PdfLinks lesson={lesson} />
             {source ? (

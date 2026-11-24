@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { RubyText as MarkupRuby } from "@/components/ilmunta/ruby-text";
 import { cn } from "@/lib/cn";
 import type { ChoiceQuestion } from "@/lib/quiz/types";
 import type { ClipControl, RenderJa } from "./quiz-card";
@@ -96,11 +97,11 @@ export function ChoiceView({
               lang="ja"
               className="font-ja-serif text-2xl leading-loose lg:text-3xl"
             >
-              {p.before}
+              {p.markup ? <MarkupRuby src={p.before} /> : p.before}
               <span className="mx-1 inline-block min-w-16 border-b-2 border-accent text-center text-accent">
                 {answered ? q.options[q.answer].label : "？"}
               </span>
-              {p.after}
+              {p.markup ? <MarkupRuby src={p.after} /> : p.after}
             </p>
             <p className="mt-1 text-ink-soft">{p.ko}</p>
           </div>
@@ -165,8 +166,15 @@ export function ChoiceView({
                 >
                   {o.ja
                     ? renderJa(o.label, {
-                        reading: answered ? o.reading : undefined,
-                        ruby: answered || q.prompt.kind === "say",
+                        // 활용 문제는 꼴을 고르는 것이라 처음부터 읽는 법을 단다
+                        reading:
+                          answered || q.section === "drill"
+                            ? o.reading
+                            : undefined,
+                        ruby:
+                          answered ||
+                          q.prompt.kind === "say" ||
+                          q.section === "drill",
                       })
                     : o.label}
                 </span>

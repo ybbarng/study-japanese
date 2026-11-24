@@ -21,7 +21,15 @@ export type Prompt =
   /** 소리만 들려주고 묻는다. 소리를 못 틀면 fallback 글을 보인다 */
   | { kind: "listen"; clip: ClipRef; ask: string; fallback: JaText }
   /** 일본어 문장의 빈칸. 한국어 뜻이 단서다 */
-  | { kind: "blank"; before: string; after: string; ko: string; ask: string }
+  | {
+      kind: "blank";
+      before: string;
+      after: string;
+      ko: string;
+      ask: string;
+      /** 앞뒤 글이 `[漢字|かな]` 표기(일문따 문장 틀)면 참 */
+      markup?: boolean;
+    }
   /** 이 상황에서 할 말 고르기. 앞 사람의 말이 있으면 함께 보인다 */
   | {
       kind: "say";
