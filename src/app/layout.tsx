@@ -6,22 +6,21 @@ import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import { AppShell } from "@/components/shell/app-shell";
 import "./globals.css";
 
+// 굵기를 따로 적지 않아 가변 글꼴 한 벌을 쓴다. 한중일 글꼴은 굵기마다 글자 범위 조각이 100개 넘게
+// 붙어서, 굵기를 셋 적으면 화면을 그리기 전에 받아야 하는 글꼴 CSS가 세 배가 된다(느린 폰에서 첫 표시가 늦다).
 const sansKr = Noto_Sans_KR({
   variable: "--font-kr",
   subsets: ["latin"],
-  weight: ["400", "500", "700"],
   preload: false,
 });
 const sansJp = Noto_Sans_JP({
   variable: "--font-jp",
   subsets: ["latin"],
-  weight: ["400", "500", "700"],
   preload: false,
 });
 const serifJp = Noto_Serif_JP({
   variable: "--font-jp-serif",
   subsets: ["latin"],
-  weight: ["500", "700"],
   preload: false,
 });
 
