@@ -57,8 +57,12 @@ describe("buildDictionary", () => {
     );
   });
 
-  it("교재 단어 뜻을 먼저, 예문 분석 뜻을 뒤에 두고 겹치면 하나만 둔다", () => {
-    expect(byId.get("山")?.glosses).toEqual(["산", "산(문장 뜻)"]);
+  it("교재 단어 뜻을 대표로 두고, 괄호 설명만 다른 예문 분석 뜻은 같은 뜻으로 합친다", () => {
+    expect(byId.get("山")?.glosses).toEqual(["산"]);
+  });
+
+  it("드릴 뜻 뒤에 예문 분석의 새 뜻을 다른 뜻으로 붙인다", () => {
+    expect(byId.get("行く")?.glosses).toEqual(["가다", "갑니다"]);
   });
 
   it("처음 배운 강은 단어 코너·예문 중 가장 앞 강", () => {

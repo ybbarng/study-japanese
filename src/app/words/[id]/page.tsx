@@ -52,11 +52,15 @@ export default async function WordPage({ params }: Props) {
         <WordPictureSlot word={entry.word} />
       </div>
       {entry.glosses.length > 0 ? (
-        <ul className="flex flex-col gap-1 text-lg">
-          {entry.glosses.map((g) => (
-            <li key={g}>{g}</li>
-          ))}
-        </ul>
+        <div className="flex flex-col gap-1">
+          <p className="text-2xl font-medium">{entry.glosses[0]}</p>
+          {entry.glosses.length > 1 ? (
+            <p className="text-ink-soft">
+              <span className="mr-2 text-sm text-ink-faint">다른 뜻</span>
+              {entry.glosses.slice(1).join(" · ")}
+            </p>
+          ) : null}
+        </div>
       ) : null}
       <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
         {entry.pos.length > 0 ? (

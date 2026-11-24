@@ -1,5 +1,6 @@
 import type { ShownToken } from "@/lib/songs/analysis";
 import { isPressable } from "@/lib/songs/words";
+import { mergeGlosses } from "./glosses";
 
 // 교재 낱말 내부 사전: 일무따 단어 코너·회화 낱말, 일문따 드릴 낱말, 예문 낱말 분석에 나온 낱말을
 // 기본형 하나로 모은 색인. 뜻은 우리 교재 맥락의 짧은 뜻만 둔다(바깥 사전을 옮기지 않는다).
@@ -24,7 +25,10 @@ export interface DictEntry {
   word: string;
   readings: string[];
   pos: string[];
-  /** 짧은 뜻들(교재 단어 뜻 → 드릴 뜻 → 예문 분석 뜻 차례, 겹치면 하나) */
+  /**
+   * 짧은 뜻들. 첫째가 대표 뜻, 나머지는 다른 뜻(교재 단어 뜻 → 드릴 뜻 → 예문 분석 뜻 차례).
+   * 괄호 설명·쉼표 차례·띄어쓰기만 다른 뜻은 하나로 합친다(mergeGlosses)
+   */
   glosses: string[];
   /** 일무따에서 처음 배운 강(단어 코너·회화 낱말·예문). 모르면 null */
   firstLesson: number | null;
@@ -85,6 +89,16 @@ function minLesson(
 
 export function buildDictionary(input: DictInput): DictEntry[] {
   const map = new Map<string, DictEntry>();
+  // 출처마다 적힌 뜻 그대로. 다 모은 뒤 mergeGlosses로 겹침을 합친다
+  const rawGlosses = new Map<string, string[]>();
+  const addGloss = (e: DictEntry, gloss: string | undefined) => {
+    let list = rawGlosses.get(e.id);
+    if (!list) {
+      list = [];
+      rawGlosses.set(e.id, list);
+    }
+    pushUnique(list, gloss?.trim());
+  };
   const entry = (word: string): DictEntry => {
     const id = dictKey(word);
     let e = map.get(id);
@@ -113,7 +127,7 @@ export function buildDictionary(input: DictInput): DictEntry[] {
         e.readings,
         w.reading ?? (KANA_ONLY.test(e.word) ? e.word : undefined),
       );
-      pushUnique(e.glosses, w.ko.trim());
+      addGloss(e, w.ko);
       e.firstLesson = minLesson(e.firstLesson, lesson);
       pushUnique(e.sources, "ilmuta-words");
     }
@@ -121,7 +135,7 @@ export function buildDictionary(input: DictInput): DictEntry[] {
   for (const d of input.drill) {
     const e = entry(d.dict);
     pushUnique(e.readings, d.reading);
-    pushUnique(e.glosses, d.ko);
+    addGloss(e, d.ko);
     pushUnique(
       e.pos,
       d.drill.kind === "verb" ? "動詞" : DRILL_POS[d.drill.adjKind],
@@ -145,7 +159,7 @@ export function buildDictionary(input: DictInput): DictEntry[] {
           t.reading ?? (KANA_ONLY.test(base) ? base : undefined),
         );
       pushUnique(e.pos, t.pos);
-      if (e.glosses.length < MAX_GLOSSES) pushUnique(e.glosses, t.gloss);
+      addGloss(e, t.gloss);
       e.firstLesson = minLesson(e.firstLesson, s.lesson);
       pushUnique(e.sources, "analysis");
       const seen = e.occurrences.some(
@@ -162,6 +176,8 @@ export function buildDictionary(input: DictInput): DictEntry[] {
         });
     }
 
+  for (const e of map.values())
+    e.glosses = mergeGlosses(rawGlosses.get(e.id) ?? [], MAX_GLOSSES);
   return [...map.values()].sort(compareEntries);
 }
 
