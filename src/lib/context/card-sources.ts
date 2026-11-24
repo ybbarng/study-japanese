@@ -1,3 +1,4 @@
+import { mergeGlosses } from "@/lib/dictionary/glosses";
 import { skillsOfLesson } from "@/lib/ilmunta/curriculum";
 import { VERBS } from "@/lib/ilmunta/verbs";
 import { WORD_LESSONS } from "@/lib/ilmunta/word-lessons";
@@ -224,7 +225,7 @@ export function ilmutaCardSource(
     ...(extras?.sentenceReadings
       ? { sentenceReadings: extras.sentenceReadings }
       : {}),
-    words: ilmutaWords(lessons, no),
+    words: withAllMeanings(ilmutaWords(lessons, no)),
     // 받아 적은 글 속 활용한 꼴은 그 강까지 일무따에 나온 드릴 낱말만
     inflected: heardInflected(inflectedWords(learnedInIlmuta), extras),
     heardOnlyWords: extras?.dict?.words,
@@ -246,14 +247,42 @@ function drillWords(): CueWord[] {
   );
 }
 
+/** 칩에 모아 보일 뜻의 수 */
+const MAX_CHIP_GLOSSES = 3;
+
+/**
+ * 같은 낱말(표기·읽기가 같음)이 낱말 표에 여러 번 다른 뜻으로 있으면(드릴 「집다」, 일무따 단어 「집다, 잡다, 취하다」)
+ * 하나로 합쳐 뜻을 모은다. 칩이 대표 뜻 하나만 확신 있게 보이지 않게 한다(앞에 나온 뜻이 먼저)
+ */
+export function withAllMeanings(words: CueWord[]): CueWord[] {
+  const groups = new Map<string, CueWord[]>();
+  for (const w of words) {
+    const key = `${w.ja}\t${w.reading ?? ""}`;
+    const list = groups.get(key);
+    if (list) list.push(w);
+    else groups.set(key, [w]);
+  }
+  return [...groups.values()].map((list) =>
+    list.length === 1
+      ? list[0]
+      : {
+          ...list[0],
+          ko: mergeGlosses(
+            list.map((w) => w.ko),
+            MAX_CHIP_GLOSSES,
+          ).join(", "),
+        },
+  );
+}
+
 /** 일문따에서 쓰는 낱말: 드릴 낱말과, 일무따 출처를 볼 수 있으면 일무따 전체 단어 */
 function ilmuntaWords(ilmutaLessons: IlmutaLesson[] | null): CueWord[] {
-  return [
+  return withAllMeanings([
     ...drillWords(),
     ...(ilmutaLessons
       ? ilmutaWords(ilmutaLessons, Number.POSITIVE_INFINITY)
       : []),
-  ];
+  ]);
 }
 
 /**

@@ -239,6 +239,8 @@ export function findWords(
   for (const list of byFirst.values())
     list.sort((a, b) => b.form.length - a.form.length);
   const compounds = strict ? kanjiCompounds(words.map((w) => w.ja)) : undefined;
+  const byJa = new Map<string, CueWord>();
+  for (const w of words) if (!byJa.has(w.ja)) byJa.set(w.ja, w);
   const out: CueWord[] = [];
   const seen = new Set<string>();
   let i = 0;
@@ -254,7 +256,8 @@ export function findWords(
               (f.form === f.word.ja || inflectedFitsAt(text, i, f.form)))),
       );
     if (hit) {
-      if (!seen.has(hit.word.ja)) out.push(hit.word);
+      // 활용한 꼴의 사전형 칩은 낱말 목록에 같은 낱말이 있으면 그쪽(뜻을 모은 칩)을 쓴다
+      if (!seen.has(hit.word.ja)) out.push(byJa.get(hit.word.ja) ?? hit.word);
       seen.add(hit.word.ja);
       i += hit.form.length;
     } else i++;

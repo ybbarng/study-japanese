@@ -7,7 +7,31 @@ import {
   itemWithoutBookText,
   lessonNoOfItem,
   looksLikeMeaning,
+  withAllMeanings,
 } from "./card-sources";
+
+describe("뜻이 여럿인 낱말의 칩", () => {
+  it("같은 낱말이 다른 뜻으로 여러 번 있으면 하나로 합쳐 뜻을 모은다", () => {
+    expect(
+      withAllMeanings([
+        { ja: "取る", reading: "とる", ko: "집다" },
+        { ja: "山", reading: "やま", ko: "산" },
+        { ja: "取る", reading: "とる", ko: "집다, 잡다" },
+      ]),
+    ).toEqual([
+      { ja: "取る", reading: "とる", ko: "집다, 잡다" },
+      { ja: "山", reading: "やま", ko: "산" },
+    ]);
+  });
+
+  it("읽기가 다르면 다른 낱말로 둔다", () => {
+    const words = [
+      { ja: "方", reading: "かた", ko: "분" },
+      { ja: "方", reading: "ほう", ko: "쪽" },
+    ];
+    expect(withAllMeanings(words)).toEqual(words);
+  });
+});
 
 describe("소책자에 원문이 없는 예문 mp3", () => {
   it("일무따 연습 문제·장문과 일문따 읽기 글이다", () => {

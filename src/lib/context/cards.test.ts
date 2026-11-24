@@ -268,6 +268,13 @@ describe("활용한 꼴로 찾는 낱말 칩", () => {
     ]);
   });
 
+  it("낱말 목록에 같은 낱말이 있으면 활용한 꼴의 칩은 목록 쪽 뜻(모은 뜻)을 쓴다", () => {
+    const listed = { ...eat, ko: "먹다, 마시다" };
+    expect(
+      findWords("朝ご飯を食べました", [listed], 6, true, inflected),
+    ).toEqual([listed]);
+  });
+
   it("엄격하지 않으면 활용한 꼴을 보지 않는다", () => {
     expect(findWords("朝ご飯を食べました", [], 6, false, inflected)).toEqual(
       [],
