@@ -155,4 +155,8 @@ test("PC 자막 줄을 누르고 곧바로 L을 누르면 누른 그 줄을 반�
     .poll(() => audioTime(page), { timeout: 5_000 })
     .toBeLessThan(cue.start + 2);
   expect(await audioTime(page)).toBeGreaterThanOrEqual(cue.start - 0.5);
+  // 돌아온 뒤에도 반복은 걸려 있다(엉뚱한 줄을 잡았다가 풀린 뒤 늦게 온 옮기기로 우연히 돌아온 것이 아니다)
+  await expect(
+    player(page).getByRole("button", { name: "문장 반복 풀기" }),
+  ).toBeVisible();
 });

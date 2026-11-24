@@ -9,7 +9,7 @@ import {
 } from "@/lib/context/cues";
 import { usePlaybackClock, usePositionOf } from "@/lib/player/clock";
 import { stageView } from "@/lib/player/follow";
-import { usePlayer } from "@/lib/player/store";
+import { currentTrack, usePlayer } from "@/lib/player/store";
 import { CueExtras, CueHeadline } from "./cue-card";
 import { LoopButton } from "./loop-button";
 import { useCueActions } from "./use-cue-actions";
@@ -91,7 +91,11 @@ export function TranscriptList({
   const play = (cue: ContextCue) => {
     heldUntil.current = 0;
     setHeld(false);
-    if (pos !== null) actions.seek(cue);
+    // 이 강의가 재생기에 올라 있으면 바로 옮긴다. 재생 위치(pos)는 timeupdate가 와서 다시 그린 뒤에야
+    // 생겨, 강의를 막 튼 순간에는 비어 있다. 그때 미뤄 옮기면 그사이 누른 L이 옮기기 전 줄을 잡았다
+    const cur = currentTrack(usePlayer.getState());
+    if (pos !== null || (cur?.book === book && cur?.item === item))
+      actions.seek(cue);
     else {
       pending.current = cue.start;
       onStart?.();

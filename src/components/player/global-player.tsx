@@ -107,15 +107,26 @@ export function GlobalPlayer() {
       audioRef.current.playbackRate = s.rate;
   }, [s.rate, phase.kind]);
 
-  // 자막 줄을 눌렀을 때: 지금 트랙의 그 위치로(따라 말하기 간격 중이면 무시)
-  const seekRequest = s.seekRequest;
-  // biome-ignore lint/correctness/useExhaustiveDependencies: 요청이 새로 올 때만 따른다(간격 상태가 바뀌었다고 다시 옮기지 않게)
-  useEffect(() => {
-    const a = audioRef.current;
-    if (!a || !seekRequest || phase.kind !== "track") return;
-    a.currentTime = seekRequest.sec;
-    if (a.paused) a.play().catch(() => usePlayer.getState().setPlaying(false));
-  }, [seekRequest]);
+  // 자막 줄을 눌렀을 때: 지금 트랙의 그 위치로(따라 말하기 간격 중이면 무시).
+  // 다시 그린 뒤(useEffect)가 아니라 요청이 store에 들어온 그 자리에서 옮긴다. 줄을 누르고 곧바로
+  // L을 누르면 그 사이에 옮기기 전 위치로 반복을 골라, 옮긴 뒤 구간 밖이라며 반복이 풀렸다
+  const phaseRef = useRef(phase);
+  phaseRef.current = phase;
+  useEffect(
+    () =>
+      usePlayer.subscribe((st, prev) => {
+        const req = st.seekRequest;
+        const a = audioRef.current;
+        const t = currentTrack(st);
+        if (!req || req === prev.seekRequest || !a || !t) return;
+        if (phaseRef.current.kind !== "track") return;
+        if (!a.src) setSrc(a, t.src);
+        a.currentTime = req.sec;
+        if (a.paused)
+          a.play().catch(() => usePlayer.getState().setPlaying(false));
+      }),
+    [setSrc],
+  );
 
   const advance = useCallback(() => {
     const st = usePlayer.getState();
