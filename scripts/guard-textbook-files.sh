@@ -7,7 +7,7 @@ blocked=()
 for f in "$@"; do
   case "$f" in
     *.mp3 | *.MP3 | *.m4a | *.wav | *.pdf | *.xlsx) blocked+=("$f") ;;
-    media/* | textbook-src/* | content/textbook/* | content/transcripts/* | content/songs/*) blocked+=("$f") ;;
+    media/* | textbook-src/* | content/textbook*/* | content/transcripts*/* | content/songs/*) blocked+=("$f") ;;
   esac
 done
 

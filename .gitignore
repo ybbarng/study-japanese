@@ -41,8 +41,9 @@ yarn-error.log*
 /media/
 /textbook-src/
 # 교재에서 뽑은 글·자막: 공개 저장소라 git 밖에 둔다(docs/standing-rules.md "저작권")
-/content/textbook/
-/content/transcripts/
+# textbook-analysis(예문 낱말 분석)·transcripts-before-retry(옛 자막) 같은 딸린 폴더도 함께 막는다
+/content/textbook*/
+/content/transcripts*/
 # 노래 가사·세션 분석(상업 음원의 가사, docs/song-analysis.md)
 /content/songs/
 
