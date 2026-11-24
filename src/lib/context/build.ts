@@ -1,23 +1,44 @@
-import type { Ilmuta } from "@/lib/textbook/schema";
+import type { Ilmuta, IlmutaLesson } from "@/lib/textbook/schema";
 import { withoutNoise } from "@/lib/transcript/hallucination";
 import {
   ilmuntaCardSource,
+  ilmuntaGlossary,
   ilmutaCardSource,
   knownWordForms,
   lessonNoOfItem,
+  looksLikeMeaning,
 } from "./card-sources";
-import { buildCards } from "./cards";
+import { buildCards, kanaOf } from "./cards";
+import { conjugatedReadings } from "./conjugations";
 import type { Transcript } from "./cues";
 import {
   fillJamo,
+  isKoreanMixed,
   kanaHints,
   placeholderText,
   withoutMisheardKorean,
 } from "./misheard";
-import type { TranscriptPair } from "./transcript-pairs";
+import { findRepeatPairs, type TranscriptPair } from "./transcript-pairs";
 
 // 자막 하나를 내줄 모양으로 만든다: 잡음 줄과 한국어 말을 받아 적은 가타카나 줄을 거르고 카드를 붙인다.
 // 파일을 읽지 않는 순수 함수다. 서버(server.ts)와 숫자 보고(scripts/context/match-report.ts)가 함께 쓴다.
+
+/**
+ * 일문따 강의가 스스로 되풀이한 문장(일본어 → 한국어 → 같은 일본어). 두 번 받아 적은 글이 닮았으니
+ * 한 번만 들린 것보다 믿을 만하다. 강사가 사이에 하는 말은 뜻이 아니라 설명일 수 있어,
+ * 뜻으로 볼 만할 때만(looksLikeMeaning) 뜻으로 쓰고 아니면 비운다.
+ * 그 과 문법 예문 짝(pairs)과 같은 문장이면 예문 짝이 먼저 쓰인다(뜻이 있다).
+ */
+function selfPairs(
+  segments: Transcript["segments"],
+  lessons: IlmutaLesson[] | null,
+): TranscriptPair[] {
+  const glossary = ilmuntaGlossary(lessons);
+  return findRepeatPairs(segments, {
+    toKana: (t) => kanaOf(t, glossary),
+    koIsMeaning: looksLikeMeaning,
+  });
+}
 
 /**
  * ilmuta는 일무따 교재(볼 수 없으면 null), pairs는 일문따 그 과의 문장 짝.
@@ -31,17 +52,24 @@ export function contextTranscript(
   pairs: TranscriptPair[] | null,
 ): Transcript {
   const lessons = ilmuta?.lessons ?? null;
-  const filtered = withoutMisheardKorean(
-    withoutNoise(transcript.segments),
-    knownWordForms(lessons),
-  );
-  // 문형 설명의 한국어 자리 말(누구누구·뭐뭐)을 가나로 받아 적은 줄은 강사의 설명(한국어 줄)으로 돌린다
+  // 문형 설명의 한국어 자리 말(누구누구·뭐뭐)을 가나로 받아 적은 줄과 한글이 섞인 줄은
+  // 강사의 설명(한국어 줄)으로 돌린다. 그다음 한국어 말을 가나로 받아 적은 줄을 거른다
+  // (돌린 줄이 한국어 줄로 세어져야 그 사이 줄을 바르게 가른다)
   let relabeled = false;
-  const segments = filtered.map((s) => {
-    const text = s.lang === "ja" ? placeholderText(s.text) : null;
+  const labeled = withoutNoise(transcript.segments).map((s) => {
+    if (s.lang !== "ja") return s;
+    const text =
+      placeholderText(s.text, book === "ilmunta") ??
+      (isKoreanMixed(s.text) ? s.text : null);
     if (text === null) return s;
     relabeled = true;
     return { ...s, text, lang: "ko" as const };
+  });
+  // 히라가나 줄까지 거르는 것은 강사가 한국어로 말하는 강의만(예문 mp3는 거의 일본어다)
+  const known = knownWordForms(lessons);
+  const segments = withoutMisheardKorean(labeled, known, {
+    kanaLines: transcript.kind === "lecture",
+    kanaKnown: new Set([...known, ...conjugatedReadings()]),
   });
   const clean: Transcript =
     segments.length === transcript.segments.length && !relabeled
@@ -53,7 +81,11 @@ export function contextTranscript(
       ? lessons && no !== null
         ? ilmutaCardSource(lessons, no, item)
         : null
-      : ilmuntaCardSource(lessons, pairs ?? [], no);
+      : ilmuntaCardSource(
+          lessons,
+          [...(pairs ?? []), ...selfPairs(clean.segments, lessons)],
+          no,
+        );
   const cards = source ? buildCards(clean.segments, source) : {};
   // 한국어 줄에 남은 한글 낱자는 그 강 부제의 가나로 채우거나 가린다
   const hints = kanaHints(

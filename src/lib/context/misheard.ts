@@ -108,13 +108,179 @@ export function misheardKoreanIndexes(
   return out;
 }
 
-/** 한국어 말을 가타카나로 받아 적은 일본어 줄을 뺀 구간들(원래 차례는 그대로) */
+/** 가나(히라가나·가타카나)만 남긴 알맹이. 한자·한글 등이 섞이면 null */
+function kanaCore(text: string): string | null {
+  const core = text.replace(NOT_CORE, "");
+  return /^[ぁ-ゖァ-ヺ]+$/u.test(core) ? core : null;
+}
+
+/** 일본어 문장에 흔한 조사·어미(한 글자 조사와 짧은 어미). 줄이 일본어로 설명되는지 잴 때 쓴다 */
+const GRAMMAR_PIECES = [
+  ..."はがをにでともかよねへやの",
+  "です",
+  "でした",
+  "ます",
+  "ません",
+  "ました",
+  "じゃない",
+  "ない",
+  "なかった",
+  "だった",
+  "だ",
+  "た",
+  "て",
+  "から",
+  "まで",
+  "けど",
+  "けれど",
+  "ので",
+  "のに",
+  "しか",
+  "だけ",
+  "ばかり",
+  "ほど",
+  "くらい",
+  "ぐらい",
+  "より",
+  "など",
+  "って",
+  "という",
+  "とか",
+  "なければ",
+  "なくては",
+  "なくて",
+  "ければ",
+  "れば",
+  "たら",
+  "ても",
+  "ては",
+  "ながら",
+  "こと",
+  "もの",
+  "ところ",
+  "はず",
+  "ため",
+  "よう",
+  "らしい",
+  "みたい",
+  "うん",
+  "ううん",
+  "はい",
+  "いいえ",
+  "ええ",
+  "そう",
+  "こう",
+  "ああ",
+  "どう",
+  "じゃ",
+  "じゃあ",
+  "さあ",
+];
+
+/**
+ * 비교용 글(히라가나)에서 아는 낱말(두 글자 이상)과 조사·어미로 덮이는 글자의 비율(0~1).
+ * 한 글자 조사(が·の·を…)는 아무 가나 줄에나 흔해서, 바로 앞이 두 글자 이상 조각으로 덮였을 때만 센다.
+ * 덮는 글자 수가 가장 많게 고른다.
+ */
+export function japaneseShare(plain: string, known: Set<string>): number {
+  const chars = [...plain];
+  if (chars.length === 0) return 0;
+  const pieces = new Set([...known, ...GRAMMAR_PIECES]);
+  // best[i]: i글자까지 덮은 수. multi[i]: 그 최선이 두 글자 이상 조각으로 끝나는지
+  const best: number[] = [0];
+  const multi: boolean[] = [false];
+  for (let i = 1; i <= chars.length; i++) {
+    best[i] = best[i - 1];
+    multi[i] = false;
+    for (let j = Math.max(0, i - 12); j < i; j++) {
+      const piece = chars.slice(j, i).join("");
+      if (!pieces.has(piece)) continue;
+      const long = i - j >= 2;
+      if (!long && !multi[j]) continue;
+      const score = best[j] + (i - j);
+      if (score > best[i] || (score === best[i] && long)) {
+        best[i] = score;
+        multi[i] = long;
+      }
+    }
+  }
+  return best[chars.length] / chars.length;
+}
+
+/** 히라가나가 섞인 줄을 한국어 말로 볼 최소 가나 수와, 일본어로 설명되는 비율의 상한 */
+const KOREAN_KANA_MIN = 5;
+const KOREAN_KANA_SHARE = 0.5;
+
+/**
+ * 가나를 하나씩 늘어놓은 줄(「あ」「い」「う」, う단 글자들)인가. 가나 강의는 오십음도의 한 단·한 행을
+ * 읽어 주므로 모든 글자의 모음이나 자음이 같거나, 낱자 가나를 따옴표로 둘 넘게 묶는다.
+ */
+function isKanaList(text: string, core: string): boolean {
+  if ((text.match(/「[ぁ-ゖァ-ヺ]」/gu)?.length ?? 0) >= 2) return true;
+  const phones = [...core].map((c) => kanaPhones(c)).filter((p) => p !== "");
+  if (phones.length < 3) return false;
+  // 같은 행 글자가 넷 넘게 이어지면(が행을 읽음) 줄 전체가 아니어도 가나 목록이다
+  let run = 1;
+  for (let i = 1; i < phones.length; i++) {
+    run = phones[i].slice(0, -1) === phones[i - 1].slice(0, -1) ? run + 1 : 1;
+    if (run >= 4) return true;
+  }
+  const vowels = new Set(phones.map((p) => p.at(-1)));
+  const consonants = new Set(phones.map((p) => p.slice(0, -1)));
+  return vowels.size === 1 || consonants.size === 1;
+}
+
+/**
+ * 한국어 말을 히라가나(가타카나 섞임)로 받아 적은 일본어 줄의 차례(0강의 「くらめ、さがの…」 같은 줄).
+ * 진짜 일본어 대답도 앞뒤가 한국어 설명인 일이 많아(드릴의 「うん、～の」) 더 좁게 본다.
+ * 가나만 있고, 앞뒤 두 줄씩이 모두 한국어(강사가 한국어로 이어 말하는 중)이고,
+ * 아는 낱말·조사·어미로 덮이는 글자가 절반이 안 되는 줄만.
+ */
+export function koreanKanaIndexes(
+  segments: MisheardSegment[],
+  known: Set<string>,
+): Set<number> {
+  const out = new Set<number>();
+  const isKo = (j: number) => !segments[j] || segments[j].lang === "ko";
+  segments.forEach((seg, i) => {
+    if (seg.lang !== "ja") return;
+    const core = kanaCore(seg.text);
+    if (!core || [...core].length < KOREAN_KANA_MIN) return;
+    if (isKanaList(seg.text, core)) return;
+    if (![i - 2, i - 1, i + 1, i + 2].every(isKo)) return;
+    if (japaneseShare(normalizeJa(core), known) >= KOREAN_KANA_SHARE) return;
+    out.add(i);
+  });
+  return out;
+}
+
+/** 한국어 말을 가나로 받아 적은 일본어 줄을 뺀 구간들(원래 차례는 그대로) */
 export function withoutMisheardKorean<T extends MisheardSegment>(
   segments: T[],
   known: Set<string>,
+  {
+    kanaLines = false,
+    kanaKnown = known,
+  }: {
+    /** 히라가나 줄까지 볼지(koreanKanaIndexes) */
+    kanaLines?: boolean;
+    /** 히라가나 줄이 일본어로 설명되는지 잴 때 쓸 낱말(활용형까지 넣는다) */
+    kanaKnown?: Set<string>;
+  } = {},
 ): T[] {
-  const drop = misheardKoreanIndexes(segments, known);
+  const drop = new Set([
+    ...misheardKoreanIndexes(segments, known),
+    ...(kanaLines ? koreanKanaIndexes(segments, kanaKnown) : []),
+  ]);
   return drop.size === 0 ? segments : segments.filter((_, i) => !drop.has(i));
+}
+
+/**
+ * 한글이 두 글자 넘게 이어 섞인 일본어 줄(「…라는 단어를」)은 강사의 한국어 설명이다.
+ * 한국어 줄로 돌린다(일본어 칸에 크게 보이지 않게).
+ */
+export function isKoreanMixed(text: string): boolean {
+  return /[가-힣]{2,}/u.test(text);
 }
 
 /** 한글 자음 낱자 → 소리 갈래(phonetic.ts 자모열의 첫 글자. 모음으로 시작하면 "") */
@@ -177,10 +343,16 @@ export function kanaHints(subtitle: string | undefined): string[] {
 /**
  * 강사가 문형을 설명할 때 쓰는 한국어 자리 말(누구누구·뭐뭐)을 가나로 받아 적은 줄(ぬぐぬぐの…)을
  * 들린 대로 한국어 자리 말로 돌린 글. ぬぐ가 없는 줄은 일본어일 수 있어 null(もも는 桃일 수도 있다).
+ * momoIsPlaceholder면(일문따: 桃가 나오지 않고 강사가 「뭐뭐ない」처럼 문형을 말한다) もも만 있어도 돌린다.
  */
-export function placeholderText(text: string): string | null {
-  if (!/ぬぐ/u.test(text)) return null;
+export function placeholderText(
+  text: string,
+  momoIsPlaceholder = false,
+): string | null {
+  // 가타카나 モモ는 어느 책에서나 자리 말이다(桃를 가타카나로 적지 않는다)
+  const momo = momoIsPlaceholder ? /もも|モモ/u : /モモ/u;
+  if (!/ぬぐ/u.test(text) && !momo.test(text)) return null;
   return text
     .replace(/(?:ぬぐ)+/gu, "누구누구")
-    .replace(/もも(?:も)*/gu, "뭐뭐");
+    .replace(/(?:もも|モモ)(?:も|モ)*/gu, "뭐뭐");
 }

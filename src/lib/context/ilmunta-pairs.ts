@@ -30,11 +30,10 @@ export function ilmuntaLessonPairs(no: number, dir?: string): TranscriptPair[] {
   const hit = cache.get(t);
   if (hit) return hit;
   const glossary = ilmuntaGlossary(loadIlmuta(dir)?.lessons ?? null);
-  const pairs = findRepeatPairs(
-    withoutNoise(t.segments),
-    PAIR_MIN_SIMILARITY,
-    (text) => kanaOf(text, glossary),
-  );
+  const pairs = findRepeatPairs(withoutNoise(t.segments), {
+    minSimilarity: PAIR_MIN_SIMILARITY,
+    toKana: (text) => kanaOf(text, glossary),
+  });
   cache.set(t, pairs);
   return pairs;
 }

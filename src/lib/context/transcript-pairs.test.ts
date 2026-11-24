@@ -82,6 +82,57 @@ describe("일본어 → 뜻 → 일본어 되풀이 짝", () => {
   });
 });
 
+describe("사이가 넓거나 나뉜 되풀이", () => {
+  it("뜻을 두 번 읽어 한국어 줄이 둘 끼어도 짝으로 보고, 긴 한국어 줄을 뜻으로 쓴다", () => {
+    clock = 0;
+    const [pair] = findRepeatPairs([
+      seg("ja", "猫が好きです。"),
+      seg("ko", "고양이를 좋아합니다."),
+      seg("ko", "어?"),
+      seg("ja", "猫が好きです。"),
+    ]);
+    expect(pair.ko).toBe("고양이를 좋아합니다.");
+  });
+
+  it("한국어 줄이 넷 끼면 짝으로 보지 않는다", () => {
+    clock = 0;
+    expect(
+      findRepeatPairs([
+        seg("ja", "猫が好きです。"),
+        seg("ko", "하나"),
+        seg("ko", "둘"),
+        seg("ko", "셋"),
+        seg("ko", "넷"),
+        seg("ja", "猫が好きです。"),
+      ]),
+    ).toEqual([]);
+  });
+
+  it("둘째 일본어가 두 줄로 나뉘어 받아 적혀도 이어서 견준다", () => {
+    clock = 0;
+    const [pair] = findRepeatPairs([
+      seg("ja", "先週の土曜日に駅で友達に会った。"),
+      seg("ko", "지난주 토요일에 역에서 친구를 만났다."),
+      seg("ja", "先週の土曜日に"),
+      seg("ja", "駅で友達に会った"),
+    ]);
+    expect(pair.ja).toBe("先週の土曜日に駅で友達に会った。");
+  });
+
+  it("뜻 판정 함수가 거절하면 뜻을 비운다", () => {
+    clock = 0;
+    const [pair] = findRepeatPairs(
+      [
+        seg("ja", "猫が好きです。"),
+        seg("ko", "이렇게 말하면 되겠습니다"),
+        seg("ja", "猫が好きです。"),
+      ],
+      { koIsMeaning: (_ja, ko) => !ko.includes("되겠") },
+    );
+    expect(pair).toMatchObject({ ja: "猫が好きです。", ko: "" });
+  });
+});
+
 describe("두 받아 적기 중 더 나은 쪽", () => {
   it("한글·로마자가 섞인 쪽보다 섞이지 않은 쪽", () => {
     expect(betterTranscription("猫が好きですA", "ねこがすきです")).toBe(

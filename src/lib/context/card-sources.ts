@@ -170,6 +170,25 @@ function wordsInText(text: string, words: CueWord[]): CueWord[] {
 }
 
 /**
+ * 강사의 설명으로 보이는 한국어(뜻을 옮긴 말이 아니다). 「~하면·~라고·~합시다」는 뜻을 옮긴 말에도
+ * 자주 나와(조건문·인용문·권유문) 넣지 않았다.
+ */
+const EXPLAINING =
+  /번에서|번은|되겠|이렇게|연습|표현|붙여|붙이|해 ?봅|볼까|단계|문장|뜻|의미|동사|형용사|명사|조사|활용|바꿔|바꾸/u;
+
+/**
+ * 강의가 일본어 사이에 한 한국어 줄이 그 일본어의 뜻으로 볼 만한가.
+ * 일문따 강의 801쌍을 보니 사이 줄은 거의 뜻을 옮긴 말이고, 아닌 것은 문형·차례를 설명하는 말투였다.
+ * 설명 말투가 없고 길이가 일본어에 걸맞을 때(한글 음절 수가 일본어 글자 수의 두 배 + 4 이하)만 뜻으로 본다.
+ */
+export function looksLikeMeaning(ja: string, ko: string): boolean {
+  if (EXPLAINING.test(ko)) return false;
+  const syllables = ko.replace(/[^가-힣]/gu, "").length;
+  const jaChars = [...normalizeJa(ja)].length;
+  return syllables > 0 && syllables <= jaChars * 2 + 4;
+}
+
+/**
  * 일문따: 소책자에 예문 글이 없어서, 그 과 문법 예문 자막에서 찾은 일본어·뜻 되풀이 짝
  * (transcript-pairs.ts)을 문장 후보로 쓴다. 받아 적은 글이라 출처를 transcript로 둔다.
  * 낱말은 일문따 드릴 낱말과, 일무따 출처를 볼 수 있으면 일무따 전체 단어.

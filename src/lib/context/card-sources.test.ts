@@ -4,7 +4,29 @@ import {
   ilmuntaCardSource,
   ilmutaCardSource,
   lessonNoOfItem,
+  looksLikeMeaning,
 } from "./card-sources";
+
+describe("강의 되풀이 사이 한국어 줄이 뜻인가", () => {
+  it("일본어 문장을 옮긴 말이면 뜻으로 본다", () => {
+    expect(looksLikeMeaning("猫が好きです。", "고양이를 좋아해요.")).toBe(true);
+  });
+
+  it("문형·차례를 설명하는 말투면 뜻으로 보지 않는다", () => {
+    expect(looksLikeMeaning("猫が好きです。", "3번에서는 이렇게 말해요")).toBe(
+      false,
+    );
+  });
+
+  it("일본어보다 훨씬 긴 한국어 줄은 뜻으로 보지 않는다", () => {
+    expect(
+      looksLikeMeaning(
+        "好き",
+        "그러니까 좋아하는 것을 말할 때 쓰는 말인데 잘 기억해 두세요",
+      ),
+    ).toBe(false);
+  });
+});
 
 describe("항목 이름에서 강·과 번호", () => {
   it.each([
