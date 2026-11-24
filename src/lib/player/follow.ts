@@ -111,11 +111,13 @@ export function stageView(cues: ContextCue[], pos: number): StageView {
 
 /**
  * 지금 칸의 반복 단추. 붙든 일본어 줄과 지금 말(한국어 설명)이 함께 보이면 단추가 무엇을
- * 반복하는지 헷갈리므로 둘로 나눈다: 붙든 일본어 줄 반복(그 줄 아래), 지금 말 반복(L 키와 같은 규칙).
+ * 반복하는지 헷갈리므로 둘로 나눈다: 붙든 일본어 줄 반복(그 줄 아래), 지금 말 반복(지금 줄).
  * 붙든 줄은 heldStillFresh 안에서만 보이므로(맞춘 줄 25초·흐린 줄 4초) 일본어 반복이 몇 분 전으로
  * 끌려가지 않는다. 하나만 보일 때는 그 줄을 잡는 "이 문장 반복" 하나다.
- * 지금 말 반복이 잡을 줄(hereTarget, resolveLoopCue 결과)이 바로 그 붙든 줄이면 두 단추가 같은 구간을
- * 되풀이하므로 하나만 둔다(지금 말이 비었거나, 일본어 줄이 막 끝나 아직 그 줄을 잡을 때).
+ * 지금 소리 나는 줄이 붙든 줄과 다르면 늘 둘로 나누고, "지금 말 반복"은 화면의 지금 줄(hereCue)을 그대로
+ * 잡는다. L 키 규칙(resolveLoopCue)은 설명이 막 시작했거나 방금 줄을 눌러 옮겼을 때 붙든 일본어 줄을
+ * 잡기도 해서, 단추 하나가 보이는 줄과 다른 구간을 되풀이하던 일을 막는다.
+ * 말 없는 틈(지금 줄이 없음)에서 지금 말 반복이 잡을 줄(hereTarget)이 붙든 줄이면 같은 구간이므로 하나만 둔다.
  */
 export function stageLoops(
   v: StageView,
@@ -123,12 +125,17 @@ export function stageLoops(
 ): {
   /** 붙든 일본어 줄 반복 단추를 따로 둘지 */
   held: boolean;
-  /** 지금 줄(L 키) 단추의 글 */
+  /** 지금 줄 단추의 글 */
   hereLabel: string;
+  /** 지금 줄 단추가 그대로 잡을 줄. -1이면 L 키 규칙(resolveLoopCue)을 따른다 */
+  hereCue: number;
 } {
-  const split = v.held >= 0 && v.held !== v.at && hereTarget !== v.held;
-  if (!split) return { held: false, hereLabel: "이 문장 반복" };
-  return { held: true, hereLabel: v.at >= 0 ? "지금 말 반복" : "방금 말 반복" };
+  const split =
+    v.held >= 0 && v.held !== v.at && (v.at >= 0 || hereTarget !== v.held);
+  if (!split) return { held: false, hereLabel: "이 문장 반복", hereCue: -1 };
+  if (v.at >= 0)
+    return { held: true, hereLabel: "지금 말 반복", hereCue: v.at };
+  return { held: true, hereLabel: "방금 말 반복", hereCue: -1 };
 }
 
 /** 이 강 강의를 틀었을 때 PC 무대가 한 화면에 들어오게 굴릴 거리(px, 0이면 굴리지 않는다) */

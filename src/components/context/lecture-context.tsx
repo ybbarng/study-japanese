@@ -136,11 +136,13 @@ export function LectureContext({
   // 반복 단추는 지금 들리는 줄을 잡는다(L 키와 같은 규칙). 그래서 지금 줄 바로 아래에 둔다:
   // 지금 줄이 일본어면 큰 글 아래, 한국어 설명 중이면 그 설명 줄 아래.
   // 붙든 일본어 줄과 지금 설명이 함께 보이면 단추를 둘로 나누고 무엇을 반복하는지 적는다(stageLoops)
-  // 지금 말 반복이 잡을 줄이 붙든 일본어 줄 그 자체면 단추를 하나로(같은 구간을 되풀이하는 두 단추는 헷갈린다)
+  // 두 줄이 다르면 늘 둘로 나누고, 지금 말 단추는 화면의 지금 줄을 그대로 잡는다(hereCue).
+  // 말 없는 틈에 지금 말 반복이 잡을 줄이 붙든 일본어 줄 그 자체면 하나로(같은 구간을 되풀이하는 두 단추는 헷갈린다)
   const loops = stageLoops(
     view,
     resolveLoopCue(cues, pos, { seek: recentSeek() }),
   );
+  const hereCue = loops.hereCue >= 0 ? cues[loops.hereCue] : null;
   const heldLoop =
     held && loops.held ? (
       <LoopButton
@@ -162,7 +164,9 @@ export function LectureContext({
         active={
           actions.looping && !(held && loops.held && actions.isLooping(held))
         }
-        onClick={actions.toggleHere}
+        onClick={
+          hereCue ? () => actions.toggleExact(hereCue) : actions.toggleHere
+        }
       />
       {pause}
     </div>

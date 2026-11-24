@@ -95,7 +95,32 @@ export function useCueActions(
     st.seekTo(cues[i].start);
   }, [book, item, cues, loopOf]);
 
+  /**
+   * 지금 칸이 단추를 둘로 나눴을 때의 "지금 말 반복": 화면에 보이는 그 줄을 그대로 잡는다
+   * (L 키 규칙은 막 시작한 설명 줄 대신 붙든 일본어 줄을 잡기도 해, 옆 단추와 같은 구간이 된다).
+   * 이미 반복 중이면 푼다.
+   */
+  const toggleExact = useCallback(
+    (cue: ContextCue) => {
+      const st = usePlayer.getState();
+      if (st.cueLoop && st.cueLoop.book === book && st.cueLoop.item === item) {
+        st.setCueLoop(null);
+        return;
+      }
+      st.setCueLoop(loopOf(cue));
+      st.seekTo(cue.start);
+    },
+    [book, item, loopOf],
+  );
+
   const isLooping = (cue: ContextCue) => loop?.start === cue.start;
 
-  return { seek, toggle, toggleHere, isLooping, looping: loop !== null };
+  return {
+    seek,
+    toggle,
+    toggleHere,
+    toggleExact,
+    isLooping,
+    looping: loop !== null,
+  };
 }
