@@ -76,6 +76,20 @@ describe("손으로 쓴 글자 채점", () => {
     expect(r.ok).toBe(true);
   });
 
+  it("모양이 맞아도 획 방향이 거꾸로면 틀리고 그 획 번호를 알려 준다", () => {
+    const r = checkWriting({
+      ink: glyph,
+      glyph,
+      strokesDrawn: 3,
+      strokeCounts: [3],
+      strokeIssues: [{ index: 2, verdict: { kind: "reversed" } }],
+    });
+    expect(r.ok).toBe(false);
+    expect(r.reasons).toEqual([
+      "3번째 획의 방향이 거꾸로예요. 본보기의 시작점에서 그어요.",
+    ]);
+  });
+
   it("한 획만 빠뜨리면 빠진 부분을 알려 준다", () => {
     const ink = draw([[0.2, 0.3, 0.8, 0.3]]);
     const r = checkWriting({ ink, glyph, strokesDrawn: 1, strokeCounts: [] });

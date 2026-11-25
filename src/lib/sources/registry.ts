@@ -16,6 +16,11 @@ export interface Source {
   mediaDirs: readonly string[];
   /** content/ 아래 어느 책 이름(transcripts/<book> 등)으로 들어 있는지 */
   books: readonly string[];
+  /**
+   * 자유 이용 허락(CC 등)으로 공개된 자료면 그 라이선스. 저장소·빌드에 함께 들어가 공개되므로
+   * 설정 화면에서 닫는 스위치를 두지 않는다.
+   */
+  license?: { name: string; url: string };
 }
 
 const GILBUT_NOTICE =
@@ -39,6 +44,21 @@ export const SOURCES: readonly Source[] = [
     notice: GILBUT_NOTICE,
     mediaDirs: ["ilmunta"],
     books: ["ilmunta"],
+  },
+  {
+    // 가나 획순·획 방향(src/lib/writing/data/kanjivg-*.json). 원본 SVG에서 획 경로만 뽑았다
+    id: "kanjivg",
+    title: "KanjiVG 획 데이터",
+    rightsHolder: "Ulrich Apel",
+    url: "https://kanjivg.tagaini.net",
+    notice:
+      "획순 데이터의 저작권은 Ulrich Apel(KanjiVG)에 있습니다. CC BY-SA 3.0으로 공개된 자료이며, 이 사이트에서 뽑아 쓴 획 데이터도 같은 라이선스를 따릅니다.",
+    mediaDirs: [],
+    books: [],
+    license: {
+      name: "CC BY-SA 3.0",
+      url: "https://creativecommons.org/licenses/by-sa/3.0/",
+    },
   },
 ];
 

@@ -1,4 +1,6 @@
+import { paintLayout } from "@/components/writing/path-points";
 import type { Grid } from "@/lib/kana/write-check";
+import type { StrokeLayout } from "@/lib/writing/layout";
 
 /** 채점 격자 한 변의 칸 수. 쓰기 칸이 커도 작아도 같은 격자로 견준다 */
 export const GRID_SIZE = 48;
@@ -44,6 +46,14 @@ export function inkGrid(
     for (const p of stroke.slice(1)) ctx.lineTo(p.x, p.y);
     ctx.stroke();
   }
+  return toGrid(ctx);
+}
+
+/** 본보기 획 데이터를 화면과 같은 굵기로 칠해 채점 격자로 */
+export function layoutGrid(layout: StrokeLayout, strokeWidth: number): Grid {
+  const ctx = offscreen();
+  if (!ctx) return { width: 0, height: 0, cells: new Uint8Array() };
+  paintLayout(ctx, layout, GRID_SIZE, strokeWidth);
   return toGrid(ctx);
 }
 

@@ -3,8 +3,11 @@
  * 쓴 잉크가 지나간 칸, 본보기 글자가 차지한 칸. 그 둘로
  *   - 쓴 잉크 가운데 본보기 근처에 떨어진 몫(밖으로 많이 나가면 틀림)
  *   - 본보기 가운데 쓴 잉크가 지나간 몫(빠진 획이 있으면 틀림)
- * 을 보고, 획 수가 맞는지 함께 본다. 획 방향은 획 데이터가 없어 아직 보지 않는다.
+ * 을 보고, 획 수가 맞는지 함께 본다. 획마다 순서·방향은 KanjiVG 획과 견준 결과
+ * (src/lib/writing/stroke-check.ts의 judgeStrokes)를 받아 함께 까닭으로 보인다.
  */
+
+import { issueText, type StrokeIssue } from "@/lib/writing/stroke-check";
 
 export interface Grid {
   width: number;
@@ -22,6 +25,8 @@ export interface WriteCheck {
   inside: number;
   /** 본보기 가운데 쓴 잉크가 지나간 몫(0~1) */
   covered: number;
+  /** 순서·방향이 본보기와 다른 획 */
+  strokeIssues: StrokeIssue[];
   /** 틀렸을 때 학습자에게 보일 까닭(맞으면 빈 배열) */
   reasons: string[];
 }
@@ -74,6 +79,7 @@ export function checkWriting({
   glyph,
   strokesDrawn,
   strokeCounts,
+  strokeIssues = [],
   rules = WRITE_RULES,
 }: {
   ink: Grid;
@@ -81,6 +87,8 @@ export function checkWriting({
   strokesDrawn: number;
   /** 받을 획 수 후보(첫 값이 교과서 획 수). 비어 있으면 획 수는 보지 않는다 */
   strokeCounts: number[];
+  /** 획마다 순서·방향을 견준 결과(획 데이터가 없거나 획 수가 다르면 빈 배열) */
+  strokeIssues?: StrokeIssue[];
   rules?: typeof WRITE_RULES;
 }): WriteCheck {
   const radius = Math.max(1, Math.round(ink.width * rules.slack));
@@ -97,12 +105,14 @@ export function checkWriting({
   if (covered < rules.minCovered) {
     reasons.push("본보기에서 빠진 부분이 있어요.");
   }
+  for (const issue of strokeIssues) reasons.push(issueText(issue));
   return {
     ok: reasons.length === 0,
     strokesDrawn,
     strokesExpected: expected,
     inside,
     covered,
+    strokeIssues,
     reasons,
   };
 }

@@ -27,7 +27,7 @@ export default function SettingsPage() {
           닫으세요.
         </p>
         <SourceSwitches
-          sources={SOURCES.map((s) => ({
+          sources={SOURCES.filter((s) => !s.license).map((s) => ({
             id: s.id,
             title: s.title,
             rightsHolder: s.rightsHolder,

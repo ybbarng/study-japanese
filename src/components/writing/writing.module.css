@@ -1,0 +1,34 @@
+/* 획순 보기: 획을 하나씩 그려 보인다(pathLength=1이라 길이와 상관없이 같은 값으로 그린다) */
+.draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw var(--dur, 600ms) ease-in-out forwards;
+  animation-delay: var(--delay, 0ms);
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* 따라 쓰기: 다음에 쓸 획이 숨 쉬듯 진해졌다 흐려진다 */
+.next {
+  animation: breathe 1.6s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .draw {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .next {
+    animation: none;
+  }
+}

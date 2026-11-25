@@ -35,6 +35,19 @@ export function SourceCredit({ source, closed, className }: Props) {
         </a>
       </p>
       <p className="mt-1">{source.notice}</p>
+      {source.license ? (
+        <p className="mt-1">
+          라이선스:{" "}
+          <a
+            href={source.license.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2"
+          >
+            {source.license.name}
+          </a>
+        </p>
+      ) : null}
     </aside>
   );
 }
