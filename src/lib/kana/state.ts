@@ -21,6 +21,18 @@ export interface KanaData {
   bests: Record<string, number>;
   /** 공부한 날(YYYY-MM-DD, 기기 시간대). 최근 120일만 둔다. */
   days: string[];
+  /** 써 보기 연습 기록. 카드 id → 기록 */
+  writes: Partial<Record<CardId, WriteRecord>>;
+}
+
+/** 써 보기에서 한 글자를 다 쓴 기록 */
+export interface WriteRecord {
+  /** 다 쓴 횟수(단계와 상관없이) */
+  done: number;
+  /** 빈 칸에 혼자, 한 번도 틀리지 않고 쓴 횟수 */
+  solo: number;
+  /** 마지막으로 쓴 시각(ms) */
+  last: number;
 }
 
 export function emptyKanaData(now = 0): KanaData {
@@ -31,7 +43,24 @@ export function emptyKanaData(now = 0): KanaData {
     lessons: {},
     bests: {},
     days: [],
+    writes: {},
   };
+}
+
+/** 써 보기에서 글자 하나를 다 썼다. `solo`는 빈 칸에 혼자 틀림 없이 썼는지 */
+export function recordWrite(
+  data: KanaData,
+  id: CardId,
+  solo: boolean,
+  now: number,
+): KanaData {
+  const prev = data.writes[id] ?? { done: 0, solo: 0, last: 0 };
+  const next: WriteRecord = {
+    done: prev.done + 1,
+    solo: prev.solo + (solo ? 1 : 0),
+    last: now,
+  };
+  return touch({ ...data, writes: { ...data.writes, [id]: next } }, now);
 }
 
 export function dayKey(now: number): string {
@@ -143,9 +172,36 @@ function readNumbers(v: unknown, where: string): Record<string, number> {
   return out;
 }
 
+function readWrites(v: unknown): Partial<Record<CardId, WriteRecord>> {
+  // 써 보기가 생기기 전에 저장한 상태에는 없다
+  if (v === undefined) return {};
+  if (!isRecord(v)) throw new KanaShapeError("writes");
+  const out: Partial<Record<CardId, WriteRecord>> = {};
+  for (const [k, r] of Object.entries(v)) {
+    if (
+      !isRecord(r) ||
+      !isNumber(r.done) ||
+      !isNumber(r.solo) ||
+      !isNumber(r.last)
+    )
+      throw new KanaShapeError(`writes.${k}`);
+    if (cardIdSet.has(k))
+      out[k as CardId] = { done: r.done, solo: r.solo, last: r.last };
+  }
+  return out;
+}
+
 export function serializeKanaData(data: KanaData): string {
-  const { version, updatedAt, cards, lessons, bests, days } = data;
-  return JSON.stringify({ version, updatedAt, cards, lessons, bests, days });
+  const { version, updatedAt, cards, lessons, bests, days, writes } = data;
+  return JSON.stringify({
+    version,
+    updatedAt,
+    cards,
+    lessons,
+    bests,
+    days,
+    writes,
+  });
 }
 
 /** JSON을 읽어 상태로. 모양이 틀리면 오류를 던진다. 모르는 카드 id는 버린다. */
@@ -167,5 +223,6 @@ export function parseKanaData(json: string): KanaData {
     lessons: readNumbers(raw.lessons, "lessons"),
     bests: readNumbers(raw.bests, "bests"),
     days: raw.days,
+    writes: readWrites(raw.writes),
   };
 }

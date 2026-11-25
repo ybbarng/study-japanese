@@ -21,6 +21,8 @@ interface KanaActions {
     higherIsBetter?: boolean,
     now?: number,
   ) => boolean;
+  /** 써 보기에서 글자 하나를 다 썼다 */
+  recordWrite: (id: CardId, solo: boolean, now?: number) => void;
   replace: (data: S.KanaData) => void;
   reset: () => void;
 }
@@ -59,6 +61,7 @@ const pickData = (s: KanaStore): S.KanaData => ({
   lessons: s.lessons,
   bests: s.bests,
   days: s.days,
+  writes: s.writes,
 });
 
 export const useKanaStore = create<KanaStore>()(
@@ -82,6 +85,8 @@ export const useKanaStore = create<KanaStore>()(
         set(r.data);
         return r.isNew;
       },
+      recordWrite: (id, solo, now = Date.now()) =>
+        set(S.recordWrite(pickData(get()), id, solo, now)),
       replace: (data) => set(data),
       reset: () => set(S.emptyKanaData(Date.now())),
     }),

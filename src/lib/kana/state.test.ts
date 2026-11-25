@@ -8,6 +8,7 @@ import {
   introduce,
   parseKanaData,
   recordBest,
+  recordWrite,
   serializeKanaData,
   streak,
 } from "./state";
@@ -100,5 +101,20 @@ describe("내보내기·들여오기", () => {
       cards: { ...d.cards, "hira:xx": d.cards["hira:a"] } as typeof d.cards,
     });
     expect(Object.keys(parseKanaData(json).cards)).toEqual(["hira:a"]);
+  });
+
+  it("써 보기 기록이 내보내기·들여오기를 거쳐도 남는다", () => {
+    let d = recordWrite(emptyKanaData(), "hira:a", false, T0);
+    d = recordWrite(d, "hira:a", true, T0 + 1000);
+    const back = parseKanaData(serializeKanaData(d));
+    expect(back.writes).toEqual({
+      "hira:a": { done: 2, solo: 1, last: T0 + 1000 },
+    });
+    expect(back.days).toEqual(["2027-01-01"]);
+  });
+
+  it("써 보기가 생기기 전에 저장한 상태(writes 없음)도 읽는다", () => {
+    const { writes: _, ...old } = emptyKanaData(T0);
+    expect(parseKanaData(JSON.stringify(old)).writes).toEqual({});
   });
 });

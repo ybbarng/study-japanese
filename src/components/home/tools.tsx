@@ -8,6 +8,7 @@ const TOOLS = [
     sub: "배운 낱말을 찾고 예문 듣기",
   },
   { href: "/songs", label: "노래로 배우기", sub: "외워 부르는 노래의 낱말" },
+  { href: "/kana/write", label: "써 보기", sub: "가나를 획순대로 따라 쓰기" },
   {
     href: "/ime",
     label: "일본어 입력기 켜는 법",

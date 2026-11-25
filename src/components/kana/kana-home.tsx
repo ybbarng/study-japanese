@@ -100,7 +100,7 @@ export function KanaHome() {
           </span>
         </Link>
 
-        <div className="grid grid-cols-3 gap-3 text-center lg:grid-cols-1 lg:text-left">
+        <div className="grid grid-cols-4 gap-3 text-center lg:grid-cols-1 lg:text-left">
           <GameLink
             href="/kana/review"
             mark={<span className="text-2xl font-bold">{plan.due}</span>}
@@ -115,6 +115,11 @@ export function KanaHome() {
             href="/kana/game/match"
             mark={<Glyph className="text-2xl">あア</Glyph>}
             label="짝 맞추기"
+          />
+          <GameLink
+            href="/kana/write"
+            mark={<Glyph className="text-2xl">筆</Glyph>}
+            label="써 보기"
           />
         </div>
       </div>
@@ -133,7 +138,7 @@ export function KanaHome() {
   );
 }
 
-/** 복습·놀이 입구. 폰은 세 칸 작은 상자, PC는 오늘 카드 옆에 세로로 늘어선 줄 */
+/** 복습·놀이·써 보기 입구. 폰은 네 칸 작은 상자, PC는 오늘 카드 옆에 세로로 늘어선 줄 */
 function GameLink({
   href,
   mark,
