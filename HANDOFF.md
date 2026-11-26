@@ -4,7 +4,7 @@
 - 마지막 배포 c2fe5ce(가나 획순·써 보기 `/kana/write`). E2E·Image·운영 점검(2003건, 실패 0) 통과. 돌고 있는 작업·서버·작업 트리 없음.
 - docs/plan.md 계획 표의 항목은 모두 끝(학습자 점검 3·5차로 판정). 남은 끝 기준은 실제 안드로이드 폰 확인뿐.
 - 다시 열면: 책상(`~/.local/state/secretary/desk/study-japanese.json`)의 기다림 네 개부터 본다. 사용자 답이 온 것만 이어 하고, 새 일은 사용자가 시킬 때 한다.
-- 학습자 점검 보고서: `docs/audit/2026-11-24-learner-audit*.md`, `docs/audit/2026-11-25-learner-audit-5.md`(git 밖 스크린샷 폴더는 커밋 금지). 요구를 "끝"으로 볼 때는 이 점검으로 판정한다(docs/standing-rules.md).
+- 학습자 점검 보고서: `docs/audit/2026-11-24-learner-audit*.md`, `docs/audit/2026-11-25-learner-audit-5.md`(보고서·스크린샷 모두 교재 글이 섞여 git 밖, 이 맥에만 있다). 요구를 "끝"으로 볼 때는 이 점검으로 판정한다(docs/standing-rules.md).
 
 ## git 밖 데이터(서버에 rsync로 올림, docs/DEPLOY.md)
 - `content/textbook/` 교재에서 뽑은 글, `content/transcripts/` 자막(다시 받아 적은 판), `content/transcripts-before-retry/` 옛 자막 사본

@@ -62,5 +62,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# 운영 점검 스크린샷(교재 글이 찍힌다)
-docs/audit/*/
+# 학습자 점검 보고서와 스크린샷(교재 글이 찍히거나 인용된다, 로컬에만 둔다)
+docs/audit/
